@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OPC 需求平台 — OPC 工作台</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --primary: #059669;
+    --primary-hover: #10b981;
+    --primary-light: #ecfdf5;
+    --primary-dark: #047857;
+    --accent: #0ea5e9;
+    --accent-light: #f0f9ff;
+    --text-main: #181818;
+    --text-sub: #5e5e5e;
+    --text-hint: #9b9b9b;
+    --border: rgba(0,0,0,.06);
+    --bg: #f0f1f5;
+    --card: #ffffff;
+    --glass: rgba(255,255,255,.72);
+    --glass-border: rgba(255,255,255,.5);
+    --error: #e5484d;
+    --radius: 16px;
+    --shadow-sm: 0 1px 4px rgba(0,0,0,.05);
+    --shadow-md: 0 4px 16px rgba(0,0,0,.06), 0 12px 32px rgba(0,0,0,.04);
+    --shadow-hover: 0 6px 20px rgba(5,150,105,.12), 0 16px 48px rgba(0,0,0,.08);
+  }
+
+  html, body { height: 100%; }
+  body {
+    font-family: "HarmonyOS Sans SC", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    background: #f0f1f5;
+    color: var(--text-main);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 600px 400px at 15% 15%, rgba(5,150,105,.09), transparent),
+      radial-gradient(ellipse 500px 500px at 85% 30%, rgba(14,165,233,.07), transparent),
+      radial-gradient(ellipse 400px 300px at 50% 90%, rgba(16,185,129,.06), transparent);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ===== 左侧导航栏 ===== */
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--glass);
+    backdrop-filter: blur(20px) saturate(1.2);
+    -webkit-backdrop-filter: blur(20px) saturate(1.2);
+    border-right: 1px solid var(--glass-border);
+    padding: 20px 14px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 10;
+    box-shadow: 4px 0 24px rgba(0,0,0,.04);
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px 18px;
+    font-size: 17px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .logo-badge {
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: #fff;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-text-fill-color: #fff;
+    box-shadow: 0 2px 8px rgba(5,150,105,.25);
+  }
+  .nav-group { font-size: 11.5px; color: var(--text-hint); padding: 14px 12px 6px; letter-spacing: 1px; text-transform: uppercase; }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-sub);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all .25s cubic-bezier(.4,0,.2,1);
+    margin-bottom: 2px;
+  }
+  .nav-item:hover { background: rgba(5,150,105,.06); color: var(--primary); }
+  .nav-item.active {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(5,150,105,.2);
+  }
+
+  .user-box {
+    margin-top: auto;
+    padding: 14px 12px;
+    border-top: 1px solid rgba(0,0,0,.04);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,.4);
+    border-radius: 12px;
+    margin-bottom: 4px;
+  }
+  .user-avatar {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(5,150,105,.2);
+  }
+  .user-meta { flex: 1; min-width: 0; }
+  .user-name { font-size: 13px; font-weight: 600; color: var(--text-main); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .user-sub { font-size: 11.5px; color: var(--text-hint); }
+  .logout-btn {
+    width: 28px; height: 28px; border: none; background: transparent; border-radius: 6px;
+    cursor: pointer; font-size: 15px; color: var(--text-hint); display: flex; align-items: center; justify-content: center;
+    transition: all .2s; flex-shrink: 0;
+  }
+  .logout-btn:hover { background: rgba(229,72,77,.1); color: var(--error); }
+
+  /* ===== 主区域 ===== */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow-y: auto;
+    position: relative;
+    z-index: 5;
+  }
+
+  .topbar {
+    background: var(--glass);
+    backdrop-filter: blur(20px) saturate(1.2);
+    -webkit-backdrop-filter: blur(20px) saturate(1.2);
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--glass-border);
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+  .topbar h1 { font-size: 20px; font-weight: 700; }
+  .topbar .spacer { flex: 1; }
+  .topbar .date-hint { font-size: 13px; color: var(--text-hint); }
+
+  .role-badge { display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; transition: all .2s; cursor: pointer; }
+  .role-badge:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+  .role-badge .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .role-badge.opc { background: rgba(5,150,105,.1); color: #059669; }
+  .role-badge.opc .dot { background: #059669; }
+  .role-badge.unverified { background: rgba(0,0,0,.04); color: var(--text-sub); }
+  .role-badge.unverified .dot { background: var(--text-hint); }
+
+  .content { padding: 28px; flex: 1; }
+
+  /* ===== 欢迎区 ===== */
+  .welcome-banner {
+    background: linear-gradient(135deg, #059669 0%, #10b981 50%, #0ea5e9 100%);
+    border-radius: 20px;
+    padding: 32px 36px;
+    margin-bottom: 28px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(5,150,105,.15);
+  }
+  .welcome-banner::before {
+    content: "";
+    position: absolute;
+    width: 340px; height: 340px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,.12), transparent 70%);
+    top: -140px; right: -80px;
+  }
+  .welcome-banner::after {
+    content: "";
+    position: absolute;
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,.08), transparent 70%);
+    bottom: -100px; right: 140px;
+  }
+  .welcome-text { position: relative; z-index: 1; }
+  .welcome-text h2 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+  .welcome-text p { font-size: 14px; opacity: .85; }
+  .welcome-btn {
+    position: relative;
+    z-index: 1;
+    background: #fff;
+    color: var(--primary);
+    border: none;
+    border-radius: 12px;
+    padding: 12px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform .2s, box-shadow .2s;
+    white-space: nowrap;
+  }
+  .welcome-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,.12); }
+
+  /* ===== 统计卡片 ===== */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--glass);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all .3s cubic-bezier(.4,0,.2,1);
+    cursor: pointer;
+  }
+  .stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-3px); border-color: rgba(5,150,105,.2); }
+  .stat-icon {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .stat-icon.blue { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); }
+  .stat-icon.green { background: linear-gradient(135deg, #ecfdf5, #d1fae5); }
+  .stat-icon.orange { background: linear-gradient(135deg, #fff7ed, #ffedd5); }
+  .stat-icon.purple { background: linear-gradient(135deg, #f5f3ff, #ede9fe); }
+  .stat-info { flex: 1; min-width: 0; }
+  .stat-value { font-size: 26px; font-weight: 700; color: var(--text-main); line-height: 1.2; }
+  .stat-label { font-size: 13px; color: var(--text-sub); margin-top: 2px; }
+
+  /* ===== 功能卡片区域 ===== */
+  .section-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::before {
+    content: "";
+    width: 4px; height: 18px;
+    background: var(--primary);
+    border-radius: 2px;
+  }
+
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-bottom: 28px;
+  }
+
+  .feature-card {
+    background: var(--glass);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    box-shadow: var(--shadow-sm);
+    transition: all .3s cubic-bezier(.4,0,.2,1);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+  }
+  .feature-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--card-color, var(--primary));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform .3s;
+  }
+  .feature-card:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-4px);
+    border-color: rgba(5,150,105,.15);
+  }
+  .feature-card:hover::before { transform: scaleX(1); }
+
+  .fc-icon {
+    width: 52px; height: 52px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    margin-bottom: 16px;
+  }
+  .fc-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+  .fc-desc { font-size: 13.5px; color: var(--text-sub); line-height: 1.6; flex: 1; }
+  .fc-arrow {
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--primary);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: gap .2s;
+  }
+  .feature-card:hover .fc-arrow { gap: 8px; }
+
+  /* ===== 匹配需求列表 ===== */
+  .recent-section {
+    background: var(--glass);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .recent-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .recent-header h3 { font-size: 15px; font-weight: 600; }
+  .recent-header a { font-size: 13px; color: var(--primary); text-decoration: none; cursor: pointer; }
+  .recent-header a:hover { text-decoration: underline; }
+
+  .recent-list { list-style: none; }
+  .recent-item {
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-bottom: 1px solid var(--border);
+    transition: background .2s;
+    cursor: pointer;
+  }
+  .recent-item:last-child { border-bottom: none; }
+  .recent-item:hover { background: var(--bg); }
+
+  .ri-match {
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+    white-space: nowrap;
+    background: #ecfdf5;
+    color: #059669;
+  }
+  .ri-match.mid { background: #fff7ed; color: #ea580c; }
+
+  .ri-title { flex: 1; font-size: 14px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ri-budget { font-size: 13px; font-weight: 600; color: var(--primary-dark); flex-shrink: 0; white-space: nowrap; }
+  .ri-tags { display: flex; gap: 6px; flex-shrink: 0; }
+  .ri-tag {
+    font-size: 11.5px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--primary-light);
+    color: var(--primary);
+  }
+  .ri-date { font-size: 12.5px; color: var(--text-hint); flex-shrink: 0; width: 72px; text-align: right; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-80px);
+    background: var(--text-main);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.15);
+    z-index: 9999;
+    transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ===== 响应式 ===== */
+  @media (max-width: 1024px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .feature-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 768px) {
+    body { flex-direction: column; overflow-y: auto; }
+    .sidebar { display: none; }
+    .content { padding: 16px; }
+    .stats-grid { grid-template-columns: 1fr; }
+    .feature-grid { grid-template-columns: 1fr; }
+    .welcome-banner { flex-direction: column; gap: 20px; text-align: center; padding: 24px; }
+    .recent-item { flex-wrap: wrap; }
+    .ri-date { width: auto; }
+  }
+
+  /* ===== 未认证遮罩 ===== */
+  .pending-overlay {
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(0,0,0,.35);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pending-card {
+    background: #fff; border-radius: 20px;
+    padding: 40px 36px 32px; text-align: center;
+    max-width: 420px; width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,.15);
+    animation: pendingIn .4s ease;
+  }
+  @keyframes pendingIn {
+    from { opacity: 0; transform: translateY(20px) scale(.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .pending-icon { font-size: 48px; margin-bottom: 16px; }
+  .pending-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .pending-desc { font-size: 13.5px; color: var(--text-sub); line-height: 1.8; margin-bottom: 24px; }
+  .pending-btn {
+    display: inline-block; height: 42px; padding: 0 28px;
+    background: var(--primary); color: #fff;
+    border: none; border-radius: 10px;
+    font-size: 14px; font-weight: 600; font-family: inherit;
+    cursor: pointer; transition: background .2s;
+    text-decoration: none; line-height: 42px;
+  }
+  .pending-btn:hover { background: var(--primary-hover); }
+  .pending-btn.ghost {
+    background: #f3f4f6; color: var(--text-sub); margin-left: 10px;
+  }
+  .pending-btn.ghost:hover { background: #e5e7eb; }
+  .pending-status {
+    display: inline-block; padding: 4px 14px; border-radius: 20px;
+    font-size: 12px; font-weight: 600; margin-bottom: 16px;
+  }
+  .pending-status.pending { background: #fff7ed; color: #ea580c; }
+  .pending-status.rejected { background: #fff5f5; color: #e5484d; }
+
+  /* 头像上传 */
+  .user-avatar { position: relative; cursor: pointer; overflow: hidden; }
+  .user-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .user-avatar::after {
+    content: "📷";
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; opacity: 0; transition: opacity .2s;
+    border-radius: 50%;
+  }
+  .user-avatar:hover::after { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- 左侧导航栏 -->
+<aside class="sidebar">
+  <div class="logo"><span class="logo-badge">OP</span>OPC 协作平台</div>
+
+  <div class="nav-group">接单服务</div>
+  <a class="nav-item active" href="opc-dashboard.html">🏠 工作台</a>
+  <a class="nav-item" href="javascript:void(0)" data-action="hall" id="navHall">🏪 抢单大厅</a>
+  <a class="nav-item" href="javascript:void(0)" data-action="orders" id="navOrders">📦 我的接单</a>
+  <a class="nav-item" href="javascript:void(0)" data-action="quotes" id="navQuotes">💰 报价管理</a>
+  <a class="nav-item" href="javascript:void(0)" data-action="income" id="navIncome">💳 收益中心</a>
+
+  <div class="nav-group">其他</div>
+  <a class="nav-item" href="role-auth.html" id="authNavItem">🪪 角色认证</a>
+  <a class="nav-item" href="javascript:void(0)" data-action="settings">⚙️ 设置</a>
+  <a class="nav-item" href="javascript:void(0)">❓ 帮助中心</a>
+
+  <div class="user-box" id="userBox">
+    <div class="user-avatar" id="userAvatar" title="点击更换头像">
+      <span id="avatarText">U</span>
+      <input type="file" id="avatarInput" accept="image/*" style="display:none">
+    </div>
+    <div class="user-meta">
+      <div class="user-name" id="userName">未登录</div>
+      <div class="user-sub" id="userSub">点击登录</div>
+    </div>
+    <button class="logout-btn" id="logoutBtn" title="退出登录">⏻</button>
+  </div>
+</aside>
+
+<!-- 主区域 -->
+<div class="main">
+  <div class="topbar">
+    <h1>OPC 工作台</h1>
+    <div class="spacer"></div>
+    <span class="date-hint" id="dateHint"></span>
+    <div class="role-badge unverified" id="roleBadge" onclick="window.location.href='role-auth.html'">
+      <span class="dot"></span><span id="roleBadgeText">未认证</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- 欢迎横幅 -->
+    <div class="welcome-banner">
+      <div class="welcome-text">
+        <h2 id="welcomeTitle">欢迎回来</h2>
+        <p>今天有新的匹配需求上线，去抢单大厅看看，主动报价赢订单</p>
+      </div>
+      <button class="welcome-btn" data-action="hall">🏪 进入抢单大厅</button>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="stats-grid">
+      <div class="stat-card" data-action="hall">
+        <div class="stat-icon blue">🏪</div>
+        <div class="stat-info">
+          <div class="stat-value" id="statNew">0</div>
+          <div class="stat-label">本月新增需求</div>
+        </div>
+      </div>
+      <div class="stat-card" data-action="quotes">
+        <div class="stat-icon green">💰</div>
+        <div class="stat-info">
+          <div class="stat-value" id="statQuoted">0</div>
+          <div class="stat-label">我的报价</div>
+        </div>
+      </div>
+      <div class="stat-card" data-action="orders">
+        <div class="stat-icon orange">📦</div>
+        <div class="stat-info">
+          <div class="stat-value" id="statDoing">0</div>
+          <div class="stat-label">进行中订单</div>
+        </div>
+      </div>
+      <div class="stat-card" data-action="income">
+        <div class="stat-icon purple">💳</div>
+        <div class="stat-info">
+          <div class="stat-value" id="statIncome">¥0</div>
+          <div class="stat-label">累计收益</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 功能卡片 -->
+    <div class="section-title">快捷入口</div>
+    <div class="feature-grid">
+      <a class="feature-card" href="javascript:void(0)" style="--card-color:#059669" data-action="hall">
+        <div class="fc-icon" style="background:#ecfdf5">🏪</div>
+        <div class="fc-title">抢单大厅</div>
+        <div class="fc-desc">浏览企业发布的最新需求，按擅长领域智能匹配，在线提交报价</div>
+        <div class="fc-arrow">去抢单 →</div>
+      </a>
+      <a class="feature-card" href="javascript:void(0)" style="--card-color:#0ea5e9" data-action="orders">
+        <div class="fc-icon" style="background:#f0f9ff">📦</div>
+        <div class="fc-title">我的接单</div>
+        <div class="fc-desc">查看已承接的订单，管理交付进度、提交成果与确认验收状态</div>
+        <div class="fc-arrow">管理订单 →</div>
+      </a>
+      <a class="feature-card" href="javascript:void(0)" style="--card-color:#ea580c" data-action="quotes">
+        <div class="fc-icon" style="background:#fff7ed">💰</div>
+        <div class="fc-title">报价管理</div>
+        <div class="fc-desc">跟踪已提交的报价单，查看需求方反馈，及时调整报价策略</div>
+        <div class="fc-arrow">查看报价 →</div>
+      </a>
+      <a class="feature-card" href="javascript:void(0)" style="--card-color:#8b5cf6" data-action="mytags">
+        <div class="fc-icon" style="background:#f5f3ff">🏷️</div>
+        <div class="fc-title">我的能力标签</div>
+        <div class="fc-desc">完善擅长领域与技能标签，标签越精准，需求匹配度越高</div>
+        <div class="fc-arrow">完善标签 →</div>
+      </a>
+      <a class="feature-card" href="javascript:void(0)" style="--card-color:#16a34a" data-action="income">
+        <div class="fc-icon" style="background:#ecfdf5">💳</div>
+        <div class="fc-title">收益中心</div>
+        <div class="fc-desc">查看结算记录、待结算金额与收益明细，支持申请提现</div>
+        <div class="fc-arrow">查看收益 →</div>
+      </a>
+      <a class="feature-card" href="javascript:void(0)" style="--card-color:#f43f5e" data-action="settings">
+        <div class="fc-icon" style="background:#fff1f2">⚙️</div>
+        <div class="fc-title">账号设置</div>
+        <div class="fc-desc">管理个人信息、接单偏好、通知方式与隐私选项</div>
+        <div class="fc-arrow">去设置 →</div>
+      </a>
+    </div>
+
+    <!-- 最新匹配需求 -->
+    <div class="section-title">最新匹配需求</div>
+    <div class="recent-section">
+      <div class="recent-header">
+        <h3>根据你的擅长领域智能推荐</h3>
+        <a data-action="hall">进入抢单大厅 →</a>
+      </div>
+      <ul class="recent-list" id="recentList">
+        <li class="recent-item" data-action="hall">
+          <span class="ri-match">匹配 92%</span>
+          <span class="ri-title">闽南语短视频脚本撰写（含分镜）</span>
+          <span class="ri-budget">¥2,000-3,500</span>
+          <div class="ri-tags"><span class="ri-tag">文案撰写</span><span class="ri-tag">视频脚本</span></div>
+          <span class="ri-date">2 小时前</span>
+        </li>
+        <li class="recent-item" data-action="hall">
+          <span class="ri-match">匹配 87%</span>
+          <span class="ri-title">电商平台详情页文案优化</span>
+          <span class="ri-budget">¥1,500-2,800</span>
+          <div class="ri-tags"><span class="ri-tag">文案撰写</span></div>
+          <span class="ri-date">5 小时前</span>
+        </li>
+        <li class="recent-item" data-action="hall">
+          <span class="ri-match">匹配 81%</span>
+          <span class="ri-title">品牌公众号月度内容代运营</span>
+          <span class="ri-budget">¥6,000-8,000</span>
+          <div class="ri-tags"><span class="ri-tag">内容策划</span><span class="ri-tag">新媒体运营</span></div>
+          <span class="ri-date">昨天</span>
+        </li>
+        <li class="recent-item" data-action="hall">
+          <span class="ri-match mid">匹配 76%</span>
+          <span class="ri-title">企业宣传册视觉设计（20P 以内）</span>
+          <span class="ri-budget">¥4,000-6,000</span>
+          <div class="ri-tags"><span class="ri-tag">平面设计</span><span class="ri-tag">品牌设计</span></div>
+          <span class="ri-date">昨天</span>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<!-- 未认证遮罩 -->
+<div class="pending-overlay" id="pendingOverlay" style="display:none">
+  <div class="pending-card">
+    <div class="pending-icon" id="pendingIcon">🔒</div>
+    <div class="pending-status pending" id="pendingStatus">认证审核中</div>
+    <div class="pending-title" id="pendingTitle">认证审核中，暂为普通用户</div>
+    <div class="pending-desc" id="pendingDesc">
+      您的 OPC 认证申请已提交，管理员正在审核中。<br>
+      审核通过后即可解锁抢单大厅、我的接单、报价管理、收益中心等全部功能。<br>
+      当前仅可预览工作台页面。
+    </div>
+    <a class="pending-btn" href="role-auth.html" id="pendingBtn">查看认证状态</a>
+    <a class="pending-btn ghost" href="javascript:void(0)" onclick="document.getElementById('pendingOverlay').style.display='none'">先逛逛</a>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- Toast ---------- */
+function showToast(msg) {
+  var t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(function () { t.classList.remove("show"); }, 2600);
+}
+
+/* ---------- 登录态与身份校验：仅 OPC 服务者可进入 ---------- */
+(function checkLogin() {
+  var user = null;
+  try { user = JSON.parse(localStorage.getItem("opc_user")); } catch (e) {}
+  if (!user || !user.time || Date.now() - user.time > 7 * 24 * 3600 * 1000) {
+    window.location.href = "login.html";
+    return;
+  }
+  /* 企业需求方与管理员使用企业端工作台 */
+  if (user.authRole === "enterprise" || user.role === "admin") {
+    window.location.href = "dashboard.html";
+    return;
+  }
+  var displayName = user.username || (user.phone ? user.phone.replace(/(\d{3})\d{4}(\d{4})/, "$1****$2") : "用户");
+  document.getElementById("userName").textContent = displayName;
+  document.getElementById("userSub").textContent = user.accountId ? "ID：" + user.accountId : "OPC 服务者";
+  var avatar = document.getElementById("userAvatar");
+  var avatarText = document.getElementById("avatarText");
+  var avatarInput = document.getElementById("avatarInput");
+  avatarText.textContent = displayName.charAt(0).toUpperCase();
+
+  /* 恢复已保存的头像 */
+  if (user.avatar) {
+    avatarText.style.display = "none";
+    var img = document.createElement("img");
+    img.src = user.avatar;
+    img.alt = "头像";
+    avatar.appendChild(img);
+  }
+
+  /* 头像上传 */
+  avatar.addEventListener("click", function () { avatarInput.click(); });
+  avatarInput.addEventListener("change", function () {
+    if (!this.files || !this.files[0]) return;
+    var file = this.files[0];
+    if (file.size > 2 * 1024 * 1024) { showToast("头像不能超过 2MB"); return; }
+    var reader = new FileReader();
+    reader.onload = function (ev) {
+      var dataUrl = ev.target.result;
+      avatarText.style.display = "none";
+      var oldImg = avatar.querySelector("img");
+      if (oldImg) oldImg.remove();
+      var newImg = document.createElement("img");
+      newImg.src = dataUrl;
+      newImg.alt = "头像";
+      avatar.appendChild(newImg);
+      user.avatar = dataUrl;
+      localStorage.setItem("opc_user", JSON.stringify(user));
+      var accounts = [];
+      try { accounts = JSON.parse(localStorage.getItem("opc_accounts")) || []; } catch (e) {}
+      for (var i = 0; i < accounts.length; i++) {
+        if (accounts[i].id === user.accountId) {
+          accounts[i].avatar = dataUrl;
+          accounts[i].updateTime = Date.now();
+          localStorage.setItem("opc_accounts", JSON.stringify(accounts));
+          break;
+        }
+      }
+      /* 记录到 sys_file 模拟表 */
+      var files = [];
+      try { files = JSON.parse(localStorage.getItem("opc_files")) || []; } catch (e) {}
+      var maxId = 0;
+      for (var fi = 0; fi < files.length; fi++) { if (files[fi].fileId > maxId) maxId = files[fi].fileId; }
+      files.push({
+        fileId: maxId + 1,
+        fileName: file.name,
+        filePath: "/uploads/avatars/" + user.accountId + "_" + (maxId + 1) + "_" + file.name,
+        fileSize: file.size,
+        contentType: file.type,
+        uploadUser: user.accountId,
+        createTime: Date.now()
+      });
+      localStorage.setItem("opc_files", JSON.stringify(files));
+      showToast("头像已更新");
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById("welcomeTitle").textContent = "欢迎回来，" + displayName;
+
+  var badge = document.getElementById("roleBadge");
+  var badgeText = document.getElementById("roleBadgeText");
+  if (user.authRole === "opc") {
+    badge.className = "role-badge opc";
+    badgeText.textContent = user.authStatus === "approved" ? "OPC 服务者" : (user.authStatus === "rejected" ? "认证未通过" : "OPC 认证中");
+  }
+
+  /* ===== 未认证用户限制：仅可预览，无法使用功能 ===== */
+  var isApproved = user.authRole === "opc" && user.authStatus === "approved";
+  var isPending = user.authRole === "opc" && user.authStatus === "pending";
+  var isRejected = user.authRole === "opc" && user.authStatus === "rejected";
+  var isGuest = !user.authRole;
+
+  if (!isApproved) {
+    var overlay = document.getElementById("pendingOverlay");
+    var statusEl = document.getElementById("pendingStatus");
+    var titleEl = document.getElementById("pendingTitle");
+    var descEl = document.getElementById("pendingDesc");
+    var btnEl = document.getElementById("pendingBtn");
+
+    if (isPending) {
+      statusEl.className = "pending-status pending";
+      statusEl.textContent = "认证审核中";
+      titleEl.textContent = "认证审核中，暂为普通用户";
+      descEl.innerHTML = "您的 OPC 认证申请已提交，管理员正在审核中。<br>审核通过后即可解锁抢单大厅、我的接单、报价管理、收益中心等全部功能。<br>当前仅可预览工作台页面。";
+      btnEl.textContent = "查看认证状态";
+      btnEl.href = "role-auth.html";
+    } else if (isRejected) {
+      statusEl.className = "pending-status rejected";
+      statusEl.textContent = "认证未通过";
+      titleEl.textContent = "认证未通过，暂为普通用户";
+      var rejectMsg = "您的 OPC 认证申请未通过审核。";
+      if (user.rejectReason) {
+        rejectMsg += "<br><strong style=\"color:#e5484d\">拒绝原因：" + user.rejectReason + "</strong>";
+      }
+      rejectMsg += "<br>请重新提交认证资料，通过后即可解锁全部功能。<br>当前仅可预览工作台页面。";
+      descEl.innerHTML = rejectMsg;
+      btnEl.textContent = "重新认证";
+      btnEl.href = "role-auth.html";
+    } else if (isGuest) {
+      statusEl.className = "pending-status pending";
+      statusEl.textContent = "未认证";
+      titleEl.textContent = "完成 OPC 认证后解锁全部功能";
+      descEl.innerHTML = "您当前是普通用户，仅可预览工作台页面。<br>完成 OPC 服务者认证后，即可使用抢单大厅、我的接单、报价管理、收益中心等全部功能。";
+      btnEl.textContent = "去认证";
+      btnEl.href = "role-auth.html";
+    }
+
+    /* 禁用所有功能入口 */
+    document.querySelectorAll("[data-action]").forEach(function (el) {
+      el.style.opacity = ".45";
+      el.style.pointerEvents = "none";
+      el.style.cursor = "not-allowed";
+    });
+    /* 欢迎横幅按钮 */
+    var welcomeBtn = document.querySelector(".welcome-btn");
+    if (welcomeBtn) { welcomeBtn.style.opacity = ".45"; welcomeBtn.style.pointerEvents = "none"; }
+    /* 侧边栏功能项 */
+    ["navHall", "navOrders", "navQuotes", "navIncome"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) { el.style.opacity = ".45"; el.style.pointerEvents = "none"; el.style.cursor = "not-allowed"; }
+    });
+
+    overlay.style.display = "flex";
+  }
+
+  document.getElementById("logoutBtn").addEventListener("click", function () {
+    if (confirm("确定退出登录吗？")) {
+      localStorage.removeItem("opc_user");
+      window.location.href = "login.html";
+    }
+  });
+})();
+
+/* ---------- 日期显示 ---------- */
+(function () {
+  var d = new Date();
+  var days = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+  document.getElementById("dateHint").textContent =
+    d.getFullYear() + " 年 " + (d.getMonth() + 1) + " 月 " + d.getDate() + " 日 " + days[d.getDay()];
+})();
+
+/* ---------- 统计数字动画 ---------- */
+(function () {
+  function animate(el, target, prefix) {
+    var cur = 0;
+    var step = Math.ceil(target / 20);
+    var timer = setInterval(function () {
+      cur += step;
+      if (cur >= target) { cur = target; clearInterval(timer); }
+      el.textContent = (prefix || "") + cur.toLocaleString();
+    }, 30);
+  }
+  animate(document.getElementById("statNew"), 12);
+  animate(document.getElementById("statQuoted"), 5);
+  animate(document.getElementById("statDoing"), 2);
+  animate(document.getElementById("statIncome"), 8600, "¥");
+})();
+
+/* ---------- 认证状态实时同步 ---------- */
+(function () {
+  var user = null;
+  try { user = JSON.parse(localStorage.getItem("opc_user")); } catch (e) {}
+  if (!user) return;
+
+  function syncAuthStatus() {
+    var accounts = [];
+    try { accounts = JSON.parse(localStorage.getItem("opc_accounts")) || []; } catch (e) {}
+    for (var i = 0; i < accounts.length; i++) {
+      if (accounts[i].id === user.accountId) {
+        var changed = false;
+        if (accounts[i].authStatus !== user.authStatus) { user.authStatus = accounts[i].authStatus; changed = true; }
+        if (accounts[i].authRole !== user.authRole) { user.authRole = accounts[i].authRole; changed = true; }
+        if (accounts[i].avatar !== user.avatar) { user.avatar = accounts[i].avatar; changed = true; }
+        if (changed) {
+          localStorage.setItem("opc_user", JSON.stringify(user));
+          var badge = document.getElementById("roleBadge");
+          var badgeText = document.getElementById("roleBadgeText");
+          if (user.authRole === "opc") {
+            badge.className = "role-badge opc";
+            badgeText.textContent = user.authStatus === "approved" ? "OPC 服务者" : (user.authStatus === "rejected" ? "认证未通过" : "OPC 认证中");
+          }
+          /* 头像 */
+          var avatar = document.getElementById("userAvatar");
+          var avatarText = document.getElementById("avatarText");
+          if (user.avatar) {
+            avatarText.style.display = "none";
+            var oldImg = avatar.querySelector("img");
+            if (oldImg) oldImg.remove();
+            var newImg = document.createElement("img");
+            newImg.src = user.avatar;
+            newImg.alt = "头像";
+            avatar.appendChild(newImg);
+          }
+        }
+        break;
+      }
+    }
+  }
+  setInterval(syncAuthStatus, 3000);
+  window.addEventListener("focus", syncAuthStatus);
+})();
+
+/* ---------- 未上线功能提示 ---------- */
+document.querySelectorAll("[data-action]").forEach(function (el) {
+  el.addEventListener("click", function (e) {
+    e.preventDefault();
+    var map = { hall: "抢单大厅", orders: "我的接单", quotes: "报价管理", mytags: "我的能力标签", income: "收益中心", settings: "账号设置" };
+    showToast("「" + (map[this.dataset.action] || "该功能") + "」即将上线");
+  });
+});
+</script>
+</body>
+</html>

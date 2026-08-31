@@ -1,0 +1,3083 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登录 / 注册 — OPC 需求平台</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --primary: #3b5bfd;
+    --primary-hover: #5a78ff;
+    --primary-active: #2d47e0;
+    --primary-light: #eef1ff;
+    --text-main: #1a1d26;
+    --text-sub: #6b7280;
+    --text-hint: #9ca3af;
+    --border: #e5e7eb;
+    --border-focus: #3b5bfd;
+    --error: #e5484d;
+    --error-bg: #fff5f5;
+    --bg: #f3f5f9;
+    --card: #ffffff;
+    --radius: 10px;
+    --shadow: 0 2px 8px rgba(0,0,0,.04), 0 8px 32px rgba(0,0,0,.06);
+  }
+
+  html, body { height: 100%; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(135deg, #eef2ff 0%, #f0f7ff 30%, #faf5ff 60%, #fff0f6 100%);
+    color: var(--text-main);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 20px;
+    position: relative;
+    overflow-y: auto;
+  }
+
+  /* 背景装饰 */
+  body::before {
+    content: "";
+    position: fixed;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(59,91,253,.08), transparent 70%);
+    top: -100px; right: -100px;
+    animation: float1 10s ease-in-out infinite;
+    z-index: 0;
+  }
+  body::after {
+    content: "";
+    position: fixed;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(139,92,246,.08), transparent 70%);
+    bottom: -80px; left: -80px;
+    animation: float2 12s ease-in-out infinite;
+    z-index: 0;
+  }
+
+  @keyframes float1 {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(40px) scale(1.05); }
+  }
+  @keyframes float2 {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-30px) scale(.95); }
+  }
+
+  /* ===== 顶部品牌区 ===== */
+  .brand-top {
+    text-align: center;
+    margin-bottom: 32px;
+    position: relative;
+    z-index: 1;
+    animation: fadeDown .6s ease;
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .brand-logo {
+    width: 64px; height: 64px;
+    margin: 0 auto 16px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #3b5bfd, #6d5dfc, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 800;
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(59,91,253,.3);
+  }
+
+  .brand-name {
+    font-size: 24px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #3b5bfd, #6d5dfc, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 6px;
+  }
+
+  .brand-tagline {
+    font-size: 13px;
+    color: var(--text-sub);
+    font-weight: 400;
+  }
+
+  /* ===== 登录卡片 ===== */
+  .login-card {
+    width: 100%;
+    max-width: 400px;
+    background: rgba(255,255,255,.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,.6);
+    border-radius: 20px;
+    padding: 36px 32px 28px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.08), 0 2px 8px rgba(59,91,253,.06);
+    animation: fadeUp .5s ease;
+    position: relative;
+    z-index: 1;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .login-header {
+    margin-bottom: 28px;
+  }
+  .login-header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 4px;
+  }
+  .login-header p {
+    font-size: 13px;
+    color: var(--text-sub);
+  }
+
+  /* Tab 切换 */
+  .tabs {
+    display: flex;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 28px;
+  }
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px 0;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-sub);
+    cursor: pointer;
+    position: relative;
+    transition: color .2s;
+  }
+  .tab:hover { color: var(--primary); }
+  .tab.active {
+    color: var(--primary);
+    font-weight: 600;
+  }
+  .tab.active::after {
+    content: "";
+    position: absolute;
+    left: 20%; right: 20%;
+    bottom: -2px;
+    height: 2px;
+    background: var(--primary);
+    border-radius: 1px;
+    transition: all .3s;
+  }
+
+  /* 表单面板 */
+  .panel { display: none; animation: fadeIn .3s ease; }
+  .panel.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* 输入框组 */
+  .input-group {
+    margin-bottom: 18px;
+  }
+  .input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .input-wrapper.prefix {
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    transition: border-color .2s, box-shadow .2s;
+    background: var(--card);
+  }
+  .input-wrapper.prefix:focus-within {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(59, 91, 253, .1);
+  }
+  .input-wrapper.prefix .prefix-text {
+    padding: 0 12px 0 14px;
+    font-size: 14.5px;
+    color: var(--text-main);
+    font-weight: 500;
+    border-right: 1px solid var(--border);
+    height: 46px;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .input-icon {
+    position: absolute;
+    left: 14px;
+    color: var(--text-hint);
+    font-size: 16px;
+    pointer-events: none;
+    transition: color .2s;
+  }
+
+  .input-group input,
+  .input-wrapper input {
+    width: 100%;
+    height: 46px;
+    padding: 0 14px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 14.5px;
+    font-family: inherit;
+    color: var(--text-main);
+    background: var(--card);
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .input-wrapper.prefix input {
+    border: none;
+    border-radius: 0;
+    padding-left: 12px;
+  }
+  .input-group input::placeholder {
+    color: var(--text-hint);
+  }
+  .input-group input:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(59, 91, 253, .1);
+  }
+  .input-group:focus-within .input-icon {
+    color: var(--primary);
+  }
+  .input-group input.has-icon {
+    padding-left: 42px;
+  }
+  .input-group input.has-toggle {
+    padding-right: 42px;
+  }
+  /* 禁用浏览器原生密码显示按钮 */
+  input::-ms-reveal,
+  input::-ms-clear {
+    display: none;
+  }
+
+  /* 密码可见切换 */
+  .pwd-toggle {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: var(--text-hint);
+    font-size: 15px;
+    user-select: none;
+    transition: color .2s;
+    z-index: 1;
+    background: var(--card);
+    padding: 4px 2px;
+    border-radius: 4px;
+  }
+  .pwd-toggle:hover { color: var(--text-sub); }
+
+  /* 验证码按钮 */
+  .code-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: background .2s;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+  .code-btn:hover:not(:disabled) {
+    background: var(--primary-light);
+  }
+  .code-btn:disabled {
+    color: var(--text-hint);
+    cursor: not-allowed;
+  }
+
+  /* 记住我 + 协议勾选统一行 */
+  .check-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    color: var(--text-sub);
+    margin-bottom: 10px;
+    line-height: 1.6;
+  }
+  .check-row input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    accent-color: var(--primary);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .check-row label { cursor: pointer; }
+  .check-row a {
+    color: var(--primary);
+    text-decoration: none;
+  }
+  .check-row a:hover { text-decoration: underline; }
+
+  /* 主按钮 */
+  .submit-btn {
+    width: 100%;
+    height: 46px;
+    border: none;
+    border-radius: var(--radius);
+    background: var(--primary);
+    color: #fff;
+    font-size: 15.5px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background .2s, transform .1s;
+    letter-spacing: 1px;
+  }
+  .submit-btn:hover { background: var(--primary-hover); }
+  .submit-btn:active { background: var(--primary-active); transform: scale(.98); }
+  .submit-btn:disabled {
+    background: #c5cdf6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* 密码强度指示器 */
+  .pwd-strength {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    opacity: 0;
+    transition: opacity .25s;
+    pointer-events: none;
+  }
+  .pwd-strength.visible { opacity: 1; }
+  .pwd-strength-bars {
+    display: flex;
+    gap: 4px;
+    flex: 1;
+  }
+  .pwd-bar {
+    height: 4px;
+    flex: 1;
+    border-radius: 2px;
+    background: #e5e7eb;
+    transition: background .3s, transform .2s;
+  }
+  .pwd-bar.active { transform: scaleY(1.3); }
+  .pwd-bar.weak { background: #e5484d; }
+  .pwd-bar.medium { background: #f5a623; }
+  .pwd-bar.strong { background: #3b5bfd; }
+  .pwd-bar.very-strong { background: #22c55e; }
+  .pwd-strength-text {
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    min-width: 32px;
+    text-align: right;
+    transition: color .3s;
+  }
+  .pwd-strength-text.weak { color: #e5484d; }
+  .pwd-strength-text.medium { color: #f5a623; }
+  .pwd-strength-text.strong { color: #3b5bfd; }
+  .pwd-strength-text.very-strong { color: #22c55e; }
+
+  /* 分割线 */
+  .divider {
+    display: flex;
+    align-items: center;
+    margin: 24px 0;
+    gap: 12px;
+  }
+  .divider::before, .divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .divider span {
+    font-size: 12px;
+    color: var(--text-hint);
+  }
+
+  /* 第三方登录 */
+  .third-party {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+  }
+  .tp-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 40px;
+    padding: 0 18px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: var(--card);
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--text-sub);
+    cursor: pointer;
+    transition: all .2s;
+    font-family: inherit;
+  }
+  .tp-btn svg { color: var(--text-main); transition: color .2s; }
+  .tp-btn[data-tp="gitee"]:hover { border-color: #c71d23; background: #fff5f5; color: #c71d23; }
+  .tp-btn[data-tp="gitee"]:hover svg { color: #c71d23; }
+  .tp-btn[data-tp="feishu"]:hover { border-color: #3370ff; background: #f0f4ff; color: #3370ff; }
+  .tp-btn[data-tp="feishu"]:hover svg { color: #3370ff; }
+  .tp-btn:hover { transform: translateY(-2px); }
+
+  /* 底部注册提示 */
+  .bottom-hint {
+    text-align: center;
+    margin-top: 28px;
+    font-size: 13.5px;
+    color: var(--text-sub);
+  }
+  .bottom-hint a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .bottom-hint a:hover { text-decoration: underline; }
+
+  .bottom-hint a.back-to-login {
+    display: inline-block;
+    padding: 8px 24px;
+    border: 1.5px solid var(--primary);
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all .2s;
+  }
+  .bottom-hint a.back-to-login:hover {
+    background: var(--primary);
+    color: #fff;
+    text-decoration: none;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-80px);
+    background: var(--text-main);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.15);
+    z-index: 9999;
+    transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { background: #16a34a; }
+  .toast.error { background: var(--error); }
+
+  /* ===== 拼图验证弹窗 ===== */
+  .captcha-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .25s, visibility .25s;
+  }
+  .captcha-overlay.show { opacity: 1; visibility: visible; pointer-events: auto; }
+
+  .captcha-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 32px 36px 24px;
+    width: 400px;
+    max-width: 90vw;
+    box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    text-align: center;
+    transform: scale(.9);
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+  }
+  .captcha-overlay.show .captcha-card { transform: scale(1); }
+
+  .captcha-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .captcha-icon { font-size: 24px; }
+  .captcha-title { font-size: 18px; font-weight: 700; }
+  .captcha-desc { font-size: 13px; color: var(--text-sub); margin-bottom: 20px; }
+
+  .puzzle-canvas {
+    width: 100%;
+    height: 180px;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 16px;
+    user-select: none;
+  }
+  .puzzle-bg {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+  }
+  .puzzle-target {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    width: 54px;
+    height: 54px;
+    border-radius: 8px;
+    border: 2px dashed rgba(255,255,255,.7);
+    box-shadow: 0 0 0 1px rgba(0,0,0,.3), inset 0 0 12px rgba(0,0,0,.2);
+    background: rgba(0,0,0,.15);
+  }
+  .puzzle-piece {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    width: 54px;
+    height: 54px;
+    border-radius: 8px;
+    background-size: cover;
+    background-position: center;
+    cursor: grab;
+    box-shadow: 0 2px 8px rgba(0,0,0,.3);
+    z-index: 2;
+  }
+  .puzzle-piece.dragging { cursor: grabbing; }
+  .puzzle-piece.success { box-shadow: 0 0 0 3px #16a34a, 0 2px 8px rgba(22,163,74,.4); }
+  .puzzle-piece.fail { animation: puzzleShake .4s; }
+  @keyframes puzzleShake {
+    0%,100% { transform: translateY(-50%) translateX(0); }
+    25% { transform: translateY(-50%) translateX(-10px); }
+    75% { transform: translateY(-50%) translateX(10px); }
+  }
+
+  .puzzle-slider-wrap { margin-top: 4px; }
+  .puzzle-track {
+    width: 100%;
+    height: 44px;
+    background: #f0f1f5;
+    border-radius: 22px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    user-select: none;
+  }
+  .puzzle-progress {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, var(--primary-light), #d6e4ff);
+    border-radius: 22px;
+    transition: background .3s;
+  }
+  .puzzle-progress.success { background: linear-gradient(90deg, #d1fae5, #a7f3d0); }
+  .puzzle-progress.fail { background: linear-gradient(90deg, #fee2e2, #fecaca); }
+  .puzzle-handle {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: var(--text-sub);
+    cursor: grab;
+    z-index: 3;
+    box-shadow: 0 2px 6px rgba(0,0,0,.1);
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .puzzle-handle:hover { border-color: var(--primary); color: var(--primary); }
+  .puzzle-handle.dragging { cursor: grabbing; border-color: var(--primary); box-shadow: 0 4px 12px rgba(59,91,253,.2); }
+  .puzzle-handle.success { border-color: #16a34a; color: #16a34a; }
+  .puzzle-handle.fail { border-color: var(--error); color: var(--error); }
+  .puzzle-hint {
+    font-size: 13px;
+    color: var(--text-hint);
+    z-index: 1;
+    transition: opacity .2s;
+  }
+  .puzzle-hint.hidden { opacity: 0; }
+
+  .captcha-err {
+    font-size: 13px;
+    color: var(--error);
+    margin-top: 10px;
+    display: none;
+  }
+  .captcha-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .captcha-cancel, .captcha-refresh {
+    flex: 1;
+    height: 40px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .2s;
+  }
+  .captcha-cancel { background: #f3f4f6; color: var(--text-sub); }
+  .captcha-cancel:hover { background: #e5e7eb; }
+  .captcha-refresh { background: var(--primary-light); color: var(--primary); }
+  .captcha-refresh:hover { background: #d6e4ff; }
+
+  /* ===== 注册后角色选择弹窗 ===== */
+  .role-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .25s, visibility .25s;
+  }
+  .role-overlay.show { opacity: 1; visibility: visible; pointer-events: auto; }
+  .role-modal {
+    position: relative;
+    background: #fff;
+    border-radius: 18px;
+    width: 640px;
+    max-width: 94vw;
+    max-height: 88vh;
+    overflow-y: auto;
+    padding: 32px 36px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    transform: translateY(16px) scale(.97);
+    transition: transform .25s;
+  }
+  .role-overlay.show .role-modal { transform: translateY(0) scale(1); }
+
+  .role-modal-head { text-align: center; margin-bottom: 26px; }
+  .role-modal-head h3 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+  .role-modal-head p { font-size: 13px; color: var(--text-sub); }
+  .role-skip-hint { text-align: center; margin-top: 18px; font-size: 12px; color: var(--text-hint); }
+
+  .role-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .role-pick-card {
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 18px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .22s;
+  }
+  .role-pick-card:hover {
+    border-color: var(--rc);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,.08);
+  }
+  .rp-icon {
+    width: 52px; height: 52px;
+    border-radius: 13px;
+    margin: 0 auto 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    background: var(--rb);
+  }
+  .rp-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .rp-desc { font-size: 12px; color: var(--text-sub); line-height: 1.6; }
+
+  /* 弹窗内认证表单 */
+  .rm-back {
+    border: 1.5px solid var(--border);
+    background: #fff;
+    border-radius: 8px;
+    height: 32px;
+    padding: 0 12px;
+    font-size: 12.5px;
+    color: var(--text-sub);
+    cursor: pointer;
+    font-family: inherit;
+    margin-bottom: 14px;
+    transition: all .2s;
+  }
+  .rm-back:hover { border-color: var(--primary); color: var(--primary); }
+  .rm-title { font-size: 17px; font-weight: 700; margin-bottom: 2px; }
+  .rm-sub { font-size: 12.5px; color: var(--text-sub); margin-bottom: 18px; }
+  .rm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .rm-grid .full { grid-column: 1 / -1; }
+  .rm-item label { font-size: 13px; font-weight: 600; display: block; margin-bottom: 5px; }
+  .rm-item label .req { color: var(--error); }
+  .rm-item input, .rm-item select, .rm-item textarea {
+    width: 100%;
+    height: 40px;
+    padding: 0 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 9px;
+    font-size: 13.5px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+    background: #fff;
+    color: var(--text-main);
+  }
+  .rm-item textarea { height: 64px; padding: 9px 12px; resize: vertical; }
+  .rm-item input:focus, .rm-item select:focus, .rm-item textarea:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(59,91,253,.1);
+  }
+  .rm-hint { font-size: 11px; color: var(--text-hint); margin-top: 3px; }
+  .rm-city-row { display: flex; gap: 6px; }
+  .rm-city-sel { flex: 1; height: 42px; border: 1.5px solid var(--border); border-radius: 9px; padding: 0 8px; font-size: 13px; font-family: inherit; background: #fff; outline: none; transition: border-color .2s; }
+  .rm-city-sel:focus { border-color: var(--border-focus); }
+  .rm-city-sel:disabled { background: #f5f5f5; color: var(--text-hint); }
+  .rm-multi-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .rm-tag { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border: 1.5px solid var(--border); border-radius: 20px; font-size: 12.5px; cursor: pointer; transition: all .15s; user-select: none; }
+  .rm-tag:hover { border-color: var(--primary); }
+  .rm-tag input { width: auto; margin: 0; height: auto; }
+  .rm-tag:has(input:checked) { border-color: var(--primary); background: var(--primary-light); color: var(--primary); font-weight: 600; }
+  .rm-upload-dual { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .rm-upload {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 16px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+    background: var(--bg);
+  }
+  .rm-upload:hover { border-color: var(--primary); background: var(--primary-light); }
+  .rm-upload .up-text { font-size: 13px; color: var(--text-sub); }
+  .rm-upload .up-hint { font-size: 11px; color: var(--text-hint); margin-top: 3px; }
+  .rm-upload input { display: none; }
+  .rm-upload .up-preview { font-size: 12px; color: var(--primary); margin-top: 6px; word-break: break-all; }
+  .rm-err { font-size: 12px; color: var(--error); margin-top: 5px; display: none; }
+  .rm-err.show { display: block; }
+  .rm-agree {
+    margin: 16px 0;
+    font-size: 12.5px;
+    color: var(--text-sub);
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    line-height: 1.6;
+  }
+  .rm-agree input {
+    width: 15px; height: 15px;
+    margin-top: 2px;
+    accent-color: var(--primary);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .rm-submit {
+    width: 100%;
+    height: 44px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all .2s;
+    letter-spacing: 1px;
+  }
+  .rm-submit:hover { box-shadow: 0 6px 20px rgba(59,91,253,.3); }
+  .rm-submit:disabled { background: #c5cdf6; cursor: not-allowed; box-shadow: none; }
+  @media (max-width: 560px) {
+    .rm-grid, .role-pick, .rm-upload-dual { grid-template-columns: 1fr; }
+    .role-modal { padding: 22px 18px; }
+  }
+
+  /* 角色弹窗关闭按钮 */
+  .rm-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    border: none;
+    background: #f3f4f6;
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--text-sub);
+    transition: background .2s, color .2s;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+  .rm-close:hover { background: #e5e7eb; color: var(--text-main); }
+
+  /* ===== 清空认证数据确认弹窗 ===== */
+  .rm-confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 10001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .25s, visibility .25s;
+  }
+  .rm-confirm-overlay.show { opacity: 1; visibility: visible; pointer-events: auto; }
+  .rm-confirm-card {
+    background: #fff;
+    border-radius: 16px;
+    width: 400px;
+    max-width: 92vw;
+    padding: 30px 28px 26px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    transform: translateY(12px) scale(.97);
+    transition: transform .25s;
+    text-align: center;
+  }
+  .rm-confirm-overlay.show .rm-confirm-card { transform: translateY(0) scale(1); }
+  .rm-confirm-icon {
+    width: 54px; height: 54px;
+    border-radius: 50%;
+    margin: 0 auto 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    background: var(--error-bg);
+  }
+  .rm-confirm-title { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+  .rm-confirm-desc { font-size: 13px; color: var(--text-sub); line-height: 1.6; margin-bottom: 24px; }
+  .rm-confirm-actions { display: flex; gap: 12px; }
+  .rm-confirm-btn {
+    flex: 1;
+    height: 42px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .rm-confirm-btn.keep { background: #f3f4f6; color: var(--text-main); }
+  .rm-confirm-btn.keep:hover { background: #e5e7eb; }
+  .rm-confirm-btn.clear { background: var(--error); color: #fff; }
+  .rm-confirm-btn.clear:hover { background: #d33d42; box-shadow: 0 4px 14px rgba(229,72,77,.3); }
+
+  /* ===== 协议查看弹窗 ===== */
+  .agree-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .25s, visibility .25s;
+  }
+  .agree-overlay.show { opacity: 1; visibility: visible; pointer-events: auto; }
+  .agree-card {
+    background: #fff;
+    border-radius: 16px;
+    width: 560px;
+    max-width: 92vw;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    transform: scale(.95);
+    transition: transform .25s;
+  }
+  .agree-overlay.show .agree-card { transform: scale(1); }
+  .agree-head {
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .agree-head h3 { font-size: 16px; font-weight: 700; }
+  .agree-ver { font-size: 12px; font-weight: 400; color: var(--primary); background: var(--primary-light); padding: 2px 8px; border-radius: 4px; margin-left: 6px; }
+  .agree-close {
+    border: none;
+    background: #f3f4f6;
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-sub);
+    transition: background .2s;
+  }
+  .agree-close:hover { background: #e5e7eb; }
+  .agree-body {
+    padding: 20px 24px;
+    overflow-y: auto;
+    font-size: 13.5px;
+    line-height: 1.9;
+    color: var(--text-sub);
+    white-space: pre-wrap;
+  }
+
+  /* 移动端 */
+  @media (max-width: 768px) {
+    body { padding: 24px 16px; }
+    .brand-logo { width: 52px; height: 52px; font-size: 22px; }
+    .brand-name { font-size: 20px; }
+    .brand-tagline { font-size: 12px; }
+    .login-card { padding: 28px 20px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 顶部品牌区 -->
+<div class="brand-top">
+  <div class="brand-logo">OPC</div>
+  <div class="brand-name">OPC 需求平台</div>
+  <p class="brand-tagline">连接需求与服务，让每一次协作更高效</p>
+</div>
+
+<!-- 登录卡片 -->
+<div class="login-card">
+    <div class="login-header">
+      <h1 id="formTitle">欢迎回来</h1>
+      <p id="formSubtitle">登录以发布需求或查看你的需求列表</p>
+    </div>
+
+    <!-- 邮箱登录面板 -->
+    <div class="panel active" id="panel-email">
+      <form id="emailForm" autocomplete="off">
+        <div class="input-group">
+          <div class="input-wrapper">
+            <span class="input-icon">📧</span>
+            <input type="email" id="emailAddr" class="has-icon" placeholder="请输入邮箱地址">
+          </div>
+        </div>
+        <div id="emailCodeArea" class="input-group">
+          <div class="input-wrapper">
+            <span class="input-icon">🔑</span>
+            <input type="text" id="emailCode" class="has-icon" placeholder="请输入邮箱验证码" maxlength="6">
+            <button type="button" class="code-btn" id="emailCodeBtn">获取验证码</button>
+          </div>
+        </div>
+        <div id="emailPwdArea" class="input-group" style="display:none">
+          <div class="input-wrapper">
+            <span class="input-icon">🔒</span>
+            <input type="password" id="emailPwd" class="has-toggle" placeholder="请输入密码">
+            <span class="pwd-toggle" id="emailPwdToggle">👁</span>
+          </div>
+        </div>
+        <div class="check-row">
+          <input type="checkbox" id="rememberEmail">
+          <label for="rememberEmail">记住我</label>
+          <span style="flex:1"></span>
+          <a href="javascript:void(0)" id="emailSwitchMode" style="font-size:12px;color:var(--primary)">密码登录</a>
+          <span style="margin:0 6px;color:var(--text-hint)">·</span>
+          <a href="javascript:void(0)" id="forgot-link">忘记密码？</a>
+        </div>
+        <div class="check-row" style="align-items:flex-start">
+          <input type="checkbox" id="agreeEmail">
+          <label for="agreeEmail">
+            我已阅读并同意<a href="javascript:void(0)" data-agree="user">《用户协议》</a>和<a href="javascript:void(0)" data-agree="privacy">《隐私政策》</a>，未注册的邮箱将自动创建账号
+          </label>
+        </div>
+        <button type="submit" class="submit-btn" id="emailSubmitBtn">登录</button>
+      </form>
+      <div style="text-align:center;margin-top:12px">
+        <a href="javascript:void(0)" id="switchToPhone" style="font-size:13px;color:var(--text-sub)">手机号登录 →</a>
+      </div>
+    </div>
+
+    <!-- 手机号登录面板 -->
+    <div class="panel" id="panel-phone">
+      <form id="phoneForm" autocomplete="off">
+        <div class="input-group">
+          <div class="input-wrapper prefix">
+            <span class="prefix-text">+86</span>
+            <input type="tel" id="phoneLoginInput" placeholder="请输入手机号" maxlength="11">
+          </div>
+        </div>
+        <div id="phonePwdArea" class="input-group">
+          <div class="input-wrapper">
+            <span class="input-icon">🔒</span>
+            <input type="password" id="phonePassword" class="has-toggle" placeholder="请输入密码">
+            <span class="pwd-toggle" id="phonePwdToggle">👁</span>
+          </div>
+        </div>
+        <div id="phoneCodeArea" class="input-group" style="display:none">
+          <div class="input-wrapper">
+            <span class="input-icon">🔑</span>
+            <input type="text" id="phoneCode" class="has-icon" placeholder="请输入短信验证码" maxlength="6">
+            <button type="button" class="code-btn" id="phoneCodeBtn">获取验证码</button>
+          </div>
+        </div>
+        <div class="check-row">
+          <span style="flex:1"></span>
+          <a href="javascript:void(0)" id="phoneSwitchMode" style="font-size:12px;color:var(--primary)">验证码登录</a>
+          <span style="margin:0 6px;color:var(--text-hint)">·</span>
+          <a href="javascript:void(0)" id="forgot-link-phone">忘记密码？</a>
+        </div>
+        <button type="submit" class="submit-btn" id="phoneSubmitBtn">登录</button>
+      </form>
+      <div style="text-align:center;margin-top:12px">
+        <a href="javascript:void(0)" id="switchToEmail" style="font-size:13px;color:var(--text-sub)">← 邮箱登录</a>
+      </div>
+    </div>
+
+    <!-- 邮箱注册面板 -->
+    <div class="panel" id="panel-register">
+      <form id="registerForm" autocomplete="off">
+        <div class="input-group">
+          <div class="input-wrapper">
+            <span class="input-icon">👤</span>
+            <input type="text" id="regName" class="has-icon" placeholder="自定义账户名（2-20 个字符）" maxlength="20">
+          </div>
+        </div>
+        <div class="input-group">
+          <div class="input-wrapper">
+            <span class="input-icon">📧</span>
+            <input type="email" id="regEmail" class="has-icon" placeholder="请输入邮箱地址">
+          </div>
+        </div>
+        <div class="input-group">
+          <div class="input-wrapper">
+            <input type="password" id="password" class="has-toggle" placeholder="需包含大小写字母和符号，≥6位">
+            <span class="pwd-toggle" id="pwdToggle">👁</span>
+          </div>
+          <div class="pwd-strength" id="pwdStrength">
+            <div class="pwd-strength-bars">
+              <span class="pwd-bar" id="pwdBar1"></span>
+              <span class="pwd-bar" id="pwdBar2"></span>
+              <span class="pwd-bar" id="pwdBar3"></span>
+              <span class="pwd-bar" id="pwdBar4"></span>
+            </div>
+            <span class="pwd-strength-text" id="pwdStrengthText"></span>
+          </div>
+        </div>
+        <div class="input-group">
+          <div class="input-wrapper">
+            <input type="password" id="confirmPassword" class="has-toggle" placeholder="请再次输入密码">
+            <span class="pwd-toggle" id="pwdToggle2">👁</span>
+          </div>
+        </div>
+        <div class="check-row" style="align-items:flex-start">
+          <input type="checkbox" id="agreeReg">
+          <label for="agreeReg">
+            我已阅读并同意<a href="javascript:void(0)" data-agree="user">《用户协议》</a>和<a href="javascript:void(0)" data-agree="privacy">《隐私政策》</a>
+          </label>
+        </div>
+        <button type="submit" class="submit-btn" id="regSubmitBtn">注册</button>
+      </form>
+      <div style="text-align:center;margin-top:12px">
+        <a href="javascript:void(0)" id="switchToRegPhone" style="font-size:13px;color:var(--text-sub)">手机号注册 →</a>
+      </div>
+    </div>
+
+    <!-- 手机号注册面板 -->
+    <div class="panel" id="panel-register-phone">
+      <form id="regPhoneForm" autocomplete="off">
+        <div class="input-group">
+          <div class="input-wrapper">
+            <span class="input-icon">👤</span>
+            <input type="text" id="regPhoneName" class="has-icon" placeholder="自定义账户名（2-20 个字符）" maxlength="20">
+          </div>
+        </div>
+        <div class="input-group">
+          <div class="input-wrapper prefix">
+            <span class="prefix-text">+86</span>
+            <input type="tel" id="regPhoneInput" placeholder="请输入手机号" maxlength="11">
+          </div>
+        </div>
+        <div class="input-group">
+          <div class="input-wrapper">
+            <input type="password" id="regPhonePwd" class="has-toggle" placeholder="需包含大小写字母和符号，≥6位">
+            <span class="pwd-toggle" id="regPhonePwdToggle">👁</span>
+          </div>
+          <div class="pwd-strength" id="regPhonePwdStrength">
+            <div class="pwd-strength-bars">
+              <span class="pwd-bar" id="regPhoneBar1"></span>
+              <span class="pwd-bar" id="regPhoneBar2"></span>
+              <span class="pwd-bar" id="regPhoneBar3"></span>
+              <span class="pwd-bar" id="regPhoneBar4"></span>
+            </div>
+            <span class="pwd-strength-text" id="regPhoneStrengthText"></span>
+          </div>
+        </div>
+        <div class="input-group">
+          <div class="input-wrapper">
+            <input type="password" id="regPhoneConfirm" class="has-toggle" placeholder="请再次输入密码">
+            <span class="pwd-toggle" id="regPhoneConfirmToggle">👁</span>
+          </div>
+        </div>
+        <div class="check-row" style="align-items:flex-start">
+          <input type="checkbox" id="agreeRegPhone">
+          <label for="agreeRegPhone">
+            我已阅读并同意<a href="javascript:void(0)" data-agree="user">《用户协议》</a>和<a href="javascript:void(0)" data-agree="privacy">《隐私政策》</a>
+          </label>
+        </div>
+        <button type="submit" class="submit-btn" id="regPhoneSubmitBtn">注册</button>
+      </form>
+      <div style="text-align:center;margin-top:12px">
+        <a href="javascript:void(0)" id="switchToRegEmail" style="font-size:13px;color:var(--text-sub)">← 邮箱注册</a>
+      </div>
+    </div>
+
+    <!-- 重置密码面板 -->
+    <div class="panel" id="panel-reset">
+      <form id="resetForm" autocomplete="off">
+        <div class="input-group">
+          <div class="input-wrapper">
+            <span class="input-icon">📧</span>
+            <input type="email" id="resetEmail" class="has-icon" placeholder="请输入注册时使用的邮箱">
+          </div>
+        </div>
+        <div class="input-group">
+          <div class="input-wrapper">
+            <span class="input-icon">🔑</span>
+            <input type="text" id="resetCode" class="has-icon" placeholder="请输入邮箱验证码" maxlength="6">
+            <button type="button" class="code-btn" id="resetCodeBtn">获取验证码</button>
+          </div>
+        </div>
+        <div class="input-group">
+          <div class="input-wrapper">
+            <input type="password" id="resetPassword" class="has-toggle" placeholder="新密码：需包含大小写字母和符号，≥6位">
+            <span class="pwd-toggle" id="resetPwdToggle">👁</span>
+          </div>
+          <div class="pwd-strength" id="resetPwdStrength">
+            <div class="pwd-strength-bars">
+              <span class="pwd-bar" id="resetPwdBar1"></span>
+              <span class="pwd-bar" id="resetPwdBar2"></span>
+              <span class="pwd-bar" id="resetPwdBar3"></span>
+              <span class="pwd-bar" id="resetPwdBar4"></span>
+            </div>
+            <span class="pwd-strength-text" id="resetPwdStrengthText"></span>
+          </div>
+        </div>
+        <div class="input-group">
+          <div class="input-wrapper">
+            <input type="password" id="resetConfirm" class="has-toggle" placeholder="请再次输入新密码">
+            <span class="pwd-toggle" id="resetPwdToggle2">👁</span>
+          </div>
+        </div>
+        <button type="submit" class="submit-btn" id="resetSubmitBtn">重置密码</button>
+      </form>
+    </div>
+
+    <!-- 分割线（仅登录模式可见） -->
+    <div class="divider" id="thirdPartyDivider"><span>其他方式</span></div>
+
+    <!-- 第三方登录（仅登录模式可见） -->
+    <div class="third-party" id="thirdPartyArea">
+      <div class="tp-btn" title="Gitee 登录" data-tp="gitee">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M11.984 0A11.97 11.97 0 0 0 0 11.984a11.97 11.97 0 0 0 11.984 11.984 11.97 11.97 0 0 0 11.984-11.984A11.97 11.97 0 0 0 11.984 0zm6.844 16.273H9.34a1.16 1.16 0 0 1-1.157-1.157V8.884A1.16 1.16 0 0 1 9.34 7.727h8.431a1.16 1.16 0 0 1 1.157 1.157v6.232a1.16 1.16 0 0 1-1.157 1.157zm-2.92-3.46H10.45v-1.34h5.458v1.34z"/></svg>
+        <span>Gitee</span>
+      </div>
+      <div class="tp-btn" title="飞书登录" data-tp="feishu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M3.6 7.2h6.6v6.6H3.6V7.2zm9.6 0h6.6v6.6h-6.6V7.2zM3.6 16.8h6.6v3.6H3.6v-3.6zm9.6 0h6.6v3.6h-6.6v-3.6z"/></svg>
+        <span>飞书</span>
+      </div>
+    </div>
+
+    <!-- 底部提示 -->
+    <div class="bottom-hint">
+      <a href="javascript:void(0)" id="switchToReg">还没有账号？立即注册</a>
+    </div>
+  </div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- 拼图验证弹窗 -->
+<div class="captcha-overlay" id="captchaModal">
+  <div class="captcha-card">
+    <div class="captcha-header">
+      <span class="captcha-icon">🧩</span>
+      <span class="captcha-title">拼图验证</span>
+    </div>
+    <p class="captcha-desc">拖动下方滑块完成拼图，通过后即可获取验证码</p>
+    <div class="captcha-body">
+      <div class="puzzle-canvas" id="puzzleCanvas">
+        <div class="puzzle-bg" id="puzzleBg"></div>
+        <div class="puzzle-piece" id="puzzlePiece"></div>
+        <div class="puzzle-target" id="puzzleTarget"></div>
+      </div>
+      <div class="puzzle-slider-wrap">
+        <div class="puzzle-track" id="puzzleTrack">
+          <div class="puzzle-progress" id="puzzleProgress"></div>
+          <div class="puzzle-handle" id="puzzleHandle">
+            <span id="puzzleHandleIcon">→</span>
+          </div>
+          <span class="puzzle-hint" id="puzzleHint">向右拖动滑块</span>
+        </div>
+      </div>
+      <div class="captcha-err" id="captchaErr">验证失败，请重试</div>
+    </div>
+    <div class="captcha-actions">
+      <button type="button" class="captcha-cancel" id="captchaCancel">取消</button>
+      <button type="button" class="captcha-refresh" id="captchaRefresh">换一张</button>
+    </div>
+  </div>
+</div>
+
+<!-- 协议查看弹窗 -->
+<div class="agree-overlay" id="agreeModal">
+  <div class="agree-card">
+    <div class="agree-head">
+      <h3 id="agreeTitle">用户协议</h3>
+      <button type="button" class="agree-close" id="agreeClose">✕</button>
+    </div>
+    <div class="agree-body" id="agreeBody"></div>
+  </div>
+</div>
+
+<!-- 注册后角色选择弹窗 -->
+<div class="role-overlay" id="roleModal">
+  <div class="role-modal">
+    <button type="button" class="rm-close" id="rmClose" title="关闭">×</button>
+
+    <!-- 第一步：选择角色 -->
+    <div id="roleStepPick">
+      <div class="role-modal-head">
+        <h3>🎉 注册成功，选择你的身份</h3>
+        <p>完成身份认证后，将进入与你身份匹配的工作台</p>
+      </div>
+      <div class="role-pick">
+        <div class="role-pick-card" data-role="opc" style="--rc:#059669;--rb:#ecfdf5">
+          <div class="rp-icon">🛠️</div>
+          <div class="rp-title">OPC 服务者</div>
+          <div class="rp-desc">提供专业技能，承接需求方发布的任务，进入 OPC 工作台</div>
+        </div>
+        <div class="role-pick-card" data-role="enterprise" style="--rc:#ea580c;--rb:#fff7ed">
+          <div class="rp-icon">🏢</div>
+          <div class="rp-title">企业需求方</div>
+          <div class="rp-desc">发布业务需求，匹配 OPC 服务者完成交付，进入企业工作台</div>
+        </div>
+      </div>
+      <div class="role-skip-hint">点击空白处可跳过，先逛逛工作台（仅浏览，无法接单/发布需求）</div>
+    </div>
+
+    <!-- 第二步：OPC 服务者认证表单 -->
+    <div id="roleFormOpc" style="display:none">
+      <button type="button" class="rm-back" id="rmOpcBack">← 重新选择身份</button>
+      <div class="rm-title">OPC 服务者认证</div>
+      <div class="rm-sub">带 * 为必填项，提交后 1-3 个工作日完成审核</div>
+      <form id="rmOpcForm" novalidate>
+        <div class="rm-grid">
+          <div class="rm-item">
+            <label>真实姓名 <span class="req">*</span></label>
+            <input type="text" id="rmOpcName" placeholder="需与身份证一致">
+          </div>
+          <div class="rm-item">
+            <label>手机号码 <span class="req">*</span></label>
+            <input type="tel" id="rmOpcPhone" maxlength="11" placeholder="用于接单通知与结算">
+          </div>
+          <div class="rm-item">
+            <label>身份证号 <span class="req">*</span></label>
+            <input type="text" id="rmOpcIdCard" maxlength="18" placeholder="18 位身份证号">
+            <div class="rm-hint">需与姓名一致，仅用于实名核验</div>
+          </div>
+          <div class="rm-item">
+            <label>所在城市 <span class="req">*</span></label>
+            <div class="rm-city-row">
+              <select id="rmOpcProvince" class="rm-city-sel"><option value="">省</option></select>
+              <select id="rmOpcCitySel" class="rm-city-sel" disabled><option value="">市</option></select>
+              <select id="rmOpcDistrict" class="rm-city-sel" disabled><option value="">区/县</option></select>
+            </div>
+          </div>
+          <div class="rm-item full">
+            <label>擅长领域 <span class="req">*</span>（可多选）</label>
+            <div class="rm-multi-tags" id="rmOpcFieldTags">
+              <label class="rm-tag"><input type="checkbox" value="文案撰写">文案撰写</label>
+              <label class="rm-tag"><input type="checkbox" value="内容策划">内容策划</label>
+              <label class="rm-tag"><input type="checkbox" value="新媒体运营">新媒体运营</label>
+              <label class="rm-tag"><input type="checkbox" value="视频剪辑">视频剪辑</label>
+              <label class="rm-tag"><input type="checkbox" value="平面设计">平面设计</label>
+              <label class="rm-tag"><input type="checkbox" value="UI/UX 设计">UI/UX 设计</label>
+              <label class="rm-tag"><input type="checkbox" value="品牌设计">品牌设计</label>
+              <label class="rm-tag"><input type="checkbox" value="插画绘制">插画绘制</label>
+              <label class="rm-tag"><input type="checkbox" value="3D 建模渲染">3D 建模渲染</label>
+              <label class="rm-tag"><input type="checkbox" value="前端开发">前端开发</label>
+              <label class="rm-tag"><input type="checkbox" value="后端开发">后端开发</label>
+              <label class="rm-tag"><input type="checkbox" value="小程序开发">小程序开发</label>
+              <label class="rm-tag"><input type="checkbox" value="数据分析">数据分析</label>
+            </div>
+          </div>
+          <div class="rm-item">
+            <label>接单状态 <span class="req">*</span> <span style="font-size:12px;color:var(--text-hint)">（可多选）</span></label>
+            <div class="rm-multi-tags" id="rmOpcStatusTags">
+              <label class="rm-tag"><input type="checkbox" value="全职接单"> 全职接单</label>
+              <label class="rm-tag"><input type="checkbox" value="兼职接单"> 兼职接单（业余时间）</label>
+              <label class="rm-tag"><input type="checkbox" value="周末接单"> 周末接单</label>
+              <label class="rm-tag"><input type="checkbox" value="按需接单"> 按需接单</label>
+            </div>
+          </div>
+          <div class="rm-item">
+            <label>作品集链接</label>
+            <input type="text" id="rmOpcPortfolio" placeholder="选填，https://…">
+          </div>
+          <div class="rm-item full">
+            <label>个人简介</label>
+            <textarea id="rmOpcBio" placeholder="选填，介绍你的经验、作品和优势"></textarea>
+          </div>
+          <div class="rm-item full">
+            <label>身份证照片（正反面） <span class="req">*</span></label>
+            <div class="rm-upload-dual">
+              <div class="rm-upload" id="rmOpcUpFront">
+                <div class="up-text">🪪 点击上传正面（人像面）</div>
+                <div class="up-hint">JPG / PNG，不超过 5MB</div>
+                <input type="file" id="rmOpcFileFront" accept="image/*">
+                <div class="up-preview" id="rmOpcFrontPre"></div>
+              </div>
+              <div class="rm-upload" id="rmOpcUpBack">
+                <div class="up-text">🪪 点击上传反面（国徽面）</div>
+                <div class="up-hint">JPG / PNG，不超过 5MB</div>
+                <input type="file" id="rmOpcFileBack" accept="image/*">
+                <div class="up-preview" id="rmOpcBackPre"></div>
+              </div>
+            </div>
+            <div class="rm-err" id="rmOpcFileErr">请上传身份证正反面照片</div>
+          </div>
+        </div>
+        <div class="rm-agree">
+          <input type="checkbox" id="rmOpcAgree">
+          <label for="rmOpcAgree">我已阅读并同意<a href="javascript:void(0)" data-agree="opc">《OPC 服务者协议》</a>和<a href="javascript:void(0)" data-agree="opc-privacy">《实名认证条款》</a>，承诺所填信息真实有效</label>
+        </div>
+        <button type="submit" class="rm-submit" id="rmOpcSubmit">提交并进入 OPC 工作台</button>
+      </form>
+    </div>
+
+    <!-- 第二步：企业需求方认证表单 -->
+    <div id="roleFormEnt" style="display:none">
+      <button type="button" class="rm-back" id="rmEntBack">← 重新选择身份</button>
+      <div class="rm-title">企业需求方认证</div>
+      <div class="rm-sub">带 * 为必填项，提交后 1-3 个工作日完成审核</div>
+      <form id="rmEntForm" novalidate>
+        <div class="rm-grid">
+          <div class="rm-item full">
+            <label>企业名称 <span class="req">*</span></label>
+            <input type="text" id="rmEntName" placeholder="需与营业执照一致">
+          </div>
+          <div class="rm-item">
+            <label>统一社会信用代码 <span class="req">*</span></label>
+            <input type="text" id="rmEntCode" maxlength="18" placeholder="18 位，用于资质核验">
+          </div>
+          <div class="rm-item">
+            <label>所属行业 <span class="req">*</span></label>
+            <select id="rmEntIndustry">
+              <option value="" disabled selected>请选择</option>
+              <option value="互联网/科技">互联网/科技</option>
+              <option value="电子商务">电子商务</option>
+              <option value="教育培训">教育培训</option>
+              <option value="金融/保险">金融/保险</option>
+              <option value="医疗/健康">医疗/健康</option>
+              <option value="制造/工业">制造/工业</option>
+              <option value="文化传媒">文化传媒</option>
+              <option value="餐饮/零售">餐饮/零售</option>
+              <option value="房地产/建筑">房地产/建筑</option>
+              <option value="其他">其他</option>
+            </select>
+          </div>
+          <div class="rm-item">
+            <label>企业规模 <span class="req">*</span></label>
+            <select id="rmEntScale">
+              <option value="" disabled selected>请选择</option>
+              <option value="1-10人">1-10 人</option>
+              <option value="11-50人">11-50 人</option>
+              <option value="51-200人">51-200 人</option>
+              <option value="201-1000人">201-1000 人</option>
+              <option value="1000人以上">1000 人以上</option>
+            </select>
+          </div>
+          <div class="rm-item">
+            <label>所在城市 <span class="req">*</span></label>
+            <input type="text" id="rmEntCity" placeholder="如：厦门市思明区">
+          </div>
+          <div class="rm-item full">
+            <label>企业地址 <span class="req">*</span></label>
+            <input type="text" id="rmEntAddr" placeholder="详细地址，用于线下合作场景">
+          </div>
+          <div class="rm-item">
+            <label>企业联系人 <span class="req">*</span></label>
+            <input type="text" id="rmEntContact" placeholder="负责需求发布与对接">
+          </div>
+          <div class="rm-item">
+            <label>联系电话 <span class="req">*</span></label>
+            <input type="text" id="rmEntPhone" placeholder="手机号或座机号">
+          </div>
+          <div class="rm-item full">
+            <label>营业执照（正本） <span class="req">*</span></label>
+            <div class="rm-upload-dual">
+              <div class="rm-upload" id="rmEntUpOriginal">
+                <div class="up-text">📄 点击上传正本</div>
+                <div class="up-hint">JPG / PNG / PDF，不超过 10MB</div>
+                <input type="file" id="rmEntFileOriginal" accept="image/*,.pdf">
+                <div class="up-preview" id="rmEntOriginalPre"></div>
+              </div>
+            </div>
+            <div class="rm-err" id="rmEntFileErr">请上传营业执照正本</div>
+          </div>
+          <div class="rm-field">
+            <div class="rm-label">企业资质文件<span class="hint">（选填，如行业许可证、资质证书等）</span></div>
+            <div class="rm-uploads" style="grid-template-columns:1fr">
+              <div class="rm-upload" id="rmEntUpQualification">
+                <div class="up-text">📎 点击上传企业资质文件</div>
+                <div class="up-hint">JPG / PNG / PDF，不超过 10MB</div>
+                <input type="file" id="rmEntFileQualification" accept="image/*,.pdf">
+                <div class="up-preview" id="rmEntQualificationPre"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="rm-agree">
+          <input type="checkbox" id="rmEntAgree">
+          <label for="rmEntAgree">我已阅读并同意<a href="javascript:void(0)" data-agree="ent">《企业认证协议》</a>和<a href="javascript:void(0)" data-agree="ent-terms">《平台服务条款》</a>，承诺企业信息真实有效</label>
+        </div>
+        <button type="submit" class="rm-submit" id="rmEntSubmit">提交并进入企业工作台</button>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<!-- 清空认证数据确认弹窗 -->
+<div class="rm-confirm-overlay" id="rmConfirmClear">
+  <div class="rm-confirm-card">
+    <div class="rm-confirm-icon">⚠️</div>
+    <div class="rm-confirm-title">是否清空已填写的认证数据？</div>
+    <div class="rm-confirm-desc">检测到你之前选择过 OPC 服务者并填写了认证信息，清空后将无法恢复，保留则可继续编辑。</div>
+    <div class="rm-confirm-actions">
+      <button type="button" class="rm-confirm-btn keep" id="rmConfirmKeep">保留</button>
+      <button type="button" class="rm-confirm-btn clear" id="rmConfirmClearBtn">清空</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var toastTimer = null;
+  function showToast(msg, type, duration) {
+    var t = document.getElementById("toast");
+    t.textContent = msg;
+    t.className = "toast" + (type ? " " + type : "");
+    requestAnimationFrame(function () { t.classList.add("show"); });
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove("show"); }, duration || 2600);
+  }
+
+  /* ===== 密码可见切换 ===== */
+  var pwdVisible = false;
+  document.getElementById("pwdToggle").addEventListener("click", function () {
+    pwdVisible = !pwdVisible;
+    var pwd = document.getElementById("password");
+    pwd.type = pwdVisible ? "text" : "password";
+    this.textContent = pwdVisible ? "🙈" : "👁";
+  });
+
+  var pwd2Visible = false;
+  document.getElementById("pwdToggle2").addEventListener("click", function () {
+    pwd2Visible = !pwd2Visible;
+    var pwd2 = document.getElementById("confirmPassword");
+    pwd2.type = pwd2Visible ? "text" : "password";
+    this.textContent = pwd2Visible ? "🙈" : "👁";
+  });
+
+  [["resetPwdToggle", "resetPassword"], ["resetPwdToggle2", "resetConfirm"]].forEach(function (pair) {
+    document.getElementById(pair[0]).addEventListener("click", function () {
+      var inp = document.getElementById(pair[1]);
+      var show = inp.type === "password";
+      inp.type = show ? "text" : "password";
+      this.textContent = show ? "🙈" : "👁";
+    });
+  });
+
+  /* 手机号登录面板密码切换 */
+  document.getElementById("phonePwdToggle").addEventListener("click", function () {
+    var inp = document.getElementById("phonePassword");
+    var show = inp.type === "password";
+    inp.type = show ? "text" : "password";
+    this.textContent = show ? "🙈" : "👁";
+  });
+
+  /* 邮箱面板密码切换 */
+  document.getElementById("emailPwdToggle").addEventListener("click", function () {
+    var inp = document.getElementById("emailPwd");
+    var show = inp.type === "password";
+    inp.type = show ? "text" : "password";
+    this.textContent = show ? "🙈" : "👁";
+  });
+
+  /* 邮箱面板登录方式切换：验证码 ↔ 密码 */
+  var emailMode = "code";
+  document.getElementById("emailSwitchMode").addEventListener("click", function () {
+    if (emailMode === "code") {
+      emailMode = "pwd";
+      document.getElementById("emailCodeArea").style.display = "none";
+      document.getElementById("emailPwdArea").style.display = "";
+      this.textContent = "验证码登录";
+    } else {
+      emailMode = "code";
+      document.getElementById("emailCodeArea").style.display = "";
+      document.getElementById("emailPwdArea").style.display = "none";
+      this.textContent = "密码登录";
+    }
+  });
+
+  /* 手机号面板登录方式切换：密码 ↔ 验证码 */
+  var phoneMode = "pwd";
+  document.getElementById("phoneSwitchMode").addEventListener("click", function () {
+    if (phoneMode === "pwd") {
+      phoneMode = "code";
+      document.getElementById("phonePwdArea").style.display = "none";
+      document.getElementById("phoneCodeArea").style.display = "";
+      this.textContent = "密码登录";
+    } else {
+      phoneMode = "code";
+      document.getElementById("phonePwdArea").style.display = "";
+      document.getElementById("phoneCodeArea").style.display = "none";
+      this.textContent = "验证码登录";
+    }
+  });
+
+  /* 手机号验证码获取（模拟） */
+  document.getElementById("phoneCodeBtn").addEventListener("click", function () {
+    var phone = document.getElementById("phoneLoginInput").value.trim();
+    if (!/^1[3-9]\d{9}$/.test(phone)) {
+      showToast("请输入正确的手机号", "error");
+      return;
+    }
+    var btn = this;
+    btn.disabled = true;
+    var code = String(Math.floor(100000 + Math.random() * 900000));
+    showToast("【模拟短信】验证码：" + code + "（第 1/3 次）", "success", 5000);
+    var n = 60;
+    btn.textContent = n + "s 后重发";
+    var timer = setInterval(function () {
+      n--;
+      if (n <= 0) {
+        clearInterval(timer);
+        btn.disabled = false;
+        btn.textContent = "获取验证码";
+      } else {
+        btn.textContent = n + "s 后重发";
+      }
+    }, 1000);
+  });
+
+  /* 手机号+密码忘记密码 → 跳转重置面板 */
+  document.getElementById("forgot-link-phone").addEventListener("click", function () {
+    setMode("reset");
+  });
+
+  /* 手机号注册面板密码切换 */
+  document.getElementById("regPhonePwdToggle").addEventListener("click", function () {
+    var inp = document.getElementById("regPhonePwd");
+    var show = inp.type === "password";
+    inp.type = show ? "text" : "password";
+    this.textContent = show ? "🙈" : "👁";
+  });
+  document.getElementById("regPhoneConfirmToggle").addEventListener("click", function () {
+    var inp = document.getElementById("regPhoneConfirm");
+    var show = inp.type === "password";
+    inp.type = show ? "text" : "password";
+    this.textContent = show ? "🙈" : "👁";
+  });
+
+  /* ===== 验证码状态机：每次获取后 60s 倒计时，共可获取 3 次；连续输错 3 次封禁 2 分钟 ===== */
+  var MAX_SEND = 3;
+  var MAX_FAIL = 3;
+  var BAN_MS = 2 * 60 * 1000;
+  var pendingSend = null;
+
+  function makeCodeChannel(cfg) {
+    var sendCount = 0;
+    var failCount = 0;
+    var banUntil = 0;
+    var currentCode = null;
+    var cdTimer = null;
+    var banTimer = null;
+    var btn = document.getElementById(cfg.btnId);
+
+    function startCooldown() {
+      var left = 60;
+      btn.disabled = true;
+      btn.textContent = left + "s 后重发";
+      cdTimer = setInterval(function () {
+        left--;
+        if (left <= 0) {
+          clearInterval(cdTimer);
+          cdTimer = null;
+          if (sendCount >= MAX_SEND) {
+            btn.disabled = true;
+            btn.textContent = "已达上限 " + sendCount + "/" + MAX_SEND;
+          } else {
+            btn.disabled = false;
+            btn.textContent = "重新获取";
+          }
+        } else {
+          btn.textContent = left + "s 后重发";
+        }
+      }, 1000);
+    }
+
+    function startBan() {
+      banUntil = Date.now() + BAN_MS;
+      if (cdTimer) { clearInterval(cdTimer); cdTimer = null; }
+      btn.disabled = true;
+      showToast("验证码连续错误 " + MAX_FAIL + " 次，封禁 2 分钟", "error", 4000);
+      banTimer = setInterval(function () {
+        var left = Math.ceil((banUntil - Date.now()) / 1000);
+        if (left <= 0) {
+          clearInterval(banTimer);
+          banTimer = null;
+          banUntil = 0;
+          sendCount = 0;
+          failCount = 0;
+          currentCode = null;
+          btn.disabled = false;
+          btn.textContent = "获取验证码";
+          showToast("封禁已解除，可重新获取验证码", "success");
+        } else {
+          btn.textContent = "封禁中 " + left + "s";
+        }
+      }, 500);
+    }
+
+    return {
+      requestSend: function () {
+        if (!cfg.validateAccount()) return false;
+        if (Date.now() < banUntil) {
+          showToast("封禁中，请 " + Math.ceil((banUntil - Date.now()) / 1000) + " 秒后再试", "error");
+          return false;
+        }
+        if (cdTimer) return false;
+        if (sendCount >= MAX_SEND) {
+          showToast("获取次数已达上限（共 " + MAX_SEND + " 次）", "error");
+          return false;
+        }
+        return true;
+      },
+      doSend: function () {
+        currentCode = String(Math.floor(100000 + Math.random() * 900000));
+        sendCount++;
+        showToast("【模拟" + cfg.channelName + "】验证码：" + currentCode + "（第 " + sendCount + "/" + MAX_SEND + " 次）", "success", 6000);
+        startCooldown();
+      },
+      verify: function (inputCode) {
+        if (Date.now() < banUntil) {
+          showToast("封禁中，请 " + Math.ceil((banUntil - Date.now()) / 1000) + " 秒后再试", "error");
+          return false;
+        }
+        if (!currentCode) {
+          showToast("请先获取验证码", "error");
+          return false;
+        }
+        if (inputCode !== currentCode) {
+          failCount++;
+          if (failCount >= MAX_FAIL) {
+            startBan();
+          } else {
+            showToast("验证码错误，还可尝试 " + (MAX_FAIL - failCount) + " 次", "error");
+          }
+          return false;
+        }
+        return true;
+      }
+    };
+  }
+
+  var emailChannel = makeCodeChannel({
+    btnId: "emailCodeBtn",
+    channelName: "邮件",
+    validateAccount: function () {
+      var email = document.getElementById("emailAddr").value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showToast("请输入正确的邮箱地址", "error");
+        return false;
+      }
+      return true;
+    }
+  });
+
+  document.getElementById("emailCodeBtn").addEventListener("click", function () {
+    if (emailChannel.requestSend()) {
+      pendingSend = emailChannel.doSend;
+      showCaptchaModal();
+    }
+  });
+
+  var resetChannel = makeCodeChannel({
+    btnId: "resetCodeBtn",
+    channelName: "邮件",
+    validateAccount: function () {
+      var email = document.getElementById("resetEmail").value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showToast("请输入正确的邮箱地址", "error");
+        return false;
+      }
+      if (email === ADMIN_EMAIL) {
+        showToast("管理员账号不支持自助重置，请联系超级管理员", "error");
+        return false;
+      }
+      if (!loadAccounts().some(function (a) { return a.email === email; })) {
+        showToast("该邮箱未注册，请先注册", "error");
+        return false;
+      }
+      return true;
+    }
+  });
+
+  document.getElementById("resetCodeBtn").addEventListener("click", function () {
+    if (resetChannel.requestSend()) {
+      pendingSend = resetChannel.doSend;
+      showCaptchaModal();
+    }
+  });
+
+  /* ===== 拼图验证弹窗 ===== */
+  var captchaModal = document.getElementById("captchaModal");
+  var captchaCancel = document.getElementById("captchaCancel");
+  var captchaRefresh = document.getElementById("captchaRefresh");
+  var captchaErr = document.getElementById("captchaErr");
+  var puzzleCanvas = document.getElementById("puzzleCanvas");
+  var puzzleBg = document.getElementById("puzzleBg");
+  var puzzlePiece = document.getElementById("puzzlePiece");
+  var puzzleTarget = document.getElementById("puzzleTarget");
+  var puzzleTrack = document.getElementById("puzzleTrack");
+  var puzzleProgress = document.getElementById("puzzleProgress");
+  var puzzleHandle = document.getElementById("puzzleHandle");
+  var puzzleHandleIcon = document.getElementById("puzzleHandleIcon");
+  var puzzleHint = document.getElementById("puzzleHint");
+
+  var puzzleImages = [
+    "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=mountain%20landscape%20at%20sunset%20with%20lake%20reflection&image_size=landscape_16_9",
+    "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=forest%20with%20sunlight%20through%20trees&image_size=landscape_16_9",
+    "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=ocean%20waves%20on%20a%20tropical%20beach&image_size=landscape_16_9",
+    "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=starry%20night%20sky%20over%20mountains&image_size=landscape_16_9",
+    "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=colorful%20autumn%20forest%20with%20river&image_size=landscape_16_9"
+  ];
+
+  var pieceSize = 54;
+  var targetX = 0;
+  var isDragging = false;
+  var dragStartX = 0;
+  var currentX = 0;
+  var maxDrag = 0;
+  var isVerified = false;
+
+  function showCaptchaModal() {
+    isVerified = false;
+    resetPuzzle();
+    captchaModal.classList.add("show");
+  }
+
+  function closeCaptchaModal() {
+    captchaModal.classList.remove("show");
+  }
+
+  function resetPuzzle() {
+    var imgIdx = Math.floor(Math.random() * puzzleImages.length);
+    var imgUrl = puzzleImages[imgIdx];
+    puzzleBg.style.backgroundImage = "url(" + imgUrl + ")";
+    puzzlePiece.style.backgroundImage = "url(" + imgUrl + ")";
+    puzzlePiece.style.backgroundSize = puzzleCanvas.offsetWidth + "px 180px";
+    puzzleBg.style.backgroundSize = puzzleCanvas.offsetWidth + "px 180px";
+
+    captchaErr.style.display = "none";
+    puzzlePiece.className = "puzzle-piece";
+    puzzleHandle.className = "puzzle-handle";
+    puzzleProgress.className = "puzzle-progress";
+    puzzleProgress.style.width = "0";
+    puzzleHandle.style.left = "0";
+    puzzlePiece.style.left = "0";
+    puzzleHandleIcon.textContent = "\u2192";
+    puzzleHint.classList.remove("hidden");
+    puzzleHint.textContent = "向右拖动滑块";
+    currentX = 0;
+    isVerified = false;
+
+    var canvasW = puzzleCanvas.offsetWidth;
+    maxDrag = canvasW - pieceSize - 10;
+    targetX = Math.floor(Math.random() * (maxDrag - 80)) + 80;
+    puzzleTarget.style.left = targetX + "px";
+    puzzlePiece.style.backgroundPosition = "-" + targetX + "px center";
+  }
+
+  function startDrag(e) {
+    if (isVerified) return;
+    e.preventDefault();
+    isDragging = true;
+    var clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    dragStartX = clientX - currentX;
+    puzzleHandle.classList.add("dragging");
+    puzzleHint.classList.add("hidden");
+  }
+
+  function onDrag(e) {
+    if (!isDragging || isVerified) return;
+    e.preventDefault();
+    var clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    var x = clientX - dragStartX;
+    if (x < 0) x = 0;
+    if (x > maxDrag) x = maxDrag;
+    currentX = x;
+    puzzleHandle.style.left = x + "px";
+    puzzleProgress.style.width = (x + 44) + "px";
+    puzzlePiece.style.left = x + "px";
+  }
+
+  function endDrag() {
+    if (!isDragging || isVerified) return;
+    isDragging = false;
+    puzzleHandle.classList.remove("dragging");
+
+    if (Math.abs(currentX - targetX) <= 6) {
+      isVerified = true;
+      puzzlePiece.classList.add("success");
+      puzzleHandle.classList.add("success");
+      puzzleProgress.classList.add("success");
+      puzzleHandleIcon.textContent = "\u2713";
+      puzzleHint.textContent = "验证通过";
+      puzzleHint.classList.remove("hidden");
+      puzzleHint.style.color = "#16a34a";
+      captchaErr.style.display = "none";
+      setTimeout(function () {
+        closeCaptchaModal();
+        if (pendingSend) {
+          var f = pendingSend;
+          pendingSend = null;
+          f();
+        }
+      }, 600);
+    } else {
+      puzzlePiece.classList.add("fail");
+      puzzleHandle.classList.add("fail");
+      puzzleProgress.classList.add("fail");
+      captchaErr.style.display = "block";
+      puzzleHandleIcon.textContent = "\u00d7";
+      setTimeout(function () {
+        puzzlePiece.classList.remove("fail");
+        puzzleHandle.classList.remove("fail");
+        puzzleProgress.classList.remove("fail");
+        puzzleHandleIcon.textContent = "\u2192";
+        captchaErr.style.display = "none";
+        puzzleProgress.style.width = "0";
+        puzzleHandle.style.left = "0";
+        puzzlePiece.style.left = "0";
+        currentX = 0;
+        targetX = Math.floor(Math.random() * (maxDrag - 80)) + 80;
+        puzzleTarget.style.left = targetX + "px";
+        puzzlePiece.style.backgroundPosition = "-" + targetX + "px center";
+        puzzleHint.classList.remove("hidden");
+        puzzleHint.style.color = "";
+        puzzleHint.textContent = "向右拖动滑块";
+      }, 800);
+    }
+  }
+
+  puzzleHandle.addEventListener("mousedown", startDrag);
+  puzzleHandle.addEventListener("touchstart", startDrag, { passive: false });
+  document.addEventListener("mousemove", onDrag);
+  document.addEventListener("touchmove", onDrag, { passive: false });
+  document.addEventListener("mouseup", endDrag);
+  document.addEventListener("touchend", endDrag);
+
+  captchaCancel.addEventListener("click", closeCaptchaModal);
+  captchaModal.addEventListener("click", function (e) {
+    if (e.target === captchaModal) closeCaptchaModal();
+  });
+  captchaRefresh.addEventListener("click", resetPuzzle);
+
+  /* ===== 账号注册表：唯一账号 ID 生成 / 查找或自动创建账号 ===== */
+  var ADMIN_EMAIL = "admin@opc.com";
+
+  function loadAccounts() {
+    try { return JSON.parse(localStorage.getItem("opc_accounts")) || []; } catch (e) { return []; }
+  }
+
+  function genAccountId(accounts) {
+    var max = 100000;
+    for (var i = 0; i < accounts.length; i++) {
+      var n = parseInt(String(accounts[i].id).replace("OPC", ""), 10);
+      if (!isNaN(n) && n > max) max = n;
+    }
+    return "OPC" + String(max + 1);
+  }
+
+  function findOrCreateAccount(key, value) {
+    var accounts = loadAccounts();
+    var acc = null;
+    for (var i = 0; i < accounts.length; i++) {
+      if (accounts[i][key] === value) { acc = accounts[i]; break; }
+    }
+    if (!acc) {
+      acc = {
+        id: genAccountId(accounts),
+        name: "",
+        phone: key === "phone" ? value : "",
+        email: key === "email" ? value : "",
+        time: Date.now()
+      };
+      accounts.push(acc);
+      localStorage.setItem("opc_accounts", JSON.stringify(accounts));
+    }
+    return acc;
+  }
+
+  /* ===== 记住我：保存 / 恢复上次登录账号 ===== */
+  function saveRemember(type, account, checked) {
+    if (checked) {
+      localStorage.setItem("opc_remember", JSON.stringify({ type: type, account: account }));
+    } else {
+      localStorage.removeItem("opc_remember");
+    }
+  }
+
+  (function restoreRemember() {
+    var r = null;
+    try { r = JSON.parse(localStorage.getItem("opc_remember")); } catch (e) {}
+    if (!r || !r.account || r.type !== "email") return;
+    document.getElementById("emailAddr").value = r.account;
+    document.getElementById("rememberEmail").checked = true;
+    showToast("已填入上次登录的邮箱，获取验证码即可登录", "success", 3500);
+  })();
+
+  /* ===== 审核队列：认证申请提交后进入管理员审核列表 ===== */
+  function pushReview(entry) {
+    var q = [];
+    try { q = JSON.parse(localStorage.getItem("opc_review_queue")) || []; } catch (e) {}
+    q = q.filter(function (it) { return !(it.accountId === entry.accountId && it.role === entry.role); });
+    q.push(entry);
+    localStorage.setItem("opc_review_queue", JSON.stringify(q));
+  }
+
+  /* ===== 邮箱登录提交 ===== */
+  document.getElementById("emailForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var email = document.getElementById("emailAddr").value.trim();
+    var agreed = document.getElementById("agreeEmail").checked;
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showToast("请输入正确的邮箱地址", "error");
+      return;
+    }
+    if (!agreed) {
+      showToast("请先同意用户协议和隐私政策", "error");
+      return;
+    }
+
+    if (emailMode === "code") {
+      var code = document.getElementById("emailCode").value.trim();
+      if (code.length < 4) {
+        showToast("请输入邮箱验证码", "error");
+        return;
+      }
+      if (!emailChannel.verify(code)) return;
+    } else {
+      var pwd = document.getElementById("emailPwd").value;
+      if (!pwd) {
+        showToast("请输入密码", "error");
+        return;
+      }
+      var accounts = loadAccounts();
+      var acc = null;
+      for (var i = 0; i < accounts.length; i++) {
+        if (accounts[i].email === email) { acc = accounts[i]; break; }
+      }
+      if (!acc) {
+        showToast("该邮箱未注册，请先注册", "error");
+        return;
+      }
+      if (acc.status === 1) {
+        showToast("该账号已被停用，请联系管理员", "error");
+        return;
+      }
+      if (!acc.password) {
+        showToast("该账号尚未设置密码，请使用验证码登录后通过忘记密码设置", "error");
+        return;
+      }
+      if (acc.password !== pwd) {
+        showToast("密码错误", "error");
+        return;
+      }
+    }
+
+    saveRemember("email", email, document.getElementById("rememberEmail").checked);
+
+    var btn = document.getElementById("emailSubmitBtn");
+    btn.disabled = true;
+    btn.textContent = "登录中…";
+    setTimeout(function () {
+      var isAdmin = (email === ADMIN_EMAIL);
+      var acc = isAdmin ? null : (emailMode === "code" ? findOrCreateAccount("email", email) : (function () {
+        var accounts = loadAccounts();
+        for (var i = 0; i < accounts.length; i++) {
+          if (accounts[i].email === email) return accounts[i];
+        }
+        return null;
+      })());
+      /* 停用账号拦截 */
+      if (!isAdmin && acc && acc.status === 1) {
+        showToast("该账号已被停用，请联系管理员", "error");
+        btn.disabled = false;
+        btn.textContent = "登录";
+        return;
+      }
+      localStorage.setItem("opc_user", JSON.stringify({
+        username: isAdmin ? "管理员" : (acc.name || email.split("@")[0]),
+        accountId: isAdmin ? "ADMIN" : acc.id,
+        email: email,
+        phone: isAdmin ? "" : (acc.phone || ""),
+        avatar: isAdmin ? undefined : acc.avatar,
+        loginType: "email",
+        role: isAdmin ? "admin" : "user",
+        authRole: isAdmin ? undefined : acc.authRole,
+        authStatus: isAdmin ? undefined : acc.authStatus,
+        authData: isAdmin ? undefined : acc.authData,
+        time: Date.now()
+      }));
+      showToast(isAdmin ? "管理员登录成功，正在跳转…" : "登录成功，正在跳转…", "success");
+      setTimeout(function () {
+        window.location.href = "dashboard.html";
+      }, 800);
+    }, 600);
+  });
+
+  /* ===== 手机号登录提交（支持密码/验证码两种方式） ===== */
+  document.getElementById("phoneForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var phone = document.getElementById("phoneLoginInput").value.trim();
+
+    if (!/^1[3-9]\d{9}$/.test(phone)) {
+      showToast("请输入正确的手机号", "error");
+      return;
+    }
+
+    if (phoneMode === "pwd") {
+      var pwd = document.getElementById("phonePassword").value;
+      if (!pwd) {
+        showToast("请输入密码", "error");
+        return;
+      }
+    } else {
+      var smsCode = document.getElementById("phoneCode").value.trim();
+      if (smsCode.length < 4) {
+        showToast("请输入短信验证码", "error");
+        return;
+      }
+    }
+
+    var btn = document.getElementById("phoneSubmitBtn");
+    btn.disabled = true;
+    btn.textContent = "登录中…";
+    setTimeout(function () {
+      var accounts = loadAccounts();
+      var acc = null;
+      for (var i = 0; i < accounts.length; i++) {
+        if (accounts[i].phone === phone) { acc = accounts[i]; break; }
+      }
+      if (!acc) {
+        showToast("该手机号未注册，请先注册", "error");
+        btn.disabled = false;
+        btn.textContent = "登录";
+        return;
+      }
+      if (acc.status === 1) {
+        showToast("该账号已被停用，请联系管理员", "error");
+        btn.disabled = false;
+        btn.textContent = "登录";
+        return;
+      }
+      if (phoneMode === "pwd") {
+        if (!acc.password) {
+          showToast("该账号尚未设置密码，请切换验证码登录", "error");
+          btn.disabled = false;
+          btn.textContent = "登录";
+          return;
+        }
+        if (acc.password !== pwd) {
+          showToast("密码错误", "error");
+          btn.disabled = false;
+          btn.textContent = "登录";
+          return;
+        }
+      }
+
+      localStorage.setItem("opc_user", JSON.stringify({
+        username: acc.name || phone,
+        accountId: acc.id,
+        email: acc.email || "",
+        phone: phone,
+        avatar: acc.avatar,
+        loginType: "phone",
+        role: acc.authRole === "enterprise" ? "user" : "user",
+        authRole: acc.authRole,
+        authStatus: acc.authStatus,
+        authData: acc.authData,
+        time: Date.now()
+      }));
+      showToast("登录成功，正在跳转…", "success");
+      setTimeout(function () {
+        window.location.href = "dashboard.html";
+      }, 800);
+    }, 600);
+  });
+
+  /* ===== 密码强度实时检测 ===== */
+  var pwdInput = document.getElementById("password");
+  var pwdStrength = document.getElementById("pwdStrength");
+  var pwdStrengthText = document.getElementById("pwdStrengthText");
+  var pwdBars = [
+    document.getElementById("pwdBar1"),
+    document.getElementById("pwdBar2"),
+    document.getElementById("pwdBar3"),
+    document.getElementById("pwdBar4")
+  ];
+
+  function getPasswordStrength(pwd) {
+    var score = 0;
+    if (pwd.length >= 6) score++;
+    if (pwd.length >= 10) score++;
+    if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) score++;
+    if (/\d/.test(pwd)) score++;
+    if (/[^a-zA-Z0-9]/.test(pwd)) score++;
+    if (score <= 1) return 0;
+    if (score <= 2) return 1;
+    if (score <= 3) return 2;
+    return 3;
+  }
+
+  var strengthLabels = ["弱", "中", "强", "很强"];
+  var strengthClasses = ["weak", "medium", "strong", "very-strong"];
+
+  pwdInput.addEventListener("input", function () {
+    var pwd = pwdInput.value;
+    if (!pwd) {
+      pwdStrength.classList.remove("visible");
+      pwdBars.forEach(function (b) { b.className = "pwd-bar"; });
+      pwdStrengthText.textContent = "";
+      pwdStrengthText.className = "pwd-strength-text";
+      return;
+    }
+    pwdStrength.classList.add("visible");
+    var level = getPasswordStrength(pwd);
+    var cls = strengthClasses[level];
+    pwdBars.forEach(function (bar, i) {
+      bar.className = "pwd-bar" + (i <= level ? " active " + cls : "");
+    });
+    pwdStrengthText.textContent = strengthLabels[level];
+    pwdStrengthText.className = "pwd-strength-text " + cls;
+  });
+
+  var resetPwdInput = document.getElementById("resetPassword");
+  var resetPwdStrength = document.getElementById("resetPwdStrength");
+  var resetPwdStrengthText = document.getElementById("resetPwdStrengthText");
+  var resetPwdBars = [
+    document.getElementById("resetPwdBar1"),
+    document.getElementById("resetPwdBar2"),
+    document.getElementById("resetPwdBar3"),
+    document.getElementById("resetPwdBar4")
+  ];
+
+  resetPwdInput.addEventListener("input", function () {
+    var pwd = resetPwdInput.value;
+    if (!pwd) {
+      resetPwdStrength.classList.remove("visible");
+      resetPwdBars.forEach(function (b) { b.className = "pwd-bar"; });
+      resetPwdStrengthText.textContent = "";
+      resetPwdStrengthText.className = "pwd-strength-text";
+      return;
+    }
+    resetPwdStrength.classList.add("visible");
+    var level = getPasswordStrength(pwd);
+    var cls = strengthClasses[level];
+    resetPwdBars.forEach(function (bar, i) {
+      bar.className = "pwd-bar" + (i <= level ? " active " + cls : "");
+    });
+    resetPwdStrengthText.textContent = strengthLabels[level];
+    resetPwdStrengthText.className = "pwd-strength-text " + cls;
+  });
+
+  /* ===== 密码强度检测（手机号注册面板） ===== */
+  var regPhonePwdInput = document.getElementById("regPhonePwd");
+  var regPhonePwdStrength = document.getElementById("regPhonePwdStrength");
+  var regPhoneStrengthText = document.getElementById("regPhoneStrengthText");
+  var regPhoneBars = [
+    document.getElementById("regPhoneBar1"),
+    document.getElementById("regPhoneBar2"),
+    document.getElementById("regPhoneBar3"),
+    document.getElementById("regPhoneBar4")
+  ];
+
+  regPhonePwdInput.addEventListener("input", function () {
+    var pwd = regPhonePwdInput.value;
+    if (!pwd) {
+      regPhonePwdStrength.classList.remove("visible");
+      regPhoneBars.forEach(function (b) { b.className = "pwd-bar"; });
+      regPhoneStrengthText.textContent = "";
+      regPhoneStrengthText.className = "pwd-strength-text";
+      return;
+    }
+    regPhonePwdStrength.classList.add("visible");
+    var level = getPasswordStrength(pwd);
+    var cls = strengthClasses[level];
+    regPhoneBars.forEach(function (bar, i) {
+      bar.className = "pwd-bar" + (i <= level ? " active " + cls : "");
+    });
+    regPhoneStrengthText.textContent = strengthLabels[level];
+    regPhoneStrengthText.className = "pwd-strength-text " + cls;
+  });
+
+  /* ===== 邮箱注册提交 ===== */
+  document.getElementById("registerForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var name = document.getElementById("regName").value.trim();
+    var email = document.getElementById("regEmail").value.trim();
+    var password = document.getElementById("password").value;
+    var confirmPassword = document.getElementById("confirmPassword").value;
+    var agreed = document.getElementById("agreeReg").checked;
+
+    if (name.length < 2) {
+      showToast("账户名至少 2 个字符", "error");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showToast("请输入正确的邮箱地址", "error");
+      return;
+    }
+    if (password.length < 6) {
+      showToast("密码至少 6 位", "error");
+      return;
+    }
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])/.test(password)) {
+      showToast("密码需包含大写字母、小写字母和符号", "error");
+      return;
+    }
+    if (confirmPassword !== password) {
+      showToast("两次输入的密码不一致", "error");
+      return;
+    }
+    if (!agreed) {
+      showToast("请先同意用户协议和隐私政策", "error");
+      return;
+    }
+
+    var accounts = loadAccounts();
+    if (accounts.some(function (a) { return a.email === email; })) {
+      showToast("该邮箱已被注册，请直接登录", "error");
+      return;
+    }
+
+    var btn = document.getElementById("regSubmitBtn");
+    btn.disabled = true;
+    btn.textContent = "注册中…";
+    setTimeout(function () {
+      var acc = {
+        id: genAccountId(accounts),
+        name: name,
+        email: email,
+        password: password,
+        time: Date.now()
+      };
+      accounts.push(acc);
+      localStorage.setItem("opc_accounts", JSON.stringify(accounts));
+      localStorage.setItem("opc_user", JSON.stringify({
+        username: acc.name,
+        accountId: acc.id,
+        email: acc.email,
+        loginType: "register",
+        role: "user",
+        time: Date.now()
+      }));
+      showToast("注册成功，已自动登录。您的账号 ID：" + acc.id, "success", 4000);
+      setTimeout(function () {
+        btn.disabled = false;
+        btn.textContent = "注册";
+        showRoleModal("pick");
+      }, 1200);
+    }, 600);
+  });
+
+  /* ===== 手机号注册提交 ===== */
+  document.getElementById("regPhoneForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var name = document.getElementById("regPhoneName").value.trim();
+    var phone = document.getElementById("regPhoneInput").value.trim();
+    var password = document.getElementById("regPhonePwd").value;
+    var confirmPassword = document.getElementById("regPhoneConfirm").value;
+    var agreed = document.getElementById("agreeRegPhone").checked;
+
+    if (name.length < 2) {
+      showToast("账户名至少 2 个字符", "error");
+      return;
+    }
+    if (!/^1[3-9]\d{9}$/.test(phone)) {
+      showToast("请输入正确的手机号", "error");
+      return;
+    }
+    if (password.length < 6) {
+      showToast("密码至少 6 位", "error");
+      return;
+    }
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])/.test(password)) {
+      showToast("密码需包含大写字母、小写字母和符号", "error");
+      return;
+    }
+    if (confirmPassword !== password) {
+      showToast("两次输入的密码不一致", "error");
+      return;
+    }
+    if (!agreed) {
+      showToast("请先同意用户协议和隐私政策", "error");
+      return;
+    }
+
+    var accounts = loadAccounts();
+    if (accounts.some(function (a) { return a.phone === phone; })) {
+      showToast("该手机号已注册，请直接登录", "error");
+      return;
+    }
+
+    var btn = document.getElementById("regPhoneSubmitBtn");
+    btn.disabled = true;
+    btn.textContent = "注册中…";
+    setTimeout(function () {
+      var acc = {
+        id: genAccountId(accounts),
+        name: name,
+        phone: phone,
+        password: password,
+        time: Date.now()
+      };
+      accounts.push(acc);
+      localStorage.setItem("opc_accounts", JSON.stringify(accounts));
+      localStorage.setItem("opc_user", JSON.stringify({
+        username: acc.name,
+        accountId: acc.id,
+        phone: acc.phone,
+        loginType: "register-phone",
+        role: "user",
+        time: Date.now()
+      }));
+      showToast("注册成功，已自动登录。您的账号 ID：" + acc.id, "success", 4000);
+      setTimeout(function () {
+        btn.disabled = false;
+        btn.textContent = "注册";
+        showRoleModal("pick");
+      }, 1200);
+    }, 600);
+  });
+
+  /* ===== 忘记密码：邮箱验证码验证身份后重置密码 ===== */
+  document.getElementById("resetForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var email = document.getElementById("resetEmail").value.trim();
+    var code = document.getElementById("resetCode").value.trim();
+    var pwd = document.getElementById("resetPassword").value;
+    var confirm = document.getElementById("resetConfirm").value;
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showToast("请输入正确的邮箱地址", "error");
+      return;
+    }
+    if (email === ADMIN_EMAIL) {
+      showToast("管理员账号不支持自助重置，请联系超级管理员", "error");
+      return;
+    }
+    var accounts = loadAccounts();
+    var acc = null;
+    for (var i = 0; i < accounts.length; i++) {
+      if (accounts[i].email === email) { acc = accounts[i]; break; }
+    }
+    if (!acc) {
+      showToast("该邮箱未注册，请先注册", "error");
+      return;
+    }
+    if (!resetChannel.verify(code)) return;
+    if (pwd.length < 6) {
+      showToast("密码至少 6 位", "error");
+      return;
+    }
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])/.test(pwd)) {
+      showToast("密码需包含大写字母、小写字母和符号", "error");
+      return;
+    }
+    if (pwd === acc.password) {
+      showToast("新密码不能与原密码相同", "error");
+      return;
+    }
+    if (confirm !== pwd) {
+      showToast("两次输入的密码不一致", "error");
+      return;
+    }
+
+    var btn = document.getElementById("resetSubmitBtn");
+    btn.disabled = true;
+    btn.textContent = "重置中…";
+    setTimeout(function () {
+      acc.password = pwd;
+      localStorage.setItem("opc_accounts", JSON.stringify(accounts));
+      try {
+        var logs = JSON.parse(localStorage.getItem("opc_change_logs")) || [];
+        logs.push({
+          time: Date.now(),
+          userName: acc.name,
+          userId: acc.id,
+          type: "profile",
+          desc: "通过邮箱验证码自助重置密码"
+        });
+        localStorage.setItem("opc_change_logs", JSON.stringify(logs));
+      } catch (err) {}
+      showToast("密码重置成功，请重新登录", "success", 3500);
+      btn.disabled = false;
+      btn.textContent = "重置密码";
+      document.getElementById("resetForm").reset();
+      resetPwdStrength.classList.remove("visible");
+      setMode("login");
+      document.getElementById("emailAddr").value = email;
+    }, 600);
+  });
+
+  /* ===== 注册后角色选择弹窗 ===== */
+  var rolePickHistory = null;
+
+  function roleGo(step) {
+    document.getElementById("roleStepPick").style.display = step === "pick" ? "" : "none";
+    document.getElementById("roleFormOpc").style.display = step === "opc" ? "" : "none";
+    document.getElementById("roleFormEnt").style.display = step === "enterprise" ? "" : "none";
+  }
+
+  /* 重置 OPC 认证表单所有字段 */
+  function resetOpcForm() {
+    document.getElementById("rmOpcName").value = "";
+    document.getElementById("rmOpcPhone").value = "";
+    document.getElementById("rmOpcIdCard").value = "";
+    document.getElementById("rmOpcPortfolio").value = "";
+    document.getElementById("rmOpcBio").value = "";
+    /* 省市区联动重置 */
+    var selP = document.getElementById("rmOpcProvince");
+    var selC = document.getElementById("rmOpcCitySel");
+    var selD = document.getElementById("rmOpcDistrict");
+    selP.value = "";
+    selC.innerHTML = '<option value="">市</option>';
+    selC.disabled = true;
+    selD.innerHTML = '<option value="">区/县</option>';
+    selD.disabled = true;
+    /* 擅长领域 & 接单状态标签取消勾选 */
+    document.querySelectorAll("#rmOpcFieldTags input, #rmOpcStatusTags input").forEach(function (cb) {
+      cb.checked = false;
+    });
+    /* 身份证照片文件与预览清空 */
+    document.getElementById("rmOpcFileFront").value = "";
+    document.getElementById("rmOpcFileBack").value = "";
+    document.getElementById("rmOpcFrontPre").textContent = "";
+    document.getElementById("rmOpcBackPre").textContent = "";
+    /* 协议勾选与错误提示重置 */
+    document.getElementById("rmOpcAgree").checked = false;
+    var fileErr = document.getElementById("rmOpcFileErr");
+    if (fileErr) fileErr.classList.remove("show");
+    /* 清除输入框红色边框（错误态） */
+    document.querySelectorAll("#rmOpcForm input, #rmOpcForm select, #rmOpcForm textarea").forEach(function (el) {
+      el.style.borderColor = "";
+    });
+  }
+
+  /* 再次打开角色弹窗：若曾选过 OPC 则先弹出清空确认 */
+  function showRoleModal(step) {
+    step = step || "pick";
+    if (step === "pick" && rolePickHistory === "opc") {
+      document.getElementById("rmConfirmClear").classList.add("show");
+      return;
+    }
+    roleGo(step);
+    document.getElementById("roleModal").classList.add("show");
+  }
+
+  document.querySelectorAll(".role-pick-card").forEach(function (card) {
+    card.addEventListener("click", function () {
+      if (this.dataset.role === "opc") rolePickHistory = "opc";
+      roleGo(this.dataset.role);
+    });
+  });
+  document.getElementById("rmOpcBack").addEventListener("click", function () { roleGo("pick"); });
+  document.getElementById("rmEntBack").addEventListener("click", function () { roleGo("pick"); });
+
+  /* 关闭按钮：关闭角色弹窗（表单步骤仅关闭不跳转） */
+  document.getElementById("rmClose").addEventListener("click", function () {
+    document.getElementById("roleModal").classList.remove("show");
+  });
+
+  /* 确认弹窗 —— 保留数据：直接打开角色弹窗，不做任何修改 */
+  document.getElementById("rmConfirmKeep").addEventListener("click", function () {
+    document.getElementById("rmConfirmClear").classList.remove("show");
+    roleGo("pick");
+    document.getElementById("roleModal").classList.add("show");
+  });
+
+  /* 确认弹窗 —— 清空数据：重置 OPC 表单后打开角色弹窗 */
+  document.getElementById("rmConfirmClearBtn").addEventListener("click", function () {
+    resetOpcForm();
+    rolePickHistory = null;
+    document.getElementById("rmConfirmClear").classList.remove("show");
+    roleGo("pick");
+    document.getElementById("roleModal").classList.add("show");
+    showToast("已清空 OPC 认证数据", "info", 2500);
+  });
+
+  /* 点击遮罩空白处：pick 步骤跳过认证进入浏览模式，表单步骤仅关闭弹窗 */
+  document.getElementById("roleModal").addEventListener("click", function (e) {
+    if (e.target !== this) return;
+    if (document.getElementById("roleStepPick").style.display !== "none") {
+      this.classList.remove("show");
+      showToast("已跳过认证，进入工作台浏览模式", "info", 3000);
+      setTimeout(function () { location.href = "dashboard.html"; }, 800);
+    } else {
+      this.classList.remove("show");
+    }
+  });
+
+  /* ===== 省市区三级联动 ===== */
+  var REGION_DATA = {
+    "福建省": {
+      "福州市": ["鼓楼区","台江区","仓山区","马尾区","晋安区","长乐区","闽侯县","连江县","罗源县","闽清县","永泰县","平潭县"],
+      "厦门市": ["思明区","湖里区","集美区","海沧区","同安区","翔安区"],
+      "泉州市": ["鲤城区","丰泽区","洛江区","泉港区","惠安县","安溪县","永春县","德化县","金门县","石狮市","晋江市","南安市"],
+      "漳州市": ["芗城区","龙文区","云霄县","漳浦县","诏安县","长泰县","东山县","南靖县","平和县","华安县","龙海市"],
+      "莆田市": ["城厢区","涵江区","荔城区","秀屿区","仙游县"],
+      "宁德市": ["蕉城区","霞浦县","古田县","屏南县","寿宁县","周宁县","柘荣县","福安市","福鼎市"],
+      "龙岩市": ["新罗区","永定区","长汀县","上杭县","武平县","连城县","漳平市"],
+      "三明市": ["梅列区","三元区","明溪县","清流县","宁化县","大田县","尤溪县","沙县","将乐县","泰宁县","建宁县","永安市"],
+      "南平市": ["延平区","建阳区","顺昌县","浦城县","光泽县","松溪县","政和县","邵武市","武夷山市","建瓯市"]
+    },
+    "广东省": {
+      "广州市": ["越秀区","海珠区","荔湾区","天河区","白云区","黄埔区","番禺区","花都区","南沙区","从化区","增城区"],
+      "深圳市": ["罗湖区","福田区","南山区","宝安区","龙岗区","盐田区","龙华区","坪山区","光明区","大鹏新区"],
+      "东莞市": ["莞城街道","东城街道","南城街道","万江街道","石碣镇","石龙镇","茶山镇","石排镇"],
+      "佛山市": ["禅城区","南海区","顺德区","三水区","高明区"]
+    },
+    "浙江省": {
+      "杭州市": ["上城区","下城区","江干区","拱墅区","西湖区","滨江区","萧山区","余杭区","富阳区","临安区","桐庐县","淳安县","建德市"],
+      "宁波市": ["海曙区","江北区","北仑区","镇海区","鄞州区","奉化区","象山县","宁海县","余姚市","慈溪市"],
+      "温州市": ["鹿城区","龙湾区","瓯海区","洞头区","永嘉县","平阳县","苍南县","文成县","泰顺县","瑞安市","乐清市","龙港市"]
+    },
+    "江苏省": {
+      "南京市": ["玄武区","秦淮区","建邺区","鼓楼区","浦口区","栖霞区","雨花台区","江宁区","六合区","溧水区","高淳区"],
+      "苏州市": ["姑苏区","吴中区","相城区","工业园区","高新区","吴江区","昆山市","太仓市","常熟市","张家港市"],
+      "无锡市": ["锡山区","惠山区","滨湖区","梁溪区","新吴区","江阴市","宜兴市"]
+    },
+    "北京市": {
+      "北京市": ["东城区","西城区","朝阳区","海淀区","丰台区","石景山区","门头沟区","房山区","通州区","顺义区","昌平区","大兴区","怀柔区","平谷区","密云区","延庆区"]
+    },
+    "上海市": {
+      "上海市": ["黄浦区","徐汇区","长宁区","静安区","普陀区","虹口区","杨浦区","浦东新区","闵行区","宝山区","嘉定区","金山区","松江区","青浦区","奉贤区","崇明区"]
+    }
+  };
+
+  (function initOpcRegion() {
+    var selP = document.getElementById("rmOpcProvince");
+    var selC = document.getElementById("rmOpcCitySel");
+    var selD = document.getElementById("rmOpcDistrict");
+    Object.keys(REGION_DATA).forEach(function (p) {
+      var opt = document.createElement("option");
+      opt.value = p; opt.textContent = p;
+      selP.appendChild(opt);
+    });
+    selP.addEventListener("change", function () {
+      selC.innerHTML = '<option value="">市</option>';
+      selD.innerHTML = '<option value="">区/县</option>';
+      selD.disabled = true;
+      var cities = REGION_DATA[this.value];
+      if (cities) {
+        Object.keys(cities).forEach(function (c) {
+          var opt = document.createElement("option");
+          opt.value = c; opt.textContent = c;
+          selC.appendChild(opt);
+        });
+        selC.disabled = false;
+      } else { selC.disabled = true; }
+    });
+    selC.addEventListener("change", function () {
+      selD.innerHTML = '<option value="">区/县</option>';
+      var districts = REGION_DATA[selP.value] && REGION_DATA[selP.value][this.value];
+      if (districts) {
+        districts.forEach(function (d) {
+          var opt = document.createElement("option");
+          opt.value = d; opt.textContent = d;
+          selD.appendChild(opt);
+        });
+        selD.disabled = false;
+      } else { selD.disabled = true; }
+    });
+  })();
+
+  /* ===== 文件存储工具：模拟 sys_file 表 ===== */
+  var FILE_MAX_SIZE = 10 * 1024 * 1024; /* 10MB */
+  var FILE_ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/bmp", "application/pdf"];
+
+  function loadFiles() {
+    try { return JSON.parse(localStorage.getItem("opc_files")) || []; } catch (e) { return []; }
+  }
+  function saveFiles(files) {
+    localStorage.setItem("opc_files", JSON.stringify(files));
+  }
+  function genFileId() {
+    var files = loadFiles();
+    var max = 0;
+    for (var i = 0; i < files.length; i++) { if (files[i].fileId > max) max = files[i].fileId; }
+    return max + 1;
+  }
+  function fmtFileSize(bytes) {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+  }
+  function saveFile(file, userId) {
+    var files = loadFiles();
+    var fileId = genFileId();
+    var now = Date.now();
+    var record = {
+      fileId: fileId,
+      fileName: file.name,
+      filePath: "/uploads/" + new Date(now).getFullYear() + "/" + String(new Date(now).getMonth() + 1).padStart(2, "0") + "/" + fileId + "_" + file.name,
+      fileSize: file.size,
+      contentType: file.type,
+      uploadUser: userId || "unknown",
+      createTime: now
+    };
+    files.push(record);
+    saveFiles(files);
+    return record;
+  }
+
+  function validateFile(file) {
+    if (file.size > FILE_MAX_SIZE) return "文件大小不能超过 " + fmtFileSize(FILE_MAX_SIZE);
+    if (FILE_ALLOWED_TYPES.indexOf(file.type) === -1) return "不支持的文件类型：" + (file.type || "未知");
+    return null;
+  }
+
+  function rmBindUpload(areaId, inputId, preId, userIdGetter) {
+    var area = document.getElementById(areaId);
+    var input = document.getElementById(inputId);
+    area.addEventListener("click", function () { input.click(); });
+    input.addEventListener("change", function () {
+      if (this.files && this.files[0]) {
+        var file = this.files[0];
+        var err = validateFile(file);
+        if (err) {
+          showToast(err, "error");
+          this.value = "";
+          return;
+        }
+        var uid = userIdGetter ? userIdGetter() : "unknown";
+        var record = saveFile(file, uid);
+        document.getElementById(preId).textContent = "已选择：" + file.name + "（" + fmtFileSize(file.size) + "）";
+        document.getElementById(preId).title = "路径：" + record.filePath + "\n类型：" + record.contentType + "\n大小：" + fmtFileSize(record.fileSize);
+      }
+    });
+  }
+  function getCurrentUserId() {
+    try {
+      var u = JSON.parse(localStorage.getItem("opc_user"));
+      return u ? u.accountId : "unknown";
+    } catch (e) { return "unknown"; }
+  }
+  rmBindUpload("rmOpcUpFront", "rmOpcFileFront", "rmOpcFrontPre", getCurrentUserId);
+  rmBindUpload("rmOpcUpBack", "rmOpcFileBack", "rmOpcBackPre", getCurrentUserId);
+  rmBindUpload("rmEntUpOriginal", "rmEntFileOriginal", "rmEntOriginalPre", getCurrentUserId);
+  rmBindUpload("rmEntUpQualification", "rmEntFileQualification", "rmEntQualificationPre", getCurrentUserId);
+
+  function finishAuth(role, authData, btn) {
+    btn.disabled = true;
+    btn.textContent = "提交中…";
+    setTimeout(function () {
+      var user = null;
+      try { user = JSON.parse(localStorage.getItem("opc_user")); } catch (e) {}
+      if (!user) { window.location.href = "login.html"; return; }
+      user.authRole = role;
+      user.authStatus = "pending";
+      user.authData = authData;
+      localStorage.setItem("opc_user", JSON.stringify(user));
+      /* 同步到账号表：再次登录可恢复身份，同时进入管理员审核队列 */
+      var accounts = loadAccounts();
+      for (var i = 0; i < accounts.length; i++) {
+        if (accounts[i].id === user.accountId) {
+          accounts[i].authRole = role;
+          accounts[i].authStatus = "pending";
+          accounts[i].authData = authData;
+          accounts[i].updateTime = Date.now();
+          localStorage.setItem("opc_accounts", JSON.stringify(accounts));
+          break;
+        }
+      }
+      /* 关联认证文件到 sys_file 记录 */
+      var fileInputs = role === "opc"
+        ? [{ el: document.getElementById("rmOpcFileFront"), type: "id_front" }, { el: document.getElementById("rmOpcFileBack"), type: "id_back" }]
+        : [{ el: document.getElementById("rmEntFileOriginal"), type: "license" }, { el: document.getElementById("rmEntFileQualification"), type: "qualification" }];
+      var fileRecords = [];
+      for (var fi = 0; fi < fileInputs.length; fi++) {
+        var inp = fileInputs[fi].el;
+        if (inp && inp.files && inp.files[0]) {
+          var rec = saveFile(inp.files[0], user.accountId);
+          rec.fileType = fileInputs[fi].type;
+          fileRecords.push(rec);
+        }
+      }
+      /* 保存文件关联到认证数据 */
+      if (fileRecords.length) {
+        authData._files = fileRecords;
+      }
+      pushReview({
+        accountId: user.accountId,
+        username: user.username || "",
+        role: role,
+        status: "pending",
+        time: Date.now(),
+        data: authData
+      });
+      showToast("认证申请已提交，正在进入" + (role === "opc" ? " OPC " : "企业") + "工作台…", "success");
+      setTimeout(function () {
+        window.location.href = role === "opc" ? "opc-dashboard.html" : "dashboard.html";
+      }, 900);
+    }, 600);
+  }
+
+  /* OPC 认证表单提交 */
+  document.getElementById("rmOpcForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var name = document.getElementById("rmOpcName").value.trim();
+    var phone = document.getElementById("rmOpcPhone").value.trim();
+    var idCard = document.getElementById("rmOpcIdCard").value.trim();
+    var province = document.getElementById("rmOpcProvince").value;
+    var city = document.getElementById("rmOpcCitySel").value;
+    var district = document.getElementById("rmOpcDistrict").value;
+    var fields = [];
+    document.querySelectorAll("#rmOpcFieldTags input:checked").forEach(function (cb) { fields.push(cb.value); });
+    var statusTags = document.querySelectorAll("#rmOpcStatusTags input:checked");
+    var status = Array.from(statusTags).map(function (t) { return t.value; }).join("、");
+    if (name.length < 2) { showToast("请输入真实姓名", "error"); return; }
+    if (!/^1[3-9]\d{9}$/.test(phone)) { showToast("请输入正确的手机号", "error"); return; }
+    if (!/^\d{17}[\dXx]$/.test(idCard)) { showToast("请输入正确的身份证号（18位）", "error"); return; }
+    if (!province || !city || !district) { showToast("请选择所在省/市/区", "error"); return; }
+    if (fields.length === 0) { showToast("请至少选择一个擅长领域", "error"); return; }
+    if (!status) { showToast("请选择接单状态", "error"); return; }
+
+    var front = document.getElementById("rmOpcFileFront");
+    var back = document.getElementById("rmOpcFileBack");
+    var fileErr = document.getElementById("rmOpcFileErr");
+    if (!front.files[0] || !back.files[0]) {
+      fileErr.textContent = !front.files[0] ? "请上传身份证正面（人像面）" : "请上传身份证反面（国徽面）";
+      fileErr.classList.add("show");
+      return;
+    }
+    fileErr.classList.remove("show");
+
+    if (!document.getElementById("rmOpcAgree").checked) {
+      showToast("请先同意服务者协议", "error");
+      return;
+    }
+
+    finishAuth("opc", {
+      name: name, phone: phone, city: province + city + district, fields: fields.join("、"), status: status
+    }, document.getElementById("rmOpcSubmit"));
+  });
+
+  /* 企业认证表单提交 */
+  document.getElementById("rmEntForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var entName = document.getElementById("rmEntName").value.trim();
+    var code = document.getElementById("rmEntCode").value.trim();
+    var industry = document.getElementById("rmEntIndustry").value;
+    var scale = document.getElementById("rmEntScale").value;
+    var city = document.getElementById("rmEntCity").value.trim();
+    var addr = document.getElementById("rmEntAddr").value.trim();
+    var contact = document.getElementById("rmEntContact").value.trim();
+    var phone = document.getElementById("rmEntPhone").value.trim();
+
+    if (entName.length < 2) { showToast("请输入企业名称", "error"); return; }
+    if (code.length !== 18) { showToast("请输入 18 位统一社会信用代码", "error"); return; }
+    if (!industry) { showToast("请选择所属行业", "error"); return; }
+    if (!scale) { showToast("请选择企业规模", "error"); return; }
+    if (city.length < 2) { showToast("请输入所在城市", "error"); return; }
+    if (addr.length < 5) { showToast("请输入企业地址", "error"); return; }
+    if (contact.length < 2) { showToast("请输入企业联系人", "error"); return; }
+    if (phone.length < 6) { showToast("请输入联系电话", "error"); return; }
+
+    var original = document.getElementById("rmEntFileOriginal");
+    var fileErr = document.getElementById("rmEntFileErr");
+    if (!original.files[0]) {
+      fileErr.textContent = "请上传营业执照正本";
+      fileErr.classList.add("show");
+      return;
+    }
+    fileErr.classList.remove("show");
+
+    if (!document.getElementById("rmEntAgree").checked) {
+      showToast("请先同意企业认证协议", "error");
+      return;
+    }
+
+    finishAuth("enterprise", {
+      companyName: entName, creditCode: code, industry: industry, scale: scale,
+      city: city, address: addr, contact: contact, phone: phone
+    }, document.getElementById("rmEntSubmit"));
+  });
+
+  /* ===== 协议查看弹窗 ===== */
+  var DEFAULT_AGREEMENTS = {
+    user: "OPC 需求平台用户协议\n\n一、服务说明\n1. 本平台为需求方与 OPC 服务者提供需求发布、匹配与协作对接服务。\n2. 未注册的手机号或邮箱在首次登录时将自动创建账号，并分配唯一账号 ID。\n\n二、账号与使用\n1. 用户应保证注册信息真实、准确，账户名可自定义，但不得冒用他人名义。\n2. 通过验证码登录即视为本人操作，请妥善保管账号。\n3. 禁止发布违法、侵权、虚假或与真实需求不符的内容。\n\n三、需求与交付\n1. 需求描述、交付标准、预算与周期由需求方自行填写并对真实性负责。\n2. 平台仅提供信息撮合服务，具体交付与验收由双方协商完成。\n\n四、违规处理\n1. 连续多次验证码错误将触发临时封禁等安全限制。\n2. 对违反本协议的行为，平台有权限制或终止相关账号的使用。\n\n五、其他\n本协议自用户勾选同意之日起生效。平台保留根据运营需要修订本协议的权利，修订后将在登录页公示。",
+    privacy: "OPC 需求平台隐私政策\n\n一、信息收集\n1. 我们收集您主动提供的手机号、邮箱、账户名及角色认证资料。\n2. 登录与使用过程中产生的操作记录将用于安全校验与服务改进。\n\n二、信息使用\n1. 手机号、邮箱仅用于登录验证、账号识别与必要的通知。\n2. 您的联系方式在需求预览中将做打码处理，不会完整展示给其他用户。\n\n三、信息保护\n1. 我们采取合理的技术与管理措施保护您的信息安全。\n2. 除法律法规要求或取得您的授权外，我们不会向第三方提供您的个人信息。\n\n四、您的权利\n1. 您可以随时退出登录，退出后本地登录状态将被清除。\n2. 如需注销账号或删除个人信息，可联系平台管理员处理。\n\n五、政策更新\n本政策如有更新，将在登录页公示，继续使用即视为接受更新后的政策。",
+    opc: "OPC 服务者协议\n\n一、服务者资格\n1. 申请 OPC 服务者需完成实名认证，提供真实姓名、身份证号及正反面照片。\n2. 服务者应具备所声明擅长领域的专业技能，平台有权对能力进行核验。\n\n二、接单与交付\n1. 服务者通过抢单大厅浏览需求并提交报价，报价后需按时交付。\n2. 交付质量需符合需求方提出的交付标准，未达标可能影响服务者评级。\n3. 服务者不得私下交易，所有订单须通过平台完成结算。\n\n三、结算与收益\n1. 平台在需求方验收后向服务者结算收益。\n2. 服务者可在收益中心查看结算记录并申请提现。\n\n四、行为规范\n1. 服务者不得发布虚假信息、抄袭他人作品或进行恶意竞争。\n2. 违反本协议的服务者，平台有权限制接单、暂停账号或永久封禁。",
+    "opc-privacy": "实名认证条款\n\n1. 实名认证信息（身份证号、身份证照片）仅用于身份核验，不向需求方展示。\n2. 认证照片存储于平台安全服务器，仅管理员可查看。\n3. 服务者承诺所填信息真实有效，如发现伪造将永久封禁。",
+    ent: "企业认证协议\n\n一、企业资格\n1. 申请企业认证需提供有效的营业执照（正本）。\n2. 统一社会信用代码需与营业执照一致，用于资质核验。\n\n二、需求发布\n1. 企业认证通过后方可发布需求，需求描述需真实、准确。\n2. 企业需对发布的预算、交付标准、周期等信息负责。\n\n三、结算与验收\n1. 企业需在服务者交付后及时验收，验收后通过平台完成结算。\n2. 争议需在交付后 7 日内提出，逾期视为验收通过。\n\n四、行为规范\n1. 企业不得发布虚假需求、恶意压价或进行不正当竞争。\n2. 违反本协议的企业，平台有权限制发布需求、暂停账号或永久封禁。",
+    "ent-terms": "平台服务条款\n\n1. 平台为信息撮合服务提供方，不直接参与需求方与服务者之间的交付过程。\n2. 平台有权根据运营需要调整服务规则，调整后将在平台公示。\n3. 因不可抗力导致的服务中断，平台不承担责任。"
+  };
+
+  var AGREEMENT_TITLES = {
+    user: "用户协议", privacy: "隐私政策",
+    opc: "OPC 服务者协议", "opc-privacy": "实名认证条款",
+    ent: "企业认证协议", "ent-terms": "平台服务条款"
+  };
+
+  function getAgreement(key) {
+    return localStorage.getItem("opc_agreement_" + key) || DEFAULT_AGREEMENTS[key];
+  }
+  function getAgreementVersion() {
+    return localStorage.getItem("opc_agreement_version") || "1.0";
+  }
+
+  var agreeModal = document.getElementById("agreeModal");
+  document.querySelectorAll("[data-agree]").forEach(function (link) {
+    link.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var key = this.getAttribute("data-agree");
+      var title = AGREEMENT_TITLES[key] || "协议";
+      document.getElementById("agreeTitle").innerHTML = title + ' <span class="agree-ver">v' + getAgreementVersion() + '</span>';
+      document.getElementById("agreeBody").textContent = getAgreement(key);
+      agreeModal.classList.add("show");
+    });
+  });
+  document.getElementById("agreeClose").addEventListener("click", function () {
+    agreeModal.classList.remove("show");
+  });
+  agreeModal.addEventListener("click", function (e) {
+    if (e.target === agreeModal) agreeModal.classList.remove("show");
+  });
+
+  /* ===== 登录 / 注册 / 重置密码 模式切换 ===== */
+  var mode = "login";
+
+  function setMode(m) {
+    mode = m;
+    var btn = document.getElementById("switchToReg");
+    document.getElementById("panel-email").classList.toggle("active", m === "login");
+    document.getElementById("panel-phone").classList.toggle("active", m === "phone");
+    document.getElementById("panel-register").classList.toggle("active", m === "register");
+    document.getElementById("panel-register-phone").classList.toggle("active", m === "register-phone");
+    document.getElementById("panel-reset").classList.toggle("active", m === "reset");
+    var showTP = (m === "login" || m === "phone");
+    document.getElementById("thirdPartyDivider").style.display = showTP ? "" : "none";
+    document.getElementById("thirdPartyArea").style.display = showTP ? "" : "none";
+    if (m === "login") {
+      document.getElementById("formTitle").textContent = "欢迎回来";
+      document.getElementById("formSubtitle").textContent = "登录以发布需求或查看你的需求列表";
+      btn.innerHTML = "还没有账号？立即注册";
+      btn.classList.remove("back-to-login");
+    } else if (m === "phone") {
+      document.getElementById("formTitle").textContent = "手机号登录";
+      document.getElementById("formSubtitle").textContent = "使用手机号 + 密码登录";
+      btn.innerHTML = "还没有账号？立即注册";
+      btn.classList.remove("back-to-login");
+    } else if (m === "register") {
+      document.getElementById("formTitle").textContent = "创建账号";
+      document.getElementById("formSubtitle").textContent = "邮箱注册 · 注册后自动登录并分配唯一账号 ID";
+      btn.innerHTML = "← 返回登录";
+      btn.classList.add("back-to-login");
+    } else if (m === "register-phone") {
+      document.getElementById("formTitle").textContent = "创建账号";
+      document.getElementById("formSubtitle").textContent = "手机号注册 · 注册后自动登录并分配唯一账号 ID";
+      btn.innerHTML = "← 返回登录";
+      btn.classList.add("back-to-login");
+    } else {
+      document.getElementById("formTitle").textContent = "重置密码";
+      document.getElementById("formSubtitle").textContent = "通过邮箱验证码验证身份后设置新密码";
+      btn.innerHTML = "← 返回登录";
+      btn.classList.add("back-to-login");
+    }
+  }
+
+  document.getElementById("switchToReg").addEventListener("click", function () {
+    setMode(mode === "login" || mode === "phone" ? "register" : "login");
+  });
+  document.getElementById("switchToPhone").addEventListener("click", function () {
+    setMode("phone");
+  });
+  document.getElementById("switchToEmail").addEventListener("click", function () {
+    setMode("login");
+  });
+  document.getElementById("switchToRegPhone").addEventListener("click", function () {
+    setMode("register-phone");
+  });
+  document.getElementById("switchToRegEmail").addEventListener("click", function () {
+    setMode("register");
+  });
+
+  document.getElementById("forgot-link").addEventListener("click", function () {
+    setMode("reset");
+    var email = document.getElementById("emailAddr").value.trim();
+    if (email) document.getElementById("resetEmail").value = email;
+  });
+
+  if (location.hash === "#register") {
+    setMode("register");
+  }
+
+  if (location.hash === "#register-phone") {
+    setMode("register-phone");
+  }
+
+  if (location.hash === "#phone") {
+    setMode("phone");
+  }
+
+  if (location.hash === "#reset") {
+    setMode("reset");
+  }
+
+  if (location.hash === "#rolemodal") {
+    showRoleModal("pick");
+  }
+  if (location.hash === "#rolemodal-opc") {
+    rolePickHistory = "opc";
+    showRoleModal("opc");
+  }
+  if (location.hash === "#rolemodal-ent") {
+    showRoleModal("enterprise");
+  }
+
+  /* ===== 输入时清除错误态 ===== */
+  document.querySelectorAll("input").forEach(function (inp) {
+    inp.addEventListener("input", function () {
+      this.style.borderColor = "";
+    });
+  });
+
+  /* ===== 第三方授权登录 ===== */
+  document.querySelectorAll(".tp-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var provider = this.dataset.tp;
+      var platName = provider === "gitee" ? "Gitee" : "飞书";
+      /* 检查是否有已绑定该平台的账号 */
+      var accounts = [];
+      try { accounts = JSON.parse(localStorage.getItem("opc_accounts")) || []; } catch (e) {}
+      var matched = null;
+      for (var i = 0; i < accounts.length; i++) {
+        if (accounts[i].oauth && accounts[i].oauth[provider]) {
+          matched = accounts[i];
+          break;
+        }
+      }
+      if (matched) {
+        showToast("正在通过" + platName + "登录…");
+        setTimeout(function () {
+          var user = {
+            accountId: matched.id,
+            username: matched.username || matched.id,
+            role: matched.role || (matched.authRole === "opc" ? "opc" : "user"),
+            authRole: matched.authRole,
+            authStatus: matched.authStatus,
+            authData: matched.authData,
+            avatar: matched.avatar,
+            time: Date.now()
+          };
+          localStorage.setItem("opc_user", JSON.stringify(user));
+          showToast(platName + "登录成功，正在进入平台…", "success");
+          setTimeout(function () {
+            if (user.role === "admin") window.location.href = "dashboard.html";
+            else if (user.authRole === "opc") window.location.href = "opc-dashboard.html";
+            else window.location.href = "dashboard.html";
+          }, 600);
+        }, 1000);
+      } else {
+        showToast("该" + platName + "账号未绑定本平台，请先注册并完成角色认证后在「角色认证」页绑定", "info");
+      }
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

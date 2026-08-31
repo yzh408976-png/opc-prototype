@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数据变更日志 — OPC 需求平台</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --primary: #007dff;
+    --primary-hover: #339bff;
+    --primary-light: #e8f3ff;
+    --primary-dark: #0058d0;
+    --accent: #4e58ff;
+    --accent-light: #eef0ff;
+    --text-main: #181818;
+    --text-sub: #5e5e5e;
+    --text-hint: #9b9b9b;
+    --border: rgba(0,0,0,.06);
+    --bg: #f0f1f5;
+    --card: #ffffff;
+    --glass: rgba(255,255,255,.72);
+    --glass-border: rgba(255,255,255,.5);
+    --error: #e5484d;
+    --radius: 16px;
+    --shadow-sm: 0 1px 4px rgba(0,0,0,.05);
+    --shadow-md: 0 4px 16px rgba(0,0,0,.06), 0 12px 32px rgba(0,0,0,.04);
+    --shadow-hover: 0 6px 20px rgba(0,125,255,.12), 0 16px 48px rgba(0,0,0,.08);
+  }
+
+  html, body { height: 100%; }
+  body {
+    font-family: "HarmonyOS Sans SC", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    background: #f0f1f5;
+    color: var(--text-main);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 600px 400px at 15% 15%, rgba(0,125,255,.10), transparent),
+      radial-gradient(ellipse 500px 500px at 85% 30%, rgba(78,88,255,.08), transparent),
+      radial-gradient(ellipse 400px 300px at 50% 90%, rgba(0,200,200,.06), transparent);
+    pointer-events: none;
+  }
+
+  /* ===== 左侧导航栏 ===== */
+  .sidebar {
+    width: 216px;
+    flex-shrink: 0;
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 1px solid var(--glass-border);
+    padding: 18px 14px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+  }
+  .logo { display: flex; align-items: center; gap: 8px; padding: 6px 10px 18px; font-size: 17px; font-weight: 700; color: #1f3b8f; }
+  .logo-badge { width: 26px; height: 26px; border-radius: 7px; background: var(--primary); color: #fff; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; }
+  .nav-group { font-size: 11.5px; color: var(--text-hint); padding: 14px 10px 6px; font-weight: 600; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 10px;
+    font-size: 13.5px; color: var(--text-sub);
+    text-decoration: none; transition: all .2s;
+    margin-bottom: 2px;
+  }
+  .nav-item:hover { background: rgba(0,125,255,.06); color: var(--primary); }
+  .nav-item.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+  .nav-count {
+    margin-left: auto; background: var(--error); color: #fff;
+    font-size: 10px; min-width: 18px; height: 18px;
+    border-radius: 9px; display: inline-flex;
+    align-items: center; justify-content: center;
+    padding: 0 5px; font-weight: 700;
+  }
+
+  .user-box {
+    margin-top: auto; padding: 12px 10px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .user-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--primary); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; flex-shrink: 0;
+    position: relative; cursor: pointer; overflow: hidden;
+  }
+  .user-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .user-avatar::after {
+    content: "📷";
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; opacity: 0; transition: opacity .2s;
+    border-radius: 50%;
+  }
+  .user-avatar:hover::after { opacity: 1; }
+  .user-meta { flex: 1; min-width: 0; }
+  .user-name { font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .user-sub { font-size: 11.5px; color: var(--text-hint); }
+  .logout-btn {
+    width: 30px; height: 30px; border: none; border-radius: 8px;
+    background: transparent; color: var(--text-hint);
+    cursor: pointer; font-size: 15px; transition: all .2s;
+  }
+  .logout-btn:hover { background: #fff5f5; color: var(--error); }
+
+  /* ===== 主区域 ===== */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; z-index: 1; }
+  .topbar {
+    height: 60px; padding: 0 28px;
+    display: flex; align-items: center;
+    border-bottom: 1px solid var(--border);
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+  }
+  .topbar h1 { font-size: 17px; font-weight: 700; }
+  .spacer { flex: 1; }
+  .date-hint { font-size: 12.5px; color: var(--text-hint); margin-right: 16px; }
+
+  .content { flex: 1; overflow-y: auto; padding: 24px 28px; }
+
+  /* ===== 统计卡片 ===== */
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 16px; margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--card); border-radius: var(--radius);
+    padding: 20px; box-shadow: var(--shadow-sm);
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer; transition: all .25s;
+  }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+  .stat-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .stat-icon.blue { background: #e8f3ff; }
+  .stat-icon.green { background: #ecfdf5; }
+  .stat-icon.orange { background: #fff7ed; }
+  .stat-icon.purple { background: #f5f3ff; }
+  .stat-value { font-size: 22px; font-weight: 700; }
+  .stat-label { font-size: 12.5px; color: var(--text-sub); }
+
+  /* ===== 筛选栏 ===== */
+  .filter-bar {
+    background: var(--card); border-radius: var(--radius);
+    padding: 16px 20px; margin-bottom: 16px;
+    box-shadow: var(--shadow-sm);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .filter-label { font-size: 13px; font-weight: 600; color: var(--text-sub); }
+  .filter-btn {
+    padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border);
+    background: #fff; font-size: 12.5px; cursor: pointer; font-family: inherit;
+    transition: all .2s;
+  }
+  .filter-btn:hover { border-color: var(--primary); color: var(--primary); }
+  .filter-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .filter-search {
+    margin-left: auto; padding: 6px 12px; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 12.5px; outline: none;
+    font-family: inherit; width: 200px;
+    transition: border-color .2s;
+  }
+  .filter-search:focus { border-color: var(--primary); }
+
+  /* ===== 日志表格 ===== */
+  .log-table-card {
+    background: var(--card); border-radius: var(--radius);
+    box-shadow: var(--shadow-sm); overflow: hidden;
+  }
+  .log-table-header {
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .log-table-header h3 { font-size: 15px; font-weight: 700; }
+  .log-count { font-size: 12px; color: var(--text-hint); }
+
+  .log-table { width: 100%; border-collapse: collapse; }
+  .log-table th {
+    padding: 10px 20px; text-align: left;
+    font-size: 12px; font-weight: 600; color: var(--text-hint);
+    border-bottom: 1px solid var(--border);
+    background: #fafbfc;
+  }
+  .log-table td {
+    padding: 12px 20px; font-size: 13px;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  .log-table tr:last-child td { border-bottom: none; }
+  .log-table tr:hover td { background: #fafbfc; }
+
+  .log-time { color: var(--text-hint); white-space: nowrap; font-size: 12px; }
+  .log-user { font-weight: 600; }
+  .log-user-id { font-size: 11px; color: var(--text-hint); font-weight: 400; }
+  .log-field {
+    display: inline-block; padding: 2px 10px; border-radius: 6px;
+    font-size: 11.5px; font-weight: 600;
+  }
+  .log-field.avatar { background: #f5f3ff; color: #8b5cf6; }
+  .log-field.profile { background: #e8f3ff; color: var(--primary); }
+  .log-field.auth { background: #ecfdf5; color: #16a34a; }
+  .log-field.status { background: #fff7ed; color: #ea580c; }
+  .log-field.file { background: #ecfeff; color: #06b6d4; }
+  .log-desc { color: var(--text-sub); }
+
+  .log-empty {
+    padding: 60px 20px; text-align: center;
+    color: var(--text-hint); font-size: 14px;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed; top: 24px; left: 50%;
+    transform: translateX(-50%) translateY(-80px);
+    background: var(--text-main); color: #fff;
+    padding: 12px 24px; border-radius: 8px;
+    font-size: 14px; box-shadow: 0 4px 16px rgba(0,0,0,.15);
+    z-index: 9999; transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ===== 响应式 ===== */
+  @media (max-width: 1024px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 768px) {
+    body { flex-direction: column; overflow-y: auto; }
+    .sidebar { display: none; }
+    .content { padding: 16px; }
+    .stats-grid { grid-template-columns: 1fr; }
+    .log-table { font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 左侧导航栏 -->
+<aside class="sidebar">
+  <div class="logo"><span class="logo-badge">OP</span>OPC 协作平台</div>
+
+  <div class="nav-group">需求管理</div>
+  <a class="nav-item" href="dashboard.html">🏠 工作台</a>
+  <a class="nav-item" href="requirement-form.html">✈️ 发布需求</a>
+  <a class="nav-item" href="javascript:void(0)">📋 我的需求</a>
+  <a class="nav-item" href="javascript:void(0)">📝 草稿箱</a>
+  <a class="nav-item" href="javascript:void(0)">🔔 消息通知</a>
+
+  <div class="nav-group" id="reviewGroup" style="display:none">审核管理</div>
+  <a class="nav-item" href="javascript:void(0)" id="opcReviewNav" style="display:none">🛠️ OPC 管理</a>
+  <a class="nav-item" href="javascript:void(0)" id="entReviewNav" style="display:none">🏢 企业管理</a>
+
+  <div class="nav-group">其他</div>
+  <a class="nav-item" href="role-auth.html">🪪 角色认证</a>
+  <a class="nav-item" href="javascript:void(0)" id="agrNavItem" style="display:none">📜 协议管理</a>
+  <a class="nav-item active" href="change-log.html">📋 变更日志</a>
+  <a class="nav-item" href="javascript:void(0)">⚙️ 设置</a>
+  <a class="nav-item" href="javascript:void(0)">❓ 帮助中心</a>
+
+  <div class="user-box" id="userBox">
+    <div class="user-avatar" id="userAvatar" title="点击更换头像">
+      <span id="avatarText">A</span>
+      <input type="file" id="avatarInput" accept="image/*" style="display:none">
+    </div>
+    <div class="user-meta">
+      <div class="user-name" id="userName">管理员</div>
+      <div class="user-sub" id="userSub">超级管理员</div>
+    </div>
+    <button class="logout-btn" id="logoutBtn" title="退出登录">⏻</button>
+  </div>
+</aside>
+
+<!-- 主区域 -->
+<div class="main">
+  <div class="topbar">
+    <h1>数据变更日志</h1>
+    <div class="spacer"></div>
+    <span class="date-hint" id="dateHint"></span>
+  </div>
+
+  <div class="content">
+
+    <!-- 统计卡片 -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon blue">📊</div>
+        <div class="stat-info">
+          <div class="stat-value" id="statTotal">0</div>
+          <div class="stat-label">总变更次数</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon purple">👤</div>
+        <div class="stat-info">
+          <div class="stat-value" id="statUsers">0</div>
+          <div class="stat-label">涉及用户数</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">🖼️</div>
+        <div class="stat-info">
+          <div class="stat-value" id="statAvatar">0</div>
+          <div class="stat-label">头像更换次数</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon orange">📅</div>
+        <div class="stat-info">
+          <div class="stat-value" id="statToday">0</div>
+          <div class="stat-label">今日变更</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 筛选栏 -->
+    <div class="filter-bar">
+      <span class="filter-label">类型筛选</span>
+      <button class="filter-btn active" data-filter="all">全部</button>
+      <button class="filter-btn" data-filter="avatar">头像</button>
+      <button class="filter-btn" data-filter="profile">资料</button>
+      <button class="filter-btn" data-filter="auth">认证</button>
+      <button class="filter-btn" data-filter="status">状态</button>
+      <input class="filter-search" id="logSearch" placeholder="搜索用户名或账号 ID…">
+    </div>
+
+    <!-- 日志表格 -->
+    <div class="log-table-card">
+      <div class="log-table-header">
+        <h3>变更记录</h3>
+        <span class="log-count" id="logCount"></span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="log-table">
+          <thead>
+            <tr>
+              <th style="width:150px">时间</th>
+              <th style="width:160px">用户</th>
+              <th style="width:90px">变更类型</th>
+              <th>操作描述</th>
+            </tr>
+          </thead>
+          <tbody id="logBody"></tbody>
+        </table>
+      </div>
+      <div class="log-empty" id="logEmpty" style="display:none">📭 暂无变更记录</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- Toast ---------- */
+function showToast(msg) {
+  var t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(function () { t.classList.remove("show"); }, 2600);
+}
+
+/* ---------- 登录态校验：仅管理员可进入 ---------- */
+(function checkLogin() {
+  var user = null;
+  try { user = JSON.parse(localStorage.getItem("opc_user")); } catch (e) {}
+  if (!user || !user.time || Date.now() - user.time > 7 * 24 * 3600 * 1000) {
+    window.location.href = "login.html";
+    return;
+  }
+  if (user.role !== "admin") {
+    window.location.href = user.authRole === "opc" ? "opc-dashboard.html" : "dashboard.html";
+    return;
+  }
+  document.getElementById("userName").textContent = user.username || "管理员";
+  document.getElementById("userSub").textContent = "超级管理员";
+  var avatar = document.getElementById("userAvatar");
+  avatar.style.background = "#7c3aed";
+
+  /* 恢复头像 */
+  if (user.avatar) {
+    document.getElementById("avatarText").style.display = "none";
+    var img = document.createElement("img");
+    img.src = user.avatar;
+    img.alt = "头像";
+    avatar.appendChild(img);
+  }
+
+  /* 头像上传 */
+  var avatarInput = document.getElementById("avatarInput");
+  avatar.addEventListener("click", function () { avatarInput.click(); });
+  avatarInput.addEventListener("change", function () {
+    if (!this.files || !this.files[0]) return;
+    var file = this.files[0];
+    if (file.size > 2 * 1024 * 1024) { showToast("头像不能超过 2MB"); return; }
+    var reader = new FileReader();
+    reader.onload = function (ev) {
+      var dataUrl = ev.target.result;
+      document.getElementById("avatarText").style.display = "none";
+      var oldImg = avatar.querySelector("img");
+      if (oldImg) oldImg.remove();
+      var newImg = document.createElement("img");
+      newImg.src = dataUrl;
+      newImg.alt = "头像";
+      avatar.appendChild(newImg);
+      user.avatar = dataUrl;
+      localStorage.setItem("opc_user", JSON.stringify(user));
+      showToast("头像已更新");
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById("logoutBtn").addEventListener("click", function () {
+    if (confirm("确定退出登录吗？")) {
+      localStorage.removeItem("opc_user");
+      window.location.href = "login.html";
+    }
+  });
+})();
+
+/* ---------- 日期显示 ---------- */
+(function () {
+  var d = new Date();
+  var days = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+  document.getElementById("dateHint").textContent =
+    d.getFullYear() + " 年 " + (d.getMonth() + 1) + " 月 " + d.getDate() + " 日 " + days[d.getDay()];
+})();
+
+/* ---------- 变更日志数据 ---------- */
+var currentFilter = "all";
+var searchKeyword = "";
+
+function loadLogs() {
+  try { return JSON.parse(localStorage.getItem("opc_change_logs")) || []; } catch (e) { return []; }
+}
+
+function fmtTime(t) {
+  var d = new Date(t);
+  function p(n) { return n < 10 ? "0" + n : n; }
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+}
+
+var TYPE_MAP = { avatar: "头像", profile: "资料", auth: "认证", status: "状态", file: "文件" };
+
+function renderStats() {
+  var logs = loadLogs();
+  var users = {};
+  var avatarCount = 0;
+  var todayCount = 0;
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  for (var i = 0; i < logs.length; i++) {
+    users[logs[i].userId] = true;
+    if (logs[i].type === "avatar") avatarCount++;
+    if (logs[i].time >= today.getTime()) todayCount++;
+  }
+
+  document.getElementById("statTotal").textContent = logs.length;
+  document.getElementById("statUsers").textContent = Object.keys(users).length;
+  document.getElementById("statAvatar").textContent = avatarCount;
+  document.getElementById("statToday").textContent = todayCount;
+}
+
+function renderTable() {
+  var logs = loadLogs();
+  logs.sort(function (a, b) { return b.time - a.time; });
+
+  var filtered = logs;
+  if (currentFilter !== "all") {
+    filtered = filtered.filter(function (l) { return l.type === currentFilter; });
+  }
+  if (searchKeyword) {
+    var kw = searchKeyword.toLowerCase();
+    filtered = filtered.filter(function (l) {
+      return (l.userName && l.userName.toLowerCase().indexOf(kw) !== -1) ||
+             (l.userId && l.userId.toLowerCase().indexOf(kw) !== -1);
+    });
+  }
+
+  var tbody = document.getElementById("logBody");
+  var empty = document.getElementById("logEmpty");
+  var count = document.getElementById("logCount");
+
+  count.textContent = "共 " + filtered.length + " 条记录";
+
+  if (!filtered.length) {
+    tbody.innerHTML = "";
+    empty.style.display = "";
+    return;
+  }
+  empty.style.display = "none";
+
+  tbody.innerHTML = filtered.map(function (l) {
+    var typeLabel = TYPE_MAP[l.type] || l.type;
+    return "<tr>" +
+      '<td><span class="log-time">' + fmtTime(l.time) + '</span></td>' +
+      '<td><div class="log-user">' + (l.userName || "未知") + '</div><div class="log-user-id">' + (l.userId || "") + '</div></td>' +
+      '<td><span class="log-field ' + l.type + '">' + typeLabel + '</span></td>' +
+      '<td><span class="log-desc">' + (l.desc || "") + '</span></td>' +
+    "</tr>";
+  }).join("");
+}
+
+/* 筛选按钮 */
+document.querySelectorAll(".filter-btn").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    document.querySelectorAll(".filter-btn").forEach(function (b) { b.classList.remove("active"); });
+    this.classList.add("active");
+    currentFilter = this.dataset.filter;
+    renderTable();
+  });
+});
+
+/* 搜索 */
+document.getElementById("logSearch").addEventListener("input", function () {
+  searchKeyword = this.value.trim();
+  renderTable();
+});
+
+/* 初始化 */
+renderStats();
+renderTable();
+
+/* 每 5 秒自动刷新 */
+setInterval(function () { renderStats(); renderTable(); }, 5000);
+</script>
+</body>
+</html>

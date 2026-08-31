@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OPC 需求平台 PRD · 批注版 v5.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#3B5BFD;--primary-light:#eef1ff;
+  --text-main:#1a1d26;--text-sub:#6b7280;--text-hint:#9ca3af;
+  --border:#e5e7eb;--bg:#f5f6fa;--card:#fff;
+  --red:#e5484d;--red-light:#fef2f2;
+  --green:#16a34a;--green-light:#dcfce7;
+  --orange:#ea580c;--orange-light:#fff7ed;
+  --purple:#7c3aed;--purple-light:#f5f3ff;
+  --blue-light:#eef1ff;
+}
+html{scroll-behavior:smooth}
+body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text-main);line-height:1.7}
+
+/* ===== 左侧滑动菜单 ===== */
+.sidemenu{position:fixed;top:0;left:0;width:250px;height:100vh;background:var(--card);border-right:1px solid var(--border);overflow-y:auto;z-index:100;padding:18px 0}
+.sidemenu::-webkit-scrollbar{width:4px}
+.sidemenu::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:2px}
+.menu-brand{padding:0 20px 14px;border-bottom:1px solid var(--border);margin-bottom:10px}
+.menu-brand h1{font-size:16px;font-weight:700;color:var(--primary)}
+.menu-brand p{font-size:11.5px;color:var(--text-hint);margin-top:2px}
+.m-group{margin-bottom:2px}
+.m-gtitle{display:flex;align-items:center;gap:6px;padding:9px 20px;font-size:13.5px;font-weight:600;cursor:pointer;user-select:none;color:var(--text-main);transition:background .15s}
+.m-gtitle:hover{background:var(--primary-light)}
+.m-gtitle .arr{display:inline-block;font-size:10px;color:var(--text-hint);transition:transform .25s;transform:rotate(0deg)}
+.m-group.open>.m-gtitle .arr{transform:rotate(90deg)}
+.m-items{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.m-group.open>.m-items{max-height:1500px}
+.m-items a{display:block;padding:7px 20px 7px 40px;font-size:12.5px;color:var(--text-sub);text-decoration:none;border-left:3px solid transparent;transition:all .15s}
+.m-items a:hover{color:var(--primary);background:var(--primary-light)}
+.m-items a.active{color:var(--primary);border-left-color:var(--primary);background:var(--primary-light);font-weight:600}
+.m-mod{font-weight:700;color:var(--text-main);padding:10px 20px 4px 28px;font-size:12.5px;pointer-events:none;border-left:3px solid transparent}
+.m-mod:first-child{padding-top:4px}
+
+.main{margin-left:250px;padding:40px 44px 100px;max-width:1460px}
+@media(max-width:1100px){.sidemenu{display:none}.main{margin-left:0;padding:20px}}
+
+/* ===== 文档头 ===== */
+.doc-head{text-align:center;margin-bottom:48px;padding-bottom:32px;border-bottom:2px solid var(--border)}
+.doc-head h1{font-size:32px;font-weight:700;background:linear-gradient(135deg,#3B5BFD,#6d5dfc,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.doc-head .sub{font-size:14.5px;color:var(--text-sub);margin-top:8px}
+.doc-head .meta{margin-top:14px;display:flex;justify-content:center;gap:20px;font-size:12.5px;color:var(--text-hint)}
+
+/* ===== 章节 ===== */
+.chapter{margin-bottom:64px}
+.ch-title{display:flex;align-items:center;gap:10px;font-size:22px;font-weight:700;margin-bottom:6px}
+.ch-title .cnum{min-width:34px;height:34px;padding:0 8px;border-radius:9px;background:linear-gradient(135deg,#3B5BFD,#6d5dfc);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px}
+.ch-lead{font-size:13.5px;color:var(--text-sub);margin:0 0 20px 44px}
+.sub-h{font-size:16.5px;font-weight:700;margin:26px 0 10px;padding-left:12px;border-left:4px solid var(--primary)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin:12px 0;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+p.p{font-size:13.5px;margin-bottom:8px}
+
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:12.5px;background:var(--card)}
+th{background:var(--primary-light);color:var(--primary);font-weight:600;text-align:left;padding:9px 11px;border-bottom:2px solid var(--border);white-space:nowrap}
+td{padding:9px 11px;border-bottom:1px solid var(--border);vertical-align:top}
+td code{font-family:Consolas,monospace;font-size:11.5px;background:#f3f4f6;padding:1px 5px;border-radius:4px}
+pre{background:#1e1e2e;color:#cdd6f4;border-radius:10px;padding:16px 18px;overflow-x:auto;font-size:12.5px;line-height:1.65;margin:10px 0;font-family:Consolas,monospace}
+
+.callout{border-radius:10px;padding:14px 18px;margin:14px 0;font-size:13px;border-left:4px solid}
+.callout.warn{background:var(--orange-light);border-color:var(--orange)}
+.callout.info{background:var(--primary-light);border-color:var(--primary)}
+.callout.danger{background:var(--red-light);border-color:var(--red)}
+.callout strong{display:block;margin-bottom:3px}
+
+/* ===== 批注页 ===== */
+.page-sec{margin:34px 0 48px}
+.sec-head{display:flex;align-items:baseline;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.sec-head .sn{font-size:13px;font-weight:700;color:#fff;background:var(--primary);border-radius:6px;padding:2px 9px}
+.sec-head h3{font-size:17.5px;font-weight:700}
+.sec-head .route{font-size:11.5px;color:var(--text-hint);font-family:Consolas,monospace;background:#f3f4f6;padding:2px 8px;border-radius:4px}
+.anno-wrap{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:20px;align-items:start}
+@media(max-width:1280px){.anno-wrap{grid-template-columns:1fr}.notes{max-height:none!important;overflow:visible}}
+
+.shot{position:relative;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:20px}
+.shot img{display:block;width:100%;height:auto}
+@media(max-width:1280px){.shot{padding:0}}
+.mk{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:var(--primary);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 0 0 3px rgba(59,91,253,.28),0 2px 6px rgba(0,0,0,.25);transition:transform .18s,background .18s;z-index:5}
+.mk:hover{transform:scale(1.18)}
+.mk.hl{background:var(--red);box-shadow:0 0 0 4px rgba(229,72,77,.32),0 2px 8px rgba(0,0,0,.3);transform:scale(1.22)}
+
+.notes{display:flex;flex-direction:column;gap:10px;overflow-y:auto;padding-right:6px;scrollbar-width:thin;scrollbar-color:#d1d5db transparent}
+.notes::-webkit-scrollbar{width:4px}
+.notes::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:2px}
+.note{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;cursor:pointer;transition:border-color .18s,box-shadow .18s}
+.note:hover{border-color:var(--primary)}
+.note.hl{border-color:var(--red);box-shadow:0 0 0 3px rgba(229,72,77,.14)}
+.note-h{display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap}
+.note-h .nn{min-width:22px;height:22px;padding:0 5px;border-radius:50%;background:var(--primary);color:#fff;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.note.hl .nn{background:var(--red)}
+.note-h b{font-size:13.5px}
+.note p{font-size:12.5px;color:var(--text-sub);line-height:1.75}
+.note p code{font-family:Consolas,monospace;font-size:11px;background:#f3f4f6;padding:1px 5px;border-radius:4px;color:var(--text-main)}
+.tag{font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:20px}
+.tag.req{background:var(--red-light);color:var(--red)}
+  .tag.opt{background:#f3f4f6;color:var(--text-hint)}
+  .tag.act{background:var(--blue-light);color:var(--primary)}
+  .tag.rule{background:var(--green-light);color:var(--green)}
+  .tag.demo{background:var(--orange-light);color:var(--orange)}
+  .tag.data{background:#f5f3ff;color:#7c3aed}
+  .tag.biz{background:#ecfdf5;color:#059669}
+  .tag.sys{background:#e8f3ff;color:#0058d0}
+  .tag.alert{background:#fff1f2;color:#e5484d}
+  .tag.chart{background:#fff7ed;color:#ea580c}
+.note-extra{background:var(--card);border:1px dashed var(--primary);border-radius:10px;padding:12px 14px;font-size:12.5px;color:var(--text-sub)}
+.note-extra b{color:var(--primary)}
+</style>
+</head>
+<body>
+
+<!-- ================= 左侧滑动菜单 ================= -->
+<nav class="sidemenu">
+  <div class="menu-brand">
+    <h1>OPC 需求平台 PRD</h1>
+    <p>批注版 v5.0 · 2026-08-28</p>
+  </div>
+  <div class="m-group open">
+    <div class="m-gtitle"><span class="arr">▶</span>版本修订记录</div>
+    <div class="m-items"><a href="#c-version" data-sec="c-version">版本修订记录</a></div>
+  </div>
+  <div class="m-group open">
+    <div class="m-gtitle"><span class="arr">▶</span>产品概述</div>
+    <div class="m-items">
+      <a href="#c-intro" data-sec="c-intro">产品介绍</a>
+      <a href="#c-users" data-sec="c-users">产品用户</a>
+      <a href="#c-needs" data-sec="c-needs">用户需求</a>
+      <a href="#c-funclist" data-sec="c-funclist">功能清单</a>
+      <a href="#c-goal" data-sec="c-goal">业务目标</a>
+      <a href="#c-arch" data-sec="c-arch">产品架构</a>
+      <a href="#c-words" data-sec="c-words">名词解释</a>
+      <a href="#c-plan" data-sec="c-plan">项目排期</a>
+    </div>
+  </div>
+  <div class="m-group open" id="g-func">
+    <div class="m-gtitle"><span class="arr">▶</span>功能说明</div>
+    <div class="m-items" id="func-items">
+      <div class="m-mod" data-mod="3.1">3.1 注册登录模块</div>
+      <a href="#p-login" data-sec="p-login">登录页</a>
+      <a href="#p-register" data-sec="p-register">注册页</a>
+      <a href="#p-rolepick" data-sec="p-rolepick">角色选择弹窗</a>
+      <a href="#p-opcform" data-sec="p-opcform">OPC 认证表单</a>
+      <a href="#p-entform" data-sec="p-entform">企业认证表单</a>
+      <div class="m-mod" data-mod="3.2">3.2 角色认证模块</div>
+      <a href="#p-roleauth" data-sec="p-roleauth">角色认证页</a>
+      <a href="#p-approved" data-sec="p-approved">已认证信息页</a>
+      <a href="#p-editconfirm" data-sec="p-editconfirm">申请编辑信息弹窗</a>
+      <a href="#p-editmode" data-sec="p-editmode">编辑模式表单</a>
+      <div class="m-mod" data-mod="3.3">3.3 工作台模块</div>
+      <a href="#p-entdash" data-sec="p-entdash">企业工作台</a>
+      <a href="#p-mask" data-sec="p-mask">未认证限制遮罩</a>
+      <a href="#p-opcdash" data-sec="p-opcdash">OPC 工作台</a>
+      <div class="m-mod" data-mod="3.4">3.4 管理员模块</div>
+      <a href="#p-admindash" data-sec="p-admindash">管理员工作台</a>
+      <a href="#p-review" data-sec="p-review">认证审核</a>
+      <a href="#p-agreement" data-sec="p-agreement">协议管理</a>
+    </div>
+  </div>
+  <div class="m-group open">
+    <div class="m-gtitle"><span class="arr">▶</span>全局说明</div>
+    <div class="m-items"><a href="#c-global" data-sec="c-global">全局说明</a></div>
+  </div>
+  <div class="m-group open">
+    <div class="m-gtitle"><span class="arr">▶</span>非功能性需求</div>
+    <div class="m-items"><a href="#c-nfr" data-sec="c-nfr">非功能性需求</a></div>
+  </div>
+  <div class="m-group open">
+    <div class="m-gtitle"><span class="arr">▶</span>附件</div>
+    <div class="m-items">
+      <a href="#a-storage" data-sec="a-storage">localStorage 结构</a>
+      <a href="#a-regex" data-sec="a-regex">校验正则汇总</a>
+      <a href="#a-error" data-sec="a-error">错误码索引</a>
+    </div>
+  </div>
+</nav>
+
+<div class="main">
+
+<div class="doc-head">
+  <h1>OPC 需求平台 PRD</h1>
+  <p class="sub">批注版 · 原型页面顺序批注，所有细节直接写在批注上</p>
+  <div class="meta"><span>📅 2026-08-28</span><span>👤 3 人开发团队</span><span>🔄 v5.0</span><span>🖱 点击序号标记与批注可双向联动</span></div>
+</div>
+
+<!-- ================= 版本修订记录 ================= -->
+<div class="chapter" id="c-version">
+  <div class="ch-title"><span class="cnum">一</span>版本修订记录</div>
+  <table>
+    <thead><tr><th>版本号</th><th>修订日期</th><th>修订内容</th><th>修改原因</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr><td>v1.0</td><td>2026-08-25</td><td>新建文档（字段级开发者 PRD）</td><td>业务需求</td><td>修订</td></tr>
+      <tr><td>v2.0</td><td>2026-08-26</td><td>登录改为纯邮箱验证码；注册后弹窗选择 OPC/企业身份并内嵌认证表单；拆分双工作台；新增管理员审核、停用、协议管理、变更日志、头像、记住我</td><td>需求变更</td><td>修订</td></tr>
+      <tr><td>v3.0</td><td>2026-08-27</td><td>文档形式改为 Axure 风格顺序批注：真实原型截图 + 序号标记，全部细节写入批注</td><td>体验流程优化</td><td>初稿</td></tr>
+      <tr><td>v3.1</td><td>2026-08-27</td><td>已认证视图改版：认证信息改为输入框式只读排版并居中；「进入工作台」改为「申请编辑信息」——弹窗确认后暂时封闭权限，编辑模式预填数据 + 警示条，重新提交待管理员审核通过后恢复权限，可随时取消编辑立即恢复；新增 3.2.2 / 3.2.3 / 3.2.4 三个批注页</td><td>需求变更</td><td>修订</td></tr>
+      <tr><td>v3.2</td><td>2026-08-27</td><td>批注展示优化：右侧批注栏改为与截图同高的独立滑动面板（不再撑长页面，标记点击仅在面板内滑动定位）；截图序号标记改为虚化靠左显示（半透明毛玻璃、锚点左侧，不再居中遮挡页面内容，悬停/高亮时恢复实心）</td><td>阅读体验优化</td><td>修订</td></tr>
+      <tr><td>v3.3</td><td>2026-08-27</td><td>企业工作台移除「能力标签库」快捷卡片（原型同步删除）；企业/OPC 工作台批注重构——左侧导航目录不再批注，欢迎横幅、4 张统计卡、全部快捷入口卡、最近需求/最新匹配需求列表逐张独立完善批注</td><td>工作台模块</td><td>修订</td></tr>
+      <tr><td>v3.4</td><td>2026-08-27</td><td>左侧目录重构：功能说明下按 3.1/3.2/3.3/3.4 模块做二级划分并显示编号；新增 scroll-spy 滚动联动——页面滚动到对应分点时目录自动高亮该项并展开所属模块</td><td>左侧目录</td><td>新增</td></tr>
+      <tr><td>v3.5</td><td>2026-08-27</td><td>角色弹窗支持点击空白处跳过认证进入工作台浏览模式；OPC 表单：身份证要求完善（提示文案）、所在城市改为省/市/区三级联动、擅长领域改为多选标签；OPC/企业认证协议改为可点击弹窗展示（管理端可编辑）；协议管理弹窗新增 OPC 服务者协议与企业认证协议编辑区、版本号自动递增并公示给用户</td><td>注册登录/认证/协议</td><td>修订</td></tr>
+      <tr><td>v3.6</td><td>2026-08-27</td><td>管理员工作台全面改版：新增用户统计（注册总数/今日活跃/在线数）、业务核心指标（今日订单量/交易额）、系统状态（服务在线率/接口响应时长）、待办事项（可点击跳转处理）、异常告警（近 24h 错误日志/服务降级通知）、业务趋势（近 7 天双折线图）；管理员与企业端内容区完全分离</td><td>管理员模块</td><td>修订</td></tr>
+      <tr><td>v3.7</td><td>2026-08-28</td><td>第三方平台绑定与登录：角色认证通过后在已认证信息页新增 Gitee/飞书绑定区域（仅认证通过可见）；绑定后登录页可直接通过第三方平台按钮登录进入平台；登录页 Gitee/飞书按钮批注从原型态改为交互态，已认证信息页新增 4 条 OAuth 绑定批注</td><td>注册登录/认证</td><td>修订</td></tr>
+      <tr><td>v3.8</td><td>2026-08-28</td><td>角色认证批注标记居中修正：3.2.2 已认证信息页 12 个标记全部居中对齐（OAuth 区域从左右散布改为居中排列，「申请编辑信息」与「返回工作台」按钮标记统一到同一 y 轴）；3.2.4 编辑模式表单 6 个标记居中重排；「申请编辑信息」批注内容完善（补充编辑闭环全流程描述）</td><td>批注排版优化</td><td>修订</td></tr>
+      <tr><td>v3.9</td><td>2026-08-28</td><td>角色认证页实时状态同步：role-auth.html 新增 3 秒轮询 + 窗口聚焦触发，管理员审核通过/拒绝后用户端自动更新认证状态（无需手动刷新）；审核中视图新增绿色脉冲指示灯「实时检测中」；通过自动跳转已认证视图 + Toast，拒绝自动跳转拒绝视图 + Toast；PRD 3.2.1 角色徽章批注和认证四态描述同步更新</td><td>实时状态同步</td><td>修订</td></tr>
+      <tr><td>v4.0</td><td>2026-08-28</td><td>企业工作台新增「企业基本信息」卡片：橙色品牌色卡片，仅认证通过时展示，顶部企业名称 + 行业·规模 + 「认证企业」徽章，下方双列网格展示信用代码/城市/联系人/电话/地址；PRD 3.3.1 批注从 14 条扩展到 15 条，标记重新居中排列，截图更新</td><td>企业工作台完善</td><td>修订</td></tr>
+      <tr><td>v4.1</td><td>2026-08-28</td><td>变更日志精简：移除独立页面 change-log.html 和侧边栏「变更日志」入口，不再作为独立功能点展示；管理员工作台趋势图下方新增「最近变更」单行灰底字段（读取 opc_change_logs 最新一条，每 5 秒刷新）；PRD 移除 3.4.3 数据变更日志章节，原 3.4.4 协议管理顺升为 3.4.3；管理员工作台批注新增「最近变更」标记，侧边栏管理项更新</td><td>变更日志精简</td><td>修订</td></tr>
+      <tr><td>v4.2</td><td>2026-08-28</td><td>登录页重构：邮箱登录面板删除手机号输入框（原选填字段），保留记住我与忘记密码；新增「手机号+密码登录」面板切换（邮箱面板底部链接 → 手机号+密码面板，可切回）；手机号登录提交校验手机号格式/账号存在性/停用状态/密码匹配，未设密码引导通过邮箱验证码登录后设置；PRD 3.1.1 登录页批注移除「手机号（选填）」，新增「手机号+密码登录」批注，标记重新居中排列，截图更新</td><td>登录页重构</td><td>修订</td></tr>
+      <tr><td>v4.3</td><td>2026-08-28</td><td>注册页重构：邮箱注册面板删除手机号输入框（原必填字段），改为纯邮箱注册（账户名+邮箱+密码+确认密码）；新增「手机号注册」面板切换（底部「手机号注册 →」链接，可切回），手机号注册含账户名+手机号+密码+确认密码+密码强度指示器；PRD 3.1.2 注册页 intro 和批注更新，移除手机号批注，新增「手机号注册切换」批注，标记居中重排，截图更新</td><td>注册页重构</td><td>修订</td></tr>
+      <tr><td>v5.0</td><td>2026-08-28</td><td>六项功能完善：①邮箱登录新增「密码登录」切换（验证码↔密码）；手机号登录新增「验证码登录」切换（密码↔验证码+60s倒计时）；②注册模式隐藏第三方平台入口（仅登录模式可见）；③接单状态从单选改为多选标签（全职/兼职/周末/按需）；④角色弹窗退出再进入时提示「是否清空已填写的认证数据？」；⑤管理员审核弹窗改为详细表格形式（标签+值两列，交替背景色，缩略图可点击放大，新增「驳回」按钮）；⑥企业认证删除营业执照副本（仅保留正本）</td><td>六项功能完善</td><td>修订</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ================= 产品概述 ================= -->
+<div class="chapter">
+  <div class="ch-title"><span class="cnum">二</span>产品概述</div>
+
+  <div class="sub-h" id="c-intro">2.1 产品介绍</div>
+  <div class="card">
+    <p class="p">OPC 需求平台连接<b>企业需求方</b>与 <b>OPC 服务者</b>（One Person Company，个人服务提供者）：企业发布结构化需求，OPC 在抢单大厅浏览、报价、接单并交付，平台提供角色认证、管理员审核、协议管理、停用风控等保障能力。</p>
+    <p class="p">当前交付物为<b>纯前端高保真原型</b>：无后端，全部数据用 <code>localStorage</code> 模拟（账号表、审核队列、文件表、变更日志），验证码通过 Toast 模拟下发。</p>
+  </div>
+
+  <div class="sub-h" id="c-users">2.2 产品用户</div>
+  <table>
+    <thead><tr><th>角色</th><th>说明</th><th>进入方式</th><th>徽章颜色</th></tr></thead>
+    <tbody>
+      <tr><td>企业需求方</td><td>发布需求、匹配 OPC、验收结算</td><td>注册 → 弹窗选企业 → 认证审核通过</td><td>橙色</td></tr>
+      <tr><td>OPC 服务者</td><td>抢单大厅接单、报价、交付</td><td>注册 → 弹窗选 OPC → 认证审核通过</td><td>绿色</td></tr>
+      <tr><td>超级管理员</td><td>审核认证、停用违规账号、编辑协议、查看变更日志</td><td>邮箱 <code>admin@opc.com</code> 验证码登录</td><td>紫色</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sub-h" id="c-needs">2.3 用户需求</div>
+  <table>
+    <thead><tr><th>用户</th><th>痛点</th><th>平台方案</th></tr></thead>
+    <tbody>
+      <tr><td>企业需求方</td><td>找个人服务者成本高、质量不可控</td><td>结构化发布需求 + 平台认证背书 + 审核准入</td></tr>
+      <tr><td>OPC 服务者</td><td>缺稳定需求来源、结算无保障</td><td>抢单大厅智能匹配 + 平台结算保障</td></tr>
+      <tr><td>平台方</td><td>准入质量与合规风险</td><td>管理员审核 + 拒绝原因 + 停用/启用 + 变更日志</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sub-h" id="c-funclist">2.4 功能清单</div>
+  <table>
+    <thead><tr><th>模块</th><th>功能点</th><th>优先级</th><th>原型状态</th></tr></thead>
+    <tbody>
+      <tr><td rowspan="6">注册登录</td><td>邮箱验证码登录（唯一登录方式）</td><td>P0</td><td>✅ 已实现</td></tr>
+      <tr><td>注册（账户名/手机号/邮箱/密码/确认密码）</td><td>P0</td><td>✅ 已实现</td></tr>
+      <tr><td>密码强度实时指示（四档）</td><td>P1</td><td>✅ 已实现</td></tr>
+      <tr><td>拼图人机验证 + 验证码限流（3 次/封禁 2 分钟）</td><td>P0</td><td>✅ 已实现</td></tr>
+      <tr><td>记住我（7 天登录态过期后回填）</td><td>P1</td><td>✅ 已实现</td></tr>
+      <tr><td>Gitee / 飞书第三方授权登录</td><td>P2</td><td>🟡 入口已留（即将上线）</td></tr>
+      <tr><td rowspan="3">角色认证</td><td>注册后弹窗二选一身份 + 内嵌认证表单</td><td>P0</td><td>✅ 已实现</td></tr>
+      <tr><td>认证四态展示（未认证/认证中/已认证/未通过）</td><td>P0</td><td>✅ 已实现</td></tr>
+      <tr><td>已认证信息只读展示（不重复认证）</td><td>P0</td><td>✅ 已实现</td></tr>
+      <tr><td rowspan="4">工作台</td><td>企业工作台 / OPC 工作台（双端隔离 + 身份守卫）</td><td>P0</td><td>✅ 已实现</td></tr>
+      <tr><td>未认证遮罩锁功能（可预览不可操作）</td><td>P0</td><td>✅ 已实现</td></tr>
+      <tr><td>头像上传更换</td><td>P1</td><td>✅ 已实现</td></tr>
+      <tr><td>认证状态 3 秒实时同步</td><td>P1</td><td>✅ 已实现</td></tr>
+      <tr><td rowspan="4">管理员</td><td>OPC/企业分开审核（通过/拒绝必填原因）</td><td>P0</td><td>✅ 已实现</td></tr>
+      <tr><td>用户停用/启用</td><td>P0</td><td>✅ 已实现</td></tr>
+      <tr><td>协议管理（编辑用户协议/隐私政策）</td><td>P1</td><td>✅ 已实现</td></tr>
+      <tr><td>数据变更日志（独立页）</td><td>P1</td><td>✅ 已实现</td></tr>
+      <tr><td>业务闭环</td><td>发布需求/抢单大厅/报价/订单/收益</td><td>P1</td><td>🟡 入口卡片已留（即将上线）</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sub-h" id="c-goal">2.5 业务目标</div>
+  <div class="card"><p class="p">3 个月内跑通「注册 → 认证 → 发布 → 抢单 → 报价 → 交付」最小闭环原型；管理员侧完成准入审核与合规风控能力验证。</p></div>
+
+  <div class="sub-h" id="c-arch">2.6 产品架构</div>
+  <pre>OPC 需求平台
+├── 登录/注册（login.html）            —— 邮箱验证码登录、注册、角色选择弹窗（内嵌认证表单）
+├── 企业工作台（dashboard.html）        —— 发布需求、我的需求、草稿箱、消息通知
+│     └── 管理员加挂：OPC 管理 / 企业管理 / 协议管理 / 变更日志入口
+├── OPC 工作台（opc-dashboard.html）    —— 抢单大厅、我的接单、报价管理、收益中心（绿色主题）
+├── 角色认证（role-auth.html）          —— 角色选择、认证表单、四态展示
+├── 发布需求（requirement-form.html）   —— 三段式需求表单（基本信息/需求参数/联系信息）
+└── 变更日志（change-log.html）         —— 仅管理员，全量数据变更记录</pre>
+
+  <div class="sub-h" id="c-words">2.7 名词解释</div>
+  <table>
+    <thead><tr><th>名词</th><th>解释</th></tr></thead>
+    <tbody>
+      <tr><td>OPC</td><td>One Person Company，单人公司/个人服务提供者</td></tr>
+      <tr><td>账号 ID</td><td>注册成功自动生成的唯一标识，格式 <code>OPC</code> + 6 位自增数字（如 OPC100001），管理员固定 OPC100000</td></tr>
+      <tr><td>认证四态</td><td>未认证（unauth）/ 认证中（pending）/ 已认证（approved）/ 未通过（rejected）</td></tr>
+      <tr><td>抢单大厅</td><td>OPC 端浏览企业需求、提交报价的入口（原「需求大厅」）</td></tr>
+      <tr><td>sys_file</td><td>文件存储记录表（原型用 <code>opc_files</code> 模拟），记录文件名/路径/大小/类型/上传人</td></tr>
+      <tr><td>变更日志</td><td>用户对数据的每次修改记录（头像/资料/认证/状态），管理员可查</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sub-h" id="c-plan">2.8 项目排期（3 人团队）</div>
+  <table>
+    <thead><tr><th>任务</th><th>负责人</th><th>工时</th><th>依赖</th></tr></thead>
+    <tbody>
+      <tr><td>登录注册模块（邮箱登录/注册/强度指示/限流/记住我）</td><td>前端 A</td><td>3 天</td><td>无</td></tr>
+      <tr><td>角色认证模块（弹窗选择/双表单/四态展示）</td><td>前端 B</td><td>2 天</td><td>登录注册</td></tr>
+      <tr><td>工作台模块（双端/遮罩/头像/实时同步）</td><td>前端 A</td><td>3 天</td><td>角色认证</td></tr>
+      <tr><td>管理员功能（审核/停用/协议/变更日志）</td><td>前端 B</td><td>2 天</td><td>角色认证</td></tr>
+      <tr><td>文件存储与数据库落地（init.sql 对齐）</td><td>前端 C</td><td>2 天</td><td>无</td></tr>
+      <tr><td>联调测试</td><td>全员</td><td>2 天</td><td>全部</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ================= 功能说明 ================= -->
+<div class="chapter">
+  <div class="ch-title"><span class="cnum">三</span>功能说明</div>
+  <p class="ch-lead">每个页面一张真实原型截图，序号按阅读顺序标注；点击序号标记或右侧批注可双向高亮联动。所有字段规则、校验、错误提示、交互细节均写在批注上。</p>
+
+  <!-- 注册登录模块 -->
+  <div class="sub-h">3.1 注册登录模块</div>
+  <div id="pages-anchor"></div>
+
+  <!-- 页面由 JS 渲染 -->
+  <div id="pages"></div>
+</div>
+
+<!-- ================= 全局说明 ================= -->
+<div class="chapter" id="c-global">
+  <div class="ch-title"><span class="cnum">四</span>全局说明</div>
+
+  <div class="sub-h">4.1 页面路由与登录态</div>
+  <table>
+    <thead><tr><th>页面</th><th>文件</th><th>登录态</th><th>角色要求</th><th>不满足时行为</th></tr></thead>
+    <tbody>
+      <tr><td>登录/注册</td><td><code>login.html</code></td><td>未登录</td><td>—</td><td>已登录访问自动跳对应工作台</td></tr>
+      <tr><td>企业工作台</td><td><code>dashboard.html</code></td><td>必登录</td><td>企业/管理员</td><td>未登录跳 login；OPC 用户弹回 opc-dashboard</td></tr>
+      <tr><td>OPC 工作台</td><td><code>opc-dashboard.html</code></td><td>必登录</td><td>OPC</td><td>企业/管理员弹回 dashboard</td></tr>
+      <tr><td>角色认证</td><td><code>role-auth.html</code></td><td>必登录</td><td>—</td><td>未登录跳 login</td></tr>
+      <tr><td>发布需求</td><td><code>requirement-form.html</code></td><td>必登录</td><td>—</td><td>同上</td></tr>
+      <tr><td>变更日志</td><td><code>change-log.html</code></td><td>必登录</td><td>仅管理员</td><td>非管理员自动跳回工作台</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><strong>⚠ 登录态规则</strong>登录态存 <code>localStorage.opc_user</code>，有效期 7 天（<code>Date.now() - user.time &gt; 604800000</code> 即过期）。过期必须<b>先 removeItem 再跳转</b> login.html，否则用户回退仍可访问受保护页面。过期后若存在「记住我」记录（<code>opc_remember</code>），自动回填邮箱并勾选记住我，只需重新获取验证码即可登录。</div>
+
+  <div class="sub-h">4.2 全局组件规范</div>
+  <table>
+    <thead><tr><th>组件</th><th>规范</th></tr></thead>
+    <tbody>
+      <tr><td>Toast</td><td>顶部居中滑入，success 绿 / error 红 / info 蓝；默认 2.5s，注册成功展示账号 ID 的 Toast 为 4s</td></tr>
+      <tr><td>角色徽章</td><td>所有页面右上角统一展示：管理员紫 / OPC 绿 / 企业橙 / 未认证灰 / 认证中黄 / 未通过红</td></tr>
+      <tr><td>未认证遮罩</td><td>毛玻璃（backdrop-filter 模糊）+ 白色卡片；功能入口 45% 透明度 + <code>pointer-events:none</code>；「角色认证」导航永远可点</td></tr>
+      <tr><td>身份守卫</td><td>每个工作台页面加载时校验 authRole，不匹配则 alert 后跳转到对应工作台</td></tr>
+      <tr><td>状态同步</td><td>工作台每 3 秒 + 页面聚焦（visibilitychange/focus）时从 <code>opc_accounts</code> 同步 authStatus/authRole/avatar，管理员操作 3 秒内反映到用户端</td></tr>
+      <tr><td>账号停用</td><td><code>accounts[].status = 1</code> 即停用；登录时拦截并提示「该账号已被停用，请联系管理员」</td></tr>
+      <tr><td>变更日志</td><td>统一 <code>addLog(user, type, field, desc)</code> 写入 <code>opc_change_logs</code>；type ∈ avatar / profile / auth / status / file</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sub-h">4.3 文件存储（模拟 sys_file）</div>
+  <table>
+    <thead><tr><th>字段</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><code>fileId</code></td><td>自增主键</td></tr>
+      <tr><td><code>fileName</code></td><td>原始文件名</td></tr>
+      <tr><td><code>filePath</code></td><td>模拟 MinIO 路径：认证文件 <code>/uploads/年/月/fileId_文件名</code>；头像 <code>/uploads/avatars/账号ID_fileId_文件名</code></td></tr>
+      <tr><td><code>fileSize</code></td><td>字节数；认证文件 ≤10MB，头像 ≤2MB，超限 Toast 拦截</td></tr>
+      <tr><td><code>contentType</code></td><td>MIME 类型；仅允许 jpeg/png/gif/webp/bmp/pdf</td></tr>
+      <tr><td><code>uploadUser</code></td><td>上传者账号 ID</td></tr>
+      <tr><td><code>fileType</code></td><td>仅认证文件：<code>id_front</code> 身份证正面 / <code>id_back</code> 反面 / <code>license</code> 营业执照（仅正本）/ <code>qualification</code> 企业资质</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ================= 非功能性需求 ================= -->
+<div class="chapter" id="c-nfr">
+  <div class="ch-title"><span class="cnum">五</span>非功能性需求</div>
+  <table>
+    <thead><tr><th>类别</th><th>要求</th></tr></thead>
+    <tbody>
+      <tr><td>浏览器兼容</td><td>Chrome / Edge 最新两个大版本；密码框原生 reveal 按钮已用 CSS 隐藏（::-ms-reveal 等），防止与自定义小眼睛重叠</td></tr>
+      <tr><td>响应式</td><td>登录页适配移动端（卡片 max-width 400px 居中）；工作台最小适配 1280px 桌面</td></tr>
+      <tr><td>数据安全（原型）</td><td>全部数据仅存浏览器 localStorage，清缓存即清空；正式版密码必须 BCrypt 加密、验证码存 Redis 并设置过期时间</td></tr>
+      <tr><td>性能</td><td>页面零依赖（仅 Google Fonts 可选），单文件可直接 file:// 打开（跨页登录态需 http 环境）</td></tr>
+      <tr><td>可用性</td><td>所有校验错误即时 Toast + 输入框红边，输入即清除错误态；按钮提交中置灰防重复提交</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ================= 附件 ================= -->
+<div class="chapter">
+  <div class="ch-title"><span class="cnum">六</span>附件</div>
+
+  <div class="sub-h" id="a-storage">6.1 localStorage 结构</div>
+  <table>
+    <thead><tr><th>key</th><th>类型</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><code>opc_user</code></td><td>JSON</td><td>当前登录用户（含 7 天登录态时间戳）</td></tr>
+      <tr><td><code>opc_accounts</code></td><td>JSON 数组</td><td>全部注册账号（账号表，认证/停用/头像的事实来源）</td></tr>
+      <tr><td><code>opc_review_queue</code></td><td>JSON 数组</td><td>认证审核队列（同账号重复提交覆盖旧记录）</td></tr>
+      <tr><td><code>opc_change_logs</code></td><td>JSON 数组</td><td>数据变更日志</td></tr>
+      <tr><td><code>opc_files</code></td><td>JSON 数组</td><td>文件存储记录（模拟 sys_file）</td></tr>
+      <tr><td><code>opc_remember</code></td><td>JSON</td><td>记住我：{ email, loginType }</td></tr>
+      <tr><td><code>opc_agreement_user</code></td><td>字符串</td><td>用户协议（管理员维护）</td></tr>
+      <tr><td><code>opc_agreement_privacy</code></td><td>字符串</td><td>隐私政策（管理员维护）</td></tr>
+    </tbody>
+  </table>
+  <pre>// opc_user 结构示例
+{
+  "username": "林小创",
+  "accountId": "OPC100002",
+  "email": "linxiaochuang@qq.com",
+  "phone": "13850123456",
+  "avatar": "data:image/png;base64,...",
+  "loginType": "email",
+  "role": "user",            // user / admin
+  "authRole": "opc",         // opc / enterprise
+  "authStatus": "pending",   // pending / approved / rejected（缺省=未认证）
+  "authData": { ... },       // 认证表单全部字段
+  "rejectReason": "",
+  "time": 1756272000000
+}</pre>
+
+  <div class="sub-h" id="a-regex">6.2 校验正则汇总</div>
+  <table>
+    <thead><tr><th>用途</th><th>正则 / 规则</th></tr></thead>
+    <tbody>
+      <tr><td>手机号</td><td><code>/^1[3-9]\d{9}$/</code></td></tr>
+      <tr><td>邮箱</td><td>标准邮箱格式（含 @ 与域名段）</td></tr>
+      <tr><td>身份证号</td><td><code>/^\d{17}[\dXx]$/</code></td></tr>
+      <tr><td>密码基础</td><td>≥6 位，且同时含大写字母、小写字母、符号</td></tr>
+      <tr><td>密码强度维度</td><td>≥6 位 / ≥10 位 / 含大小写 / 含数字 / 含符号，命中数定档：≤1 弱、≤2 中、≤3 强、≥4 很强</td></tr>
+      <tr><td>信用代码</td><td>18 位</td></tr>
+      <tr><td>账号 ID</td><td><code>OPC</code> + 6 位数字，自增（当前最大 +1）</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sub-h" id="a-error">6.3 错误码索引</div>
+  <table>
+    <thead><tr><th>错误码</th><th>触发条件</th><th>提示文案</th></tr></thead>
+    <tbody>
+      <tr><td>ERR_LOGIN_001</td><td>邮箱格式不正确</td><td>请输入邮箱地址</td></tr>
+      <tr><td>ERR_LOGIN_002</td><td>验证码少于 4 位</td><td>请输入验证码</td></tr>
+      <tr><td>ERR_LOGIN_003</td><td>协议未勾选</td><td>请先同意用户协议和隐私政策</td></tr>
+      <tr><td>ERR_LOGIN_004</td><td>账号已停用</td><td>该账号已被停用，请联系管理员</td></tr>
+      <tr><td>ERR_LOGIN_005</td><td>验证码获取超 3 次</td><td>已达上限 3/3</td></tr>
+      <tr><td>ERR_LOGIN_006</td><td>封禁中（连续错 3 次封 2 分钟）</td><td>封禁中 {n}s</td></tr>
+      <tr><td>ERR_REG_001</td><td>账户名少于 2 字</td><td>请输入账户名</td></tr>
+      <tr><td>ERR_REG_002</td><td>手机号不匹配</td><td>请输入正确的手机号</td></tr>
+      <tr><td>ERR_REG_003</td><td>邮箱格式不正确</td><td>请输入正确的邮箱地址</td></tr>
+      <tr><td>ERR_REG_004</td><td>密码少于 6 位</td><td>密码至少 6 位</td></tr>
+      <tr><td>ERR_REG_005</td><td>密码缺大写/小写/符号</td><td>密码需包含大写字母、小写字母和符号</td></tr>
+      <tr><td>ERR_REG_006</td><td>两次密码不一致</td><td>两次输入的密码不一致</td></tr>
+      <tr><td>ERR_REG_007</td><td>邮箱/手机号已注册</td><td>该邮箱/手机号已注册，请直接登录</td></tr>
+      <tr><td>ERR_AUTH_001</td><td>认证必填字段缺失/格式错误</td><td>按字段提示（请输入真实姓名 等）</td></tr>
+      <tr><td>ERR_FILE_001</td><td>文件超 10MB（头像 2MB）</td><td>文件大小不能超过 10MB</td></tr>
+      <tr><td>ERR_FILE_002</td><td>文件类型不支持</td><td>仅支持图片或 PDF 文件</td></tr>
+      <tr><td>ERR_AUDIT_001</td><td>管理员拒绝时未填原因</td><td>拒绝时必须填写原因</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</div><!-- /main -->
+
+<script>
+/* ================= 批注页面数据 ================= */
+var PAGES = [
+{
+  id:"p-login", num:"3.1.1", title:"登录页", route:"login.html",
+  img:"screenshots/v3/01-login.png",
+  intro:"平台支持两种登录方式：<b>邮箱登录</b>（验证码/密码可切换）和<b>手机号登录</b>（密码/验证码可切换）。底部第三方平台支持 Gitee/飞书授权登录（需先绑定，仅登录模式可见）。",
+  markers:[
+    {x:50,y:12},{x:40,y:24},{x:50,y:35},{x:50,y:44},{x:35,y:52},{x:65,y:52},
+    {x:50,y:57},{x:50,y:64},{x:50,y:70},{x:46.5,y:83.5},{x:53.5,y:83.5},{x:51,y:90}
+  ],
+  notes:[
+    {t:"品牌 Logo 与平台名",tag:"rule",tagText:"规则",d:"固定展示，登录/注册两种模式共用，无点击交互。背景为渐变装饰球动画。"},
+    {t:"标题区",tag:"act",tagText:"交互",d:"登录模式显示「欢迎回来 / 登录以发布需求或查看你的需求列表」；切到注册模式自动变为「创建账号 / 注册后自动登录并分配唯一账号 ID…」。"},
+    {t:"邮箱地址",tag:"req",tagText:"必填",d:"提交时校验邮箱格式，不合法 Toast「请输入邮箱地址」。<code>admin@opc.com</code> 为管理员专用邮箱。未注册的邮箱首次登录自动创建账号并分配唯一账号 ID（与协议文案一致）。"},
+    {t:"邮箱验证码/密码",tag:"req",tagText:"必填",d:"默认验证码模式：少于 4 位拦截 Toast「请输入验证码」。点击「密码登录」链接切换到密码模式（带小眼睛切换），密码模式校验账号存在性+停用状态+密码匹配。两种模式可随时切换。"},
+    {t:"获取验证码按钮",tag:"act",tagText:"交互",d:"仅验证码模式可见。点击先弹<b>拼图人机验证</b>，通过后发码，60s 倒计时，共限取 3 次。"},
+    {t:"记住我",tag:"act",tagText:"交互",d:"勾选并登录成功 → 邮箱写入 <code>opc_remember</code>；不勾选则清除。7 天登录态过期后自动回填邮箱。右侧「密码登录/验证码登录」链接切换邮箱面板的登录方式。"},
+    {t:"忘记密码",tag:"act",tagText:"交互",d:"点击跳转重置密码面板：通过邮箱验证码验证身份后设置新密码，新密码不能与旧密码相同。重置成功自动回填邮箱并切回登录面板。"},
+    {t:"协议勾选",tag:"req",tagText:"必勾",d:"未勾选提交拦截「请先同意用户协议和隐私政策」。《用户协议》《隐私政策》<b>可点击</b>，弹出只读弹窗，标题旁显示<b>版本号 v1.0</b>（管理员每次保存协议版本 +0.1），内容实时读取管理员在「协议管理」里维护的最新版本。"},
+    {t:"登录按钮",tag:"act",tagText:"交互",d:"全部校验通过 → 写入 <code>opc_user</code>（7 天有效）→ 按角色跳转：管理员/企业 → dashboard.html，OPC → opc-dashboard.html。账号被停用（status=1）时拦截「该账号已被停用，请联系管理员」。"},
+    {t:"手机号+密码登录",tag:"act",tagText:"交互",d:"邮箱面板底部链接「手机号登录 →」，点击切换到手机号面板：<b>默认密码模式</b>（+86 手机号 + 密码带小眼睛 + 忘记密码 + 登录），底部可点击「验证码登录」切换到验证码模式（+86 手机号 + 短信验证码 + 60s 倒计时 + 登录）。两种模式底部均可「← 邮箱登录」切回。密码模式校验：未注册 Toast「该手机号未注册」；未设密码 Toast「请切换验证码登录」。"},
+    {t:"Gitee 授权登录",tag:"act",tagText:"交互",d:"hover 显示品牌红 #c71d23。点击后<b>遍历 opc_accounts 查找已绑定 gitee 的账号</b>：若找到 → Toast「正在通过 Gitee 登录…」→ 模拟 OAuth 回调 → 写入 <code>opc_user</code> → 按角色跳转工作台；若未找到 → Toast「该 Gitee 账号未绑定本平台，请先注册并完成角色认证后在『角色认证』页绑定」。绑定入口在角色认证通过后的已认证信息页（见 3.2.2）。"},
+    {t:"飞书授权登录",tag:"act",tagText:"交互",d:"hover 显示品牌蓝 #3370ff。逻辑同 Gitee：遍历 <code>opc_accounts</code> 查找 <code>oauth.feishu</code> 绑定记录，已绑定则直接登录跳转，未绑定则 Toast 引导先完成角色认证。已删除微信/GitHub/Google 入口。"},
+    {t:"立即注册",tag:"act",tagText:"交互",d:"点击切换到注册模式：标题与按钮文案变更，展开邮箱/密码/确认密码字段，本链接变为「← 返回登录」。<b>注册模式下隐藏第三方平台入口</b>（「其他方式」分割线、Gitee、飞书按钮仅登录模式可见）。"}
+  ]
+},
+{
+  id:"p-register", num:"3.1.2", title:"注册页", route:"login.html#register",
+  img:"screenshots/v3/02-register.png",
+  intro:"支持<b>邮箱注册</b>（账户名+邮箱+密码）和<b>手机号注册</b>（账户名+手机号+密码）两种方式，底部可互相切换。注册成功自动登录并生成唯一账号 ID，随后强制弹窗选择身份。",
+  markers:[
+    {x:50,y:14},{x:50,y:28},{x:50,y:40},{x:50,y:50},{x:59.8,y:50},
+    {x:50,y:62},{x:50,y:72},{x:50,y:82},{x:50,y:92}
+  ],
+  notes:[
+    {t:"标题区",tag:"rule",tagText:"规则",d:"邮箱注册模式显示「创建账号 / 邮箱注册 · 注册后自动登录并分配唯一账号 ID」；手机号注册模式显示「创建账号 / 手机号注册 · 注册后自动登录并分配唯一账号 ID」。"},
+    {t:"自定义账户名",tag:"req",tagText:"必填",d:"2-20 个字符，少于 2 字 Toast「请输入账户名」。作为展示昵称落库，用户可自定义。"},
+    {t:"邮箱地址",tag:"req",tagText:"必填",d:"邮箱格式校验，错误 Toast「请输入正确的邮箱地址」。已注册 Toast「该邮箱已被注册，请直接登录」。邮箱注册的账号无手机号字段。"},
+    {t:"密码",tag:"req",tagText:"必填",d:"≥6 位且必须同时含<b>大写字母+小写字母+符号</b>。下方为<b>实时强度指示器</b>：四档 弱(红)→中(橙)→强(蓝)→很强(绿)，4 格进度条 + 文字。"},
+    {t:"密码可见切换",tag:"act",tagText:"交互",d:"小眼睛切换 <code>type=password/text</code>，图标 👁/🙈。"},
+    {t:"确认密码",tag:"req",tagText:"必填",d:"与密码不一致 Toast「两次输入的密码不一致」，同样带小眼睛。"},
+    {t:"协议勾选",tag:"req",tagText:"必勾",d:"文案与登录页一致，未勾拦截。"},
+    {t:"注册按钮",tag:"act",tagText:"交互",d:"校验通过 → 生成唯一账号 ID → 写入账号表 → 自动登录 → Toast「注册成功，已自动登录。您的账号 ID：OPCxxxxxx」→ 1.2s 后弹出角色选择弹窗。"},
+    {t:"手机号注册切换",tag:"act",tagText:"交互",d:"邮箱注册面板底部链接「手机号注册 →」，点击切换到手机号注册面板（账户名+手机号+密码+确认密码），底部「← 邮箱注册」可切回。手机号注册校验：手机号格式 + 重复注册校验 + 密码强度 + 确认密码 + 协议勾选。"}
+  ]
+},
+{
+  id:"p-rolepick", num:"3.1.3", title:"角色选择弹窗", route:"注册成功后强制弹出",
+  img:"screenshots/v3/03-role-pick.png",
+  intro:"注册提交后不再直接进工作台，必须在此二选一完成身份认证。也可点击空白处跳过，以普通用户身份浏览工作台。<b>退出后再进入会提示是否清空已填数据</b>。",
+  markers:[{x:50,y:36.5},{x:39,y:55},{x:60,y:55},{x:50,y:82},{x:50,y:92}],
+  notes:[
+    {t:"弹窗标题",tag:"rule",tagText:"规则",d:"「注册成功，选择你的身份 / 完成身份认证后，将进入与你身份匹配的工作台」。"},
+    {t:"OPC 服务者卡片",tag:"act",tagText:"交互",d:"点击后弹窗内直接展开 OPC 认证表单（见 3.1.4），认证提交后进入 OPC 工作台（opc-dashboard.html）。选择 OPC 后标记 rolePickHistory。"},
+    {t:"企业需求方卡片",tag:"act",tagText:"交互",d:"点击后展开企业认证表单（见 3.1.5），提交后进入企业工作台（dashboard.html）。"},
+    {t:"点击空白处跳过",tag:"act",tagText:"交互",d:"弹窗底部提示「点击空白处可跳过，先逛逛工作台（仅浏览，无法接单/发布需求）」。点击遮罩空白区 → 关闭弹窗 → Toast「已跳过认证，进入工作台浏览模式」→ 跳转 dashboard.html，以普通用户身份进入工作台。<b>触发未认证遮罩锁</b>（见 3.3.2），所有功能入口锁定，仅可预览页面结构，无法发布需求、接单、报价等。用户可随时从侧边栏「角色认证」入口完成认证解锁全部功能。"},
+    {t:"退出再进入数据清空",tag:"act",tagText:"交互",d:"用户选择 OPC 后关闭弹窗退出，再次进入时<b>弹出确认弹窗</b>「是否清空已填写的认证数据？」→ 点击「清空」重置所有 OPC 表单字段（姓名/手机/身份证/省市/领域/接单状态/文件上传/协议勾选）并清除标记；点击「保留」保持已有数据不变。首次进入不提示。"}
+  ]
+},
+{
+  id:"p-opcform", num:"3.1.4", title:"OPC 认证表单", route:"角色弹窗 → 选 OPC",
+  img:"screenshots/v3/04-role-opc.png",
+  intro:"在弹窗内直接填写，与 role-auth.html 的 OPC 表单字段、校验完全一致。",
+  markers:[
+    {x:34,y:10},{x:35,y:14},{x:40,y:20},{x:60,y:20},{x:40,y:26.5},{x:60,y:26.5},
+    {x:50,y:35},{x:50,y:42},{x:40,y:49},{x:60,y:49},{x:50,y:55.5},{x:40,y:66},{x:60,y:66},{x:50,y:72},{x:50,y:78}
+  ],
+  notes:[
+    {t:"← 重新选择身份",tag:"act",tagText:"交互",d:"返回角色选择卡片，已填内容清空。"},
+    {t:"表单标题与说明",tag:"rule",tagText:"规则",d:"「OPC 服务者认证 / 带 * 为必填项，提交后 1-3 个工作日完成审核」。"},
+    {t:"真实姓名",tag:"req",tagText:"必填",d:"≥2 字，需与身份证一致。落库 <code>biz_opc.real_name</code>。"},
+    {t:"手机号码",tag:"req",tagText:"必填",d:"<b>自动预填注册手机号</b>，可修改，正则 <code>/^1[3-9]\\d{9}$/</code>。落库 <code>biz_opc.phone</code>。"},
+    {t:"身份证号",tag:"req",tagText:"必填",d:"18 位，正则 <code>/^\\d{17}[\\dXx]$/</code>，用于实名认证。下方提示「需与姓名一致，仅用于实名核验」。落库 <code>biz_opc.id_card_no</code>，正反面照片仅审核可见。"},
+    {t:"所在城市（省/市/区三级联动）",tag:"req",tagText:"必填",d:"三个下拉级联选择：省 → 市 → 区/县。覆盖福建/广东/浙江/江苏/北京/上海等省市。选省后市解锁、选市后区解锁，未选全 Toast「请选择所在省/市/区」。提交后拼接为「福建省泉州市丰泽区」存入 <code>biz_opc.city</code>。"},
+    {t:"擅长领域（多选）",tag:"req",tagText:"必填",d:"标签式多选，13 个选项：文案撰写/内容策划/新媒体运营/视频剪辑/平面设计/UI/UX 设计/品牌设计/插画绘制/3D 建模渲染/前端开发/后端开发/小程序开发/数据分析。勾选后高亮蓝色，<b>至少选 1 项</b>。提交时以「、」拼接存入 <code>biz_opc.skill_tags</code>，作为需求自动匹配的依据。"},
+    {t:"接单状态",tag:"req",tagText:"必填",d:"<b>多选标签</b>（可多选）：全职接单 / 兼职接单（业余时间）/ 周末接单 / 按需接单。至少选 1 项，落库以「、」拼接存入 <code>biz_opc.accept_status</code>。"},
+    {t:"作品集链接",tag:"opt",tagText:"选填",d:"URL，落库 <code>biz_opc.portfolio_url</code>。"},
+    {t:"个人简介",tag:"opt",tagText:"选填",d:"textarea，介绍经验、作品和优势。落库 <code>biz_opc.intro</code>。"},
+    {t:"身份证正面（人像面）",tag:"req",tagText:"必传",d:"JPG/PNG，≤5MB，上传后显示文件名与预览。文件记录 <code>sys_file.file_type = id_front</code>（含文件名/路径/大小/类型/上传人）。"},
+    {t:"身份证反面（国徽面）",tag:"req",tagText:"必传",d:"同上，<code>file_type = id_back</code>。正反面<b>分别校验、分别提示</b>，不合并报错。"},
+    {t:"协议勾选",tag:"req",tagText:"必勾",d:"《OPC 服务者协议》和《实名认证条款》<b>可点击</b>，弹出只读弹窗展示协议全文（标题旁显示版本号 vx.x），内容读取管理员在「协议管理」维护的最新版本。未勾选提交拦截「请先同意服务者协议」。"},
+    {t:"提交按钮",tag:"act",tagText:"交互",d:"「提交并进入 OPC 工作台」。全部校验通过 → authRole=opc、authStatus=<b>pending</b> → 写入审核队列 + 变更日志 → 跳转 opc-dashboard.html（未过审前功能锁定，仅可预览）。"}
+  ]
+},
+{
+  id:"p-entform", num:"3.1.5", title:"企业认证表单", route:"角色弹窗 → 选企业",
+  img:"screenshots/v3/05-role-ent.png",
+  intro:"企业需求方认证，字段与 role-auth.html 企业表单一致。",
+  markers:[
+    {x:34,y:13.5},{x:50,y:26},{x:40,y:33},{x:60,y:33},{x:40,y:40},{x:60,y:40},
+    {x:50,y:46.5},{x:40,y:53.5},{x:60,y:53.5},{x:40,y:62.5},{x:60,y:62.5},{x:40,y:75.5},{x:50,y:81.5},{x:50,y:86}
+  ],
+  notes:[
+    {t:"← 重新选择身份",tag:"act",tagText:"交互",d:"返回角色选择卡片。"},
+    {t:"企业名称",tag:"req",tagText:"必填",d:"≥2 字，需与营业执照一致。落库 <code>biz_enterprise.company_name</code>。"},
+    {t:"统一社会信用代码",tag:"req",tagText:"必填",d:"18 位，用于资质核验。落库 <code>biz_enterprise.credit_code</code>。"},
+    {t:"所属行业",tag:"req",tagText:"必填",d:"下拉<b>单选</b>：互联网/科技、电子商务、教育培训、金融/保险、医疗/健康、制造/工业、文化传媒、餐饮/零售、房地产/建筑、其他。落库 <code>biz_enterprise.industry</code>。"},
+    {t:"企业规模",tag:"req",tagText:"必填",d:"下拉：1-10人/11-50人/51-200人/201-1000人/1000人以上。落库 <code>biz_enterprise.scale</code>（DB 需补字段）。"},
+    {t:"所在城市",tag:"req",tagText:"必填",d:"≥2 字。落库 <code>biz_enterprise.city</code>（DB 需补字段）。"},
+    {t:"企业地址",tag:"req",tagText:"必填",d:"≥5 字，用于线下合作场景。落库 <code>biz_enterprise.address</code>（DB 需补字段）。"},
+    {t:"企业联系人",tag:"req",tagText:"必填",d:"≥2 字，负责需求发布与对接。落库 <code>contact_person</code>。"},
+    {t:"联系电话",tag:"req",tagText:"必填",d:"<b>自动预填注册手机号</b>，可改为手机号或座机号。落库 <code>contact_phone</code>。"},
+    {t:"营业执照正本",tag:"req",tagText:"必传",d:"JPG/PNG/PDF，≤10MB。<code>sys_file.file_type = license</code>。仅上传正本一份，副本已删除。"},
+    {t:"企业资质文件",tag:"opt",tagText:"选传",d:"行业许可证、资质证书等，JPG/PNG/PDF ≤10MB。<code>file_type = qualification</code>。"},
+    {t:"协议勾选",tag:"req",tagText:"必勾",d:"《企业认证协议》和《平台服务条款》<b>可点击</b>，弹出只读弹窗展示协议全文（标题旁显示版本号 vx.x），内容读取管理员在「协议管理」维护的最新版本。未勾选提交拦截「请先同意企业认证协议」。"},
+    {t:"提交按钮",tag:"act",tagText:"交互",d:"「提交并进入企业工作台」。逻辑同 OPC：authRole=enterprise、authStatus=pending → 审核队列 → 跳转 dashboard.html（预览态）。"}
+  ]
+},
+{
+  id:"p-roleauth", num:"3.2.1", title:"角色认证页", route:"role-auth.html",
+  img:"screenshots/v3/06-role-auth.png",
+  intro:"已登录用户随时可从侧边栏进入本页完成/查看认证；认证通过后本页只读展示认证信息，不再重复认证。",
+  markers:[{x:19.5,y:3.5},{x:95,y:3.5},{x:57.5,y:24},{x:45,y:68},{x:69,y:68}],
+  notes:[
+    {t:"页面标题",tag:"rule",tagText:"规则",d:"「角色认证」。左侧导航目录为通用框架不做批注——其中「角色认证」入口<b>始终可点击</b>，即使未认证状态全平台功能锁定也保持可用。"},
+    {t:"角色徽章",tag:"rule",tagText:"规则",d:"右上角实时显示认证状态：未认证(灰)/认证中(黄)/已认证(OPC 绿、企业橙)/未通过(红)；管理员固定紫色「超级管理员」。<b>全页面 3 秒轮询 + 窗口聚焦触发</b>同步 <code>opc_accounts</code> 最新状态，管理员审核通过/拒绝后徽章即时变色，无需手动刷新。"},
+    {t:"步骤条",tag:"act",tagText:"交互",d:"1 选择角色 → 2 填写认证 → 3 确认提交；当前步黑底白字，已完成步绿色 ✓，连接线随进度变绿。管理员隐藏步骤条，直接显示紫色直通卡片。"},
+    {t:"OPC 服务者卡片",tag:"act",tagText:"交互",d:"白底圆角卡片，hover 边框变蓝、轻微上浮。权益：✓ 接收匹配的需求推送 ✓ 报价与交付管理 ✓ 平台结算保障。点击进入 OPC 认证表单（字段同 3.1.4），步骤条推进到第 2 步。"},
+    {t:"企业需求方卡片",tag:"act",tagText:"交互",d:"样式同左卡。权益：✓ 发布结构化需求 ✓ 多人协作管理 ✓ 验收与结算。点击进入企业认证表单（字段同 3.1.5），步骤条推进到第 2 步。"}
+  ],
+  extra:"<b>认证四态页面表现：</b>① 已认证（approved）：不再显示选择卡片，进入「已认证信息页」（见 3.2.2，输入框式只读排版）；② 认证中（pending）：⏳「认证审核中」+ 绿色脉冲指示灯「实时检测中，审核结果将自动更新」+「返回工作台」——<b>页面 3 秒轮询 <code>opc_accounts</code>，管理员审核通过后自动跳转已认证视图 + Toast「认证已通过」，拒绝则自动跳转拒绝视图 + Toast「认证未通过」</b>；③ 未通过（rejected）：❌「认证未通过」+ 红色背景展示<b>管理员填写的拒绝原因</b> +「重新认证」按钮（清除认证状态回到角色选择）；④ 未认证：如截图所示的角色选择流程。已认证用户修改信息走「申请编辑信息」流程（见 3.2.3 / 3.2.4）。"
+},
+{
+  id:"p-approved", num:"3.2.2", title:"已认证信息页", route:"role-auth.html（authStatus=approved）",
+  img:"screenshots/v3/02-role-auth-approved.png",
+  intro:"认证通过后不再显示角色选择卡片、无需重复认证；认证信息以「输入框式只读表单」在页面居中展示，下方新增<b>第三方平台绑定</b>区域（仅认证通过后可见），修改信息统一走「申请编辑信息」流程。",
+  markers:[
+    {x:90,y:3},{x:50,y:9},{x:50,y:14},{x:35,y:19},{x:35,y:27},
+    {x:65,y:27},{x:35,y:40},{x:50,y:48},{x:50,y:56},{x:50,y:63},{x:42,y:72},{x:58,y:72}
+  ],
+  notes:[
+    {t:"角色徽章",tag:"rule",tagText:"规则",d:"已认证状态：OPC 绿色「OPC 服务者」、企业橙色「企业需求方」；3 秒轮询 + 窗口聚焦刷新，管理员审核操作实时同步到此徽章。"},
+    {t:"通过图标与标题",tag:"rule",tagText:"规则",d:"✅ +「{角色}认证已通过」。整页内容收敛在 680px 卡片内<b>水平居中</b>。"},
+    {t:"副标题说明",tag:"rule",tagText:"规则",d:"「您的认证信息已通过审核，如需修改请点击下方『申请编辑信息』。」——明确引导唯一的修改入口。"},
+    {t:"「✓ 认证信息」分组标题",tag:"rule",tagText:"规则",d:"与认证表单的分组标题样式一致（圆形序号 + 下边框），视觉延续表单语言。"},
+    {t:"只读输入框（左列）",tag:"rule",tagText:"规则",d:"<b>输入框形式展示</b>：label 在上（13px 灰）、disabled 输入框在下（浅灰底 #f9fafb，文字保持深色不变浅），双列网格与认证表单一致。企业左列：企业名称/所属行业/所在城市/联系电话；OPC 左列：真实姓名/所在城市/接单状态。"},
+    {t:"只读输入框（右列）",tag:"rule",tagText:"规则",d:"企业右列：统一社会信用代码/企业规模/联系人；OPC 右列：手机号/擅长领域/作品集链接。空值统一显示「-」，渲染前统一做 HTML 转义防注入。"},
+    {t:"第三方平台绑定（标题）",tag:"rule",tagText:"规则",d:"「第三方平台绑定」分组，带蓝色竖线标题。仅在 <code>authStatus === approved</code> 时展示。提示文案：「绑定后，下次登录可直接点击第三方平台按钮进入平台，无需再次输入邮箱和验证码。每个平台仅可绑定一个账号。」"},
+    {t:"Gitee 绑定项",tag:"act",tagText:"交互",d:"品牌红图标 + 平台名 + 绑定状态。未绑定时显示「未绑定」灰色文字 + 蓝色「绑定」按钮；已绑定时显示绿色「✓ 已绑定（{昵称}）」+ 灰色「解除绑定」按钮。点击绑定 → Toast「正在跳转到 Gitee 授权页面…」→ 1.2s 模拟回调 → 写入 <code>opc_accounts[i].oauth.gitee</code>（含 openId/nick/boundAt）→ 状态刷新为已绑定 + Toast「Gitee 绑定成功！下次登录可直接点击 Gitee 按钮进入平台」。解除绑定需 confirm 二次确认。"},
+    {t:"飞书绑定项",tag:"act",tagText:"交互",d:"品牌蓝图标 + 平台名 + 绑定状态。逻辑与 Gitee 一致，绑定数据写入 <code>opc_accounts[i].oauth.feishu</code>。两平台独立绑定/解绑，互不影响。"},
+    {t:"绑定前置条件",tag:"rule",tagText:"规则",d:"<b>必须先完成角色认证并通过审核</b>才能看到绑定入口。未认证/认证中/未通过的用户在角色认证页看不到绑定区域。绑定后，在登录页点击对应平台按钮可直接登录（见 3.1.1 Gitee/飞书授权登录批注）。"},
+    {t:"申请编辑信息",tag:"act",tagText:"交互",d:"主按钮（蓝）。点击弹出确认弹窗（见 3.2.3），强制二次确认：明确告知权限将被暂时封闭。<b>已取代原「进入工作台」按钮</b>：已认证权限默认保持开放（可正常进出工作台），仅确认编辑后才暂时封闭。编辑闭环：已认证 → 申请编辑 → 确认弹窗 → 权限暂时封闭（pending）→ 编辑并重新提交 → 管理员审核 → 通过恢复/拒绝展示原因可再改。"},
+    {t:"返回工作台",tag:"act",tagText:"交互",d:"次按钮（灰）。按角色跳转：企业 → dashboard.html，OPC → opc-dashboard.html。OPC 版页面版式一致（见 screenshots/v3/17-approved-opc.png），字段为姓名/手机/城市/领域/接单状态/作品集/简介。"}
+  ]
+},
+{
+  id:"p-editconfirm", num:"3.2.3", title:"申请编辑信息确认弹窗", route:"已认证信息页 → 申请编辑信息",
+  img:"screenshots/v3/15-edit-confirm.png",
+  intro:"点击「申请编辑信息」后强制二次确认：明确告知权限将被暂时封闭，避免误操作导致已认证权限丢失。",
+  markers:[{x:50,y:40.2},{x:50,y:46.3},{x:50,y:51.9},{x:45.9,y:61.7},{x:52.8,y:61.7},{x:19.5,y:23.4}],
+  notes:[
+    {t:"✏️ 图标",tag:"rule",tagText:"规则",d:"编辑语义图标。弹窗宽 420px、圆角 16px、水平垂直居中。"},
+    {t:"弹窗标题",tag:"rule",tagText:"规则",d:"「是否要编辑信息？」。"},
+    {t:"警示文案",tag:"rule",tagText:"规则",d:"「确认后您的{角色}权限将被<b>暂时封闭</b>（红色加粗强调），需重新提交认证信息并等待管理员审核，审核通过后才能恢复{角色}的权限。」角色名按当前认证角色动态代入（OPC 服务者 / 企业需求方）。"},
+    {t:"取消按钮",tag:"act",tagText:"交互",d:"关闭弹窗，<b>不做任何变更</b>：保持已认证状态，仍停留在已认证信息页。"},
+    {t:"确认编辑按钮",tag:"act",tagText:"交互",d:"主按钮（蓝）。点击后：① authStatus 置为 <b>pending</b>、editMode=true，同步写入 opc_user 与账号表 opc_accounts；② 右上角角色徽章立即变为黄色「认证中」；③ 进入编辑模式（见 3.2.4）；④ Toast「权限已暂时封闭，请重新提交认证信息」。"},
+    {t:"背景遮罩",tag:"rule",tagText:"规则",d:"半透明深色 + 毛玻璃模糊（backdrop-filter: blur(4px)），z-index 200 压住全页；点击遮罩<b>不关闭</b>，仅两个按钮可操作，防止误触。"}
+  ]
+},
+{
+  id:"p-editmode", num:"3.2.4", title:"编辑模式表单", route:"确认编辑后进入",
+  img:"screenshots/v3/16-edit-form.png",
+  intro:"确认编辑后进入编辑模式：表单自动预填全部已认证数据，顶部橙色警示条提示权限状态，可随时「取消编辑」立即恢复权限。",
+  markers:[{x:90,y:3},{x:50,y:18},{x:50,y:30},{x:62,y:40},{x:35,y:48},{x:50,y:65}],
+  notes:[
+    {t:"角色徽章",tag:"rule",tagText:"规则",d:"确认编辑即刻变为黄色「企业认证中」（OPC 为「OPC 认证中」），与管理员审核状态实时同步。"},
+    {t:"步骤条",tag:"rule",tagText:"规则",d:"定位到第 2 步「填写认证」：第 1 步绿色 ✓ 已完成，第 2 步黑底白字激活，表示正在重新填写。"},
+    {t:"橙色警示条",tag:"rule",tagText:"规则",d:"进入编辑模式时自动注入表单顶部（已存在则不重复叠加）：橙底 #fff7ed + 橙边框 #fdba74，文案「✏️ 编辑模式：提交后将重新进入审核，审核期间权限暂时封闭」。"},
+    {t:"取消编辑，恢复权限",tag:"act",tagText:"交互",d:"<b>逃生出口，无需管理员介入</b>：点击后 authStatus 恢复 approved、editMode=false（同步账号表）→ 警示条移除 → 徽章恢复已认证配色 → 返回已认证信息页 → Toast「已取消编辑，权限已恢复」。"},
+    {t:"表单标题",tag:"rule",tagText:"规则",d:"回到对应角色的认证表单（OPC 表单字段见 3.1.4、企业表单字段见 3.1.5），保留 ← 返回按钮。"},
+    {t:"预填字段",tag:"rule",tagText:"规则",d:"全部已认证数据自动回填（企业：名称/信用代码/行业/规模/城市/地址/联系人/电话；OPC：另含身份证号、作品集、简介），校验规则与首次认证<b>完全一致</b>。重新提交后 authStatus 保持 pending → 进入管理员审核队列（见 3.4.2）→ 通过则恢复已认证权限，拒绝则按原因修改重提。编辑期间工作台功能按未过审状态锁定。"}
+  ],
+  extra:"<b>编辑闭环流程：</b>已认证（approved）→「申请编辑信息」→ 弹窗确认 → 权限暂时封闭（pending + editMode）→ 编辑并重新提交 → 管理员审核（见 3.4.2）→ 通过恢复已认证权限 / 拒绝展示原因可再改。任意环节点「取消编辑，恢复权限」立即回到 approved，不进审核队列。"
+},
+{
+  id:"p-entdash", num:"3.3.1", title:"企业工作台", route:"dashboard.html",
+  img:"screenshots/v3/07-dashboard-ent.png",
+  intro:"企业需求方主界面（蓝色主题）。OPC 用户访问会被身份守卫弹回 opc-dashboard.html。左侧导航目录为通用框架不做批注，以下逐张批注内容区卡片。",
+  markers:[
+    {x:94,y:2},{x:45,y:8},{x:89.5,y:8.5},
+    {x:27,y:19},{x:48,y:19},{x:68,y:19},{x:88,y:19},
+    {x:30,y:35},{x:57.5,y:35},{x:85,y:35},{x:30,y:50},{x:57.5,y:50},
+    {x:50,y:65},
+    {x:50,y:82},{x:7,y:94}
+  ],
+  notes:[
+    {t:"角色徽章",tag:"rule",tagText:"规则",d:"橙色「企业需求方」。<b>每 3 秒 + 页面聚焦时</b>从账号表同步最新认证状态与头像——管理员审核通过后无需刷新即变亮。"},
+    {t:"欢迎横幅",tag:"rule",tagText:"规则",d:"蓝色渐变横幅。标题「欢迎回来，{昵称}」，昵称取自账号表 username；副标题固定文案「在这里发布需求、管理任务、匹配 OPC 服务者，让协作更高效」。"},
+    {t:"发布新需求按钮",tag:"act",tagText:"交互",d:"横幅右侧主按钮，跳转 requirement-form.html（三段式表单：基本信息/需求参数/联系信息）。需企业认证通过才可用，未认证时被遮罩锁定（见 3.3.2）。"},
+    {t:"统计卡·发布需求总数",tag:"demo",tagText:"演示数据",d:"演示值 <b>12</b>。正式版统计 biz_requirement 表该企业非草稿状态需求总数。"},
+    {t:"统计卡·已匹配服务者",tag:"demo",tagText:"演示数据",d:"演示值 <b>8</b>。正式版统计已进入「已匹配」状态的需求数（biz_requirement.status=matched）。"},
+    {t:"统计卡·进行中任务",tag:"demo",tagText:"演示数据",d:"演示值 <b>3</b>。正式版统计 biz_order 表进行中订单数。"},
+    {t:"统计卡·草稿数量",tag:"demo",tagText:"演示数据",d:"演示值 <b>1</b>。正式版统计草稿状态需求数（biz_requirement.status=draft）。"},
+    {t:"快捷卡·发布需求",tag:"act",tagText:"交互",d:"与横幅按钮同路由。卡片说明已提示「系统将根据能力标签自动匹配 OPC 服务者」，「立即发布 →」跳需求表单。"},
+    {t:"快捷卡·我的需求",tag:"demo",tagText:"原型态",d:"查看已发布的全部需求，跟踪匹配状态、服务者报价及任务进展。入口已留，点击 Toast「即将上线」。"},
+    {t:"快捷卡·草稿箱",tag:"demo",tagText:"原型态",d:"继续编辑上次未完成的需求，或从已保存的模板快速创建新需求。点击 Toast「即将上线」。"},
+    {t:"快捷卡·消息通知",tag:"demo",tagText:"原型态",d:"接收服务者报价、任务状态变更、系统公告等消息提醒。点击 Toast「即将上线」。"},
+    {t:"快捷卡·账号设置",tag:"demo",tagText:"原型态",d:"管理个人信息、修改密码、配置通知偏好与隐私选项。点击 Toast「即将上线」。"},
+    {t:"企业基本信息",tag:"rule",tagText:"规则",d:"橙色品牌卡片，仅在 <code>authStatus === approved</code> 时展示。顶部企业名称 + 所属行业·企业规模 + 橙色「认证企业」徽章；下方双列网格展示：统一社会信用代码、所在城市、联系人、联系电话、企业地址（地址跨列）。数据来源于 <code>authData</code>，与角色认证页已认证信息页数据一致。<b>管理员/未认证用户不可见</b>。"},
+    {t:"最近需求列表",tag:"demo",tagText:"演示数据",d:"「需求动态」按时间倒序展示最近 4 条：状态标签（进行中-蓝/已匹配-绿/匹配中-橙/草稿-灰）+ 需求标题 + 能力标签 + 发布日期；右上「查看全部 →」同我的需求入口。"},
+    {t:"用户卡（头像上传）",tag:"act",tagText:"交互",d:"显示头像/昵称/「ID：OPCxxxxxx」。<b>点击头像区域上传更换</b>：hover 显示 📷，限 2MB，FileReader 读为 Base64 存入 user.avatar 并同步账号表；同时写入 sys_file（/uploads/avatars/ 路径）+ 变更日志（type=avatar）。"}
+  ]
+},
+{
+  id:"p-mask", num:"3.3.2", title:"未认证限制遮罩", route:"双工作台通用",
+  img:"screenshots/v3/08-dashboard-ent-mask.png",
+  intro:"未认证 / 认证中 / 未通过用户可以进入工作台，但只是普通用户——所有功能锁定，仅可预览。",
+  markers:[{x:20,y:50},{x:50,y:36.5},{x:50,y:48.5},{x:50,y:52.3},{x:50,y:56.5},{x:46,y:66.5},{x:55.5,y:66.5}],
+  notes:[
+    {t:"毛玻璃遮罩",tag:"rule",tagText:"规则",d:"backdrop-filter 模糊覆盖全页面；背后所有功能入口（快捷卡片/统计卡/列表/侧边功能导航/横幅按钮）<b>45% 透明度 + pointer-events:none</b>，可见不可点。"},
+    {t:"状态图标",tag:"rule",tagText:"规则",d:"🔒 固定锁定图标。"},
+    {t:"状态标签",tag:"rule",tagText:"规则",d:"按认证状态显示：认证审核中(橙)/尚未认证(灰)/认证未通过(红)。"},
+    {t:"标题",tag:"rule",tagText:"规则",d:"「认证审核中，暂为普通用户」「完成认证后解锁全部功能」「认证未通过」三种文案。"},
+    {t:"说明文案",tag:"rule",tagText:"规则",d:"告知当前仅可预览、审核通过后解锁全部功能；<b>未通过时以红色追加展示管理员填写的拒绝原因</b>。"},
+    {t:"主按钮",tag:"act",tagText:"交互",d:"未认证「去认证」/ 审核中「查看认证状态」/ 未通过「重新认证」，均跳转 role-auth.html。"},
+    {t:"先逛逛",tag:"act",tagText:"交互",d:"关闭遮罩继续预览（功能依然禁用），刷新或重新进入再次弹出。<b>管理员不触发遮罩。</b>"}
+  ]
+},
+{
+  id:"p-opcdash", num:"3.3.3", title:"OPC 工作台", route:"opc-dashboard.html",
+  img:"screenshots/v3/09-opc-dashboard.png",
+  intro:"OPC 服务者主界面（绿色主题与企业端区分）。企业/管理员访问被身份守卫弹回 dashboard.html。左侧导航目录为通用框架不做批注，以下逐张批注内容区卡片。",
+  markers:[
+    {x:94,y:2.3},{x:45,y:10.5},{x:89.5,y:11},
+    {x:27,y:24},{x:48,y:24},{x:68,y:24},{x:88,y:24},
+    {x:30,y:44},{x:57.5,y:44},{x:85,y:44},{x:30,y:64},{x:57.5,y:64},{x:85,y:64},
+    {x:50,y:85},{x:7,y:93.5}
+  ],
+  notes:[
+    {t:"角色徽章",tag:"rule",tagText:"规则",d:"绿色「OPC 服务者」。<b>每 3 秒 + 页面聚焦时</b>同步认证状态与头像，机制同企业端。"},
+    {t:"欢迎横幅",tag:"rule",tagText:"规则",d:"绿色渐变横幅（与企业端蓝色区分）。标题「欢迎回来，{昵称}」；副标题「今天有新的匹配需求上线，去抢单大厅看看，主动报价赢订单」。"},
+    {t:"进入抢单大厅按钮",tag:"act",tagText:"交互",d:"横幅右侧主按钮，同抢单大厅入口。原型态点击 Toast「即将上线」。"},
+    {t:"统计卡·本月新增需求",tag:"demo",tagText:"演示数据",d:"演示值 <b>12</b>。正式版统计 biz_requirement 表本月新发布且匹配其能力标签的需求数。"},
+    {t:"统计卡·我的报价",tag:"demo",tagText:"演示数据",d:"演示值 <b>5</b>。正式版统计 biz_quote 表该服务者已提交的报价单数。"},
+    {t:"统计卡·进行中订单",tag:"demo",tagText:"演示数据",d:"演示值 <b>2</b>。正式版统计 biz_order 表进行中订单数。"},
+    {t:"统计卡·累计收益",tag:"demo",tagText:"演示数据",d:"演示值 <b>¥8,600</b>。正式版统计 biz_order 表已验收订单的金额合计。"},
+    {t:"快捷卡·抢单大厅",tag:"demo",tagText:"原型态",d:"浏览企业发布的最新需求，按擅长领域智能匹配，在线提交报价。点击 Toast「即将上线」。"},
+    {t:"快捷卡·我的接单",tag:"demo",tagText:"原型态",d:"查看已承接的订单，管理交付进度、提交成果与确认验收状态。点击 Toast「即将上线」。"},
+    {t:"快捷卡·报价管理",tag:"demo",tagText:"原型态",d:"跟踪已提交的报价单，查看需求方反馈，及时调整报价策略。点击 Toast「即将上线」。"},
+    {t:"快捷卡·我的能力标签",tag:"demo",tagText:"原型态",d:"完善擅长领域与技能标签——<b>标签是企业需求自动匹配的依据</b>，标签越精准需求匹配度越高。点击 Toast「即将上线」。"},
+    {t:"快捷卡·收益中心",tag:"demo",tagText:"原型态",d:"查看结算记录、待结算金额与收益明细，支持申请提现。点击 Toast「即将上线」。"},
+    {t:"快捷卡·账号设置",tag:"demo",tagText:"原型态",d:"管理个人信息、接单偏好、通知方式与隐私选项。点击 Toast「即将上线」。"},
+    {t:"最新匹配需求列表",tag:"demo",tagText:"演示数据",d:"根据擅长领域智能推荐：匹配度标签（绿色百分比）+ 需求标题 + 预算区间 + 能力标签 + 发布时间；右上「进入抢单大厅 →」与点击任意条目均同抢单大厅入口。"},
+    {t:"用户卡（头像上传）",tag:"act",tagText:"交互",d:"同企业端：点击头像区域上传更换，hover 显示 📷，限 2MB，Base64 存入 user.avatar 并同步账号表，写 sys_file + 变更日志（type=avatar）。"}
+  ],
+  extra:"<b>未认证同样受限：</b>OPC 端未认证/认证中/未通过时触发与企业端一致的遮罩锁（见 3.3.2），仅可预览页面结构。"
+},
+{
+  id:"p-admindash", num:"3.4.1", title:"管理员工作台", route:"dashboard.html（admin）",
+  img:"screenshots/v3/10-admin-dashboard.png",
+  intro:"管理员登录后看到与企业端完全不同的工作台视图，聚焦平台运营监控：<b>用户统计</b>（注册总数/今日活跃/在线数）、<b>业务核心指标</b>（今日订单量/交易额）、<b>系统状态</b>（服务在线率/接口响应时长）、<b>待办事项</b>（待审核认证数/待处理工单数，点击跳转）、<b>异常告警</b>（近 24h 错误日志/服务降级通知）、<b>业务趋势</b>（近 7 天用户活跃/访问量折线图）。左侧导航栏保留「审核管理」组（OPC 管理/企业管理，<b>红色角标实时显示待审核数量</b>）与「其他」组（协议管理）。",
+  markers:[{x:50,y:5},{x:18,y:18},{x:50,y:18},{x:82,y:18},{x:25,y:35},{x:75,y:35},{x:25,y:57},{x:75,y:57},{x:50,y:80},{x:50,y:88},{x:94,y:3},{x:7,y:93}],
+  notes:[
+    {t:"欢迎横幅",tag:"rule",tagText:"规则",d:"管理员独有横幅「欢迎回来，{管理员名}」，副标题「平台运营数据一目了然，及时掌握系统状态与待办事项」。右侧紫色「📜 协议管理」按钮，点击直接打开协议管理弹窗（见 3.4.3）。"},
+    {t:"注册总数",tag:"data",tagText:"数据",d:"平台累计注册用户数（含 OPC + 企业 + 普通用户），数字递增动画。下方趋势「↑ 较昨日 +N」绿色上涨 / 红色下跌。"},
+    {t:"今日活跃",tag:"data",tagText:"数据",d:"当日有操作行为的用户数（登录/浏览/发布/接单等）。趋势「↑ 较昨日 +X%」。"},
+    {t:"在线数",tag:"data",tagText:"数据",d:"当前 WebSocket 心跳在线的用户数，实时变化。趋势「↓ 较 5 分钟前 -N」反映实时波动。"},
+    {t:"业务核心指标",tag:"biz",tagText:"业务",d:"四项指标卡片：<b>今日订单量</b>（当日成交的需求数 + 单位「单」）、<b>今日交易额</b>（¥金额 + 单位「元」）、<b>本周订单总量</b>、<b>本周验收通过率</b>（%）。管理员可据此快速判断业务健康度。"},
+    {t:"系统状态",tag:"sys",tagText:"系统",d:"四项指标：<b>服务在线率</b>（绿色圆点 + 百分比，≥ 99.9% 为健康）、<b>接口平均响应时长</b>（ms，&lt; 200ms 为健康）、<b>CPU 使用率</b>（%）、<b>内存使用率</b>（%，&gt; 70% 显示橙色告警圆点）。实时监控平台运行健康度。"},
+    {t:"待办事项",tag:"act",tagText:"交互",d:"四个可点击条目：<b>待审核 OPC 认证</b>（红色数字，点击跳转认证审核弹窗）、<b>待审核企业认证</b>（红色数字，同跳转）、<b>待处理工单</b>（蓝色数字，Toast「工单系统即将上线」）、<b>待处理举报</b>（蓝色数字）。数字实时同步 <code>opc_review_queue</code>，每 3 秒刷新一次。"},
+    {t:"异常告警",tag:"alert",tagText:"告警",d:"近 24h 告警汇总，三种级别：<b>critical（红框）</b>——接口异常/错误率超阈值；<b>warning（橙框）</b>——资源使用率偏高；<b>info（蓝框）</b>——错误日志汇总条数、服务降级/宕机通知。每条含标题、描述、时间。无告警时显示绿色「✅ 无服务降级/宕机通知」。"},
+    {t:"业务趋势图",tag:"chart",tagText:"图表",d:"近 7 天双折线图（SVG）：蓝色线 = <b>用户活跃数</b>、绿色线 = <b>页面访问量 (PV)</b>。X 轴周一至周日，Y 轴自动缩放。折线下方带渐变填充区域，数据点为圆点标记。支持网格线和数值标签。"},
+    {t:"最近变更",tag:"rule",tagText:"规则",d:"趋势图下方单行灰底字段，<b>非独立功能页面</b>。读取 <code>opc_change_logs</code> 最新一条，显示「{用户名} · {操作描述} · {N}分钟前」。每 5 秒自动刷新。变更日志不再作为独立页面/功能展示，仅保留此单字段供管理员快速了解最近一次数据变更。"},
+    {t:"超级管理员徽章",tag:"rule",tagText:"规则",d:"紫色。管理员通过邮箱 <code>admin@opc.com</code> + 邮箱验证码登录，系统自动识别为 admin 角色。徽章不可点击（不跳转认证页）。"},
+    {t:"侧边栏管理项",tag:"rule",tagText:"规则",d:"「审核管理」组仅管理员可见：OPC 管理 / 企业管理，<b>红色角标实时显示待审核数量</b>，点击打开认证审核弹窗（见 3.4.2）。「其他」组仅保留协议管理（见 3.4.3）。管理员工作台不显示未认证遮罩锁。"}
+  ]
+},
+{
+  id:"p-review", num:"3.4.2", title:"认证审核弹窗", route:"dashboard.html → OPC管理/企业管理",
+  img:"screenshots/v3/11-admin-review.png",
+  intro:"管理员在此决定认证是否过审，结果实时同步到用户端（3 秒内生效，用户无需刷新）。认证信息以<b>详细表格形式</b>展示。",
+  markers:[{x:35,y:37.5},{x:42.3,y:37.5},{x:69.3,y:37.5},{x:33,y:45.5},{x:67.5,y:45.3},{x:35,y:51},{x:61.8,y:58.2},{x:66.8,y:58.2}],
+  notes:[
+    {t:"弹窗标题",tag:"rule",tagText:"规则",d:"「OPC 服务者认证审核」（企业入口为「企业需求方认证审核」）。"},
+    {t:"仅管理员标签",tag:"rule",tagText:"规则",d:"紫色标签，标识该功能权限。"},
+    {t:"关闭按钮",tag:"act",tagText:"交互",d:"关闭弹窗不做任何操作。"},
+    {t:"用户信息",tag:"rule",tagText:"规则",d:"昵称 + 账号 ID（OPCxxxxxx）。多条申请时列表展示，<b>待审核排最前</b>。"},
+    {t:"状态标签",tag:"rule",tagText:"规则",d:"待审核(橙)/已通过(绿)/已拒绝(红)。角标数量随审核操作实时清零。"},
+    {t:"认证信息表格",tag:"rule",tagText:"规则",d:"<b>表格形式</b>展示认证详情（标签+值两列，交替背景色）。OPC：真实姓名/身份证号/手机号/所在城市/擅长领域/接单状态/作品集链接/身份证照片（缩略图可点击放大）/提交时间。企业：企业名称/统一社会信用代码/所属行业/企业规模/所在城市/联系人/联系电话/企业地址/营业执照（缩略图可点击放大）/提交时间。缺失字段显示「—」。"},
+    {t:"拒绝按钮",tag:"act",tagText:"交互",d:"弹出输入框<b>必须填写拒绝原因</b>（为空拦截「拒绝时必须填写原因」）。原因同步到用户端：未通过遮罩与角色认证页均以红色展示，用户可据此修改后重新认证。"},
+    {t:"驳回按钮",tag:"act",tagText:"交互",d:"橙色按钮，介于拒绝与通过之间。confirm 后将 authStatus 设为 rejected，Toast 提示「已驳回，用户可修改后重新提交」。底层审核逻辑与拒绝相同，但提示文案强调用户可重新提交。"},
+    {t:"通过按钮",tag:"act",tagText:"交互",d:"confirm 二次确认后通过。结果实时写入账号表与 opc_user：authStatus=approved，用户端徽章变亮、遮罩消失、功能解锁。<b>已通过的用户追加「停用」按钮（红）</b>：停用后 status=1 无法登录；已停用的显示「启用」（绿）。停用/启用均记入变更日志（type=status）。"}
+  ]
+},
+{
+  id:"p-agreement", num:"3.4.3", title:"协议管理弹窗", route:"dashboard.html → 协议管理（仅管理员）",
+  img:"screenshots/v3/13-agreement.png",
+  intro:"管理员维护四份协议（《用户协议》《隐私政策》《OPC 服务者协议》《企业认证协议》），保存后版本号自动递增并公示给用户。",
+  markers:[{x:30,y:6},{x:35.3,y:6},{x:50,y:12},{x:49,y:24},{x:49,y:40},{x:49,y:56},{x:49,y:72},{x:61.3,y:87},{x:68.5,y:87}],
+  notes:[
+    {t:"弹窗标题",tag:"rule",tagText:"规则",d:"「协议管理」+ 紫色「仅管理员」标签。"},
+    {t:"仅管理员标签",tag:"rule",tagText:"规则",d:"紫色标签，仅 admin 角色可见侧边栏入口。"},
+    {t:"版本号显示",tag:"rule",tagText:"规则",d:"顶部蓝色信息条「当前协议版本：v1.0」，提示「保存后版本号自动 +0.1」。版本号存储于 <code>opc_agreement_version</code>，初始 v1.0，每次保存递增 0.1。"},
+    {t:"《用户协议》编辑区",tag:"act",tagText:"交互",d:"textarea 预填当前内容（管理员维护版；未修改过时为内置默认文案），可直接编辑。保存后写入 <code>opc_agreement_user</code>。"},
+    {t:"《隐私政策》编辑区",tag:"act",tagText:"交互",d:"同上，写入 <code>opc_agreement_privacy</code>。"},
+    {t:"《OPC 服务者协议》编辑区",tag:"act",tagText:"交互",d:"同上，写入 <code>opc_agreement_opc</code>。OPC 认证表单的协议链接弹窗即时读取此内容。"},
+    {t:"《企业认证协议》编辑区",tag:"act",tagText:"交互",d:"同上，写入 <code>opc_agreement_ent</code>。企业认证表单的协议链接弹窗即时读取此内容。"},
+    {t:"恢复默认",tag:"act",tagText:"交互",d:"一键填回四份协议的内置默认文案（需再点保存才生效）。"},
+    {t:"保存并生效",tag:"act",tagText:"交互",d:"四份协议写入 localStorage + 版本号 +0.1 + 记录更新时间 <code>opc_agreement_updated_at</code>。Toast「协议已保存并生效（vx.x），用户端即时展示新版本」。登录页、注册页、OPC 表单、企业表单的协议弹窗标题旁显示<b>版本号</b>，用户可感知协议更新。协议内容也是判定违规停用的依据。"}
+  ]
+}
+];
+
+/* ================= 渲染 ================= */
+var html = "";
+PAGES.forEach(function (p) {
+  html += '<div class="page-sec" id="' + p.id + '">';
+  html += '<div class="sec-head"><span class="sn">' + p.num + '</span><h3>' + p.title + '</h3><span class="route">' + p.route + '</span></div>';
+  html += '<p style="font-size:13px;color:var(--text-sub);margin-bottom:12px">' + p.intro + '</p>';
+  html += '<div class="anno-wrap"><div class="shot"><img src="' + p.img + '" alt="' + p.title + '">';
+  p.markers.forEach(function (m, i) {
+    html += '<div class="mk" data-x="' + m.x + '" data-y="' + m.y + '" data-p="' + p.id + '" data-n="' + (i + 1) + '">' + (i + 1) + '</div>';
+  });
+  html += '</div><div class="notes">';
+  p.notes.forEach(function (n, i) {
+    html += '<div class="note" id="' + p.id + '-n' + (i + 1) + '" data-p="' + p.id + '" data-n="' + (i + 1) + '">'
+      + '<div class="note-h"><span class="nn">' + (i + 1) + '</span><b>' + n.t + '</b><span class="tag ' + n.tag + '">' + n.tagText + '</span></div>'
+      + '<p>' + n.d + '</p></div>';
+  });
+  if (p.extra) html += '<div class="note-extra">' + p.extra + '</div>';
+  html += '</div></div></div>';
+});
+document.getElementById("pages").innerHTML = html;
+
+/* ================= 批注栏高度对齐截图，内部滑动 ================= */
+function fitNotes() {
+  var single = window.innerWidth <= 1280;
+  document.querySelectorAll(".anno-wrap").forEach(function (w) {
+    var img = w.querySelector(".shot img");
+    var notes = w.querySelector(".notes");
+    if (!img || !notes) return;
+    if (single) { notes.style.maxHeight = "none"; return; }
+    if (img.complete && img.naturalHeight && img.clientHeight > 0) {
+      notes.style.maxHeight = img.clientHeight + "px";
+    }
+  });
+}
+document.querySelectorAll(".shot img").forEach(function (im) {
+  if (im.complete) fitNotes(); else im.addEventListener("load", fitNotes);
+});
+window.addEventListener("resize", fitNotes);
+fitNotes();
+
+/* ================= 虚线导轨布局（图片加载后计算） ================= */
+function layoutLinks() {
+  var single = window.innerWidth <= 1280;
+  document.querySelectorAll(".anno-wrap").forEach(function (w) {
+    var shot = w.querySelector(".shot");
+    var img = w.querySelector(".shot img");
+    if (!shot || !img || img.clientWidth <= 0) return;
+    shot.querySelectorAll(".lk").forEach(function (el) { el.remove(); });
+    if (single) {
+      shot.querySelectorAll(".mk").forEach(function (mk) {
+        mk.style.left = mk.dataset.x + "%";
+        mk.style.top = mk.dataset.y + "%";
+      });
+      return;
+    }
+    var pad = 20, W = img.clientWidth, H = img.clientHeight;
+    var OFF = 58, GAP = 32, TOP = 16, BOTTOM = pad + H - 14;
+    var items = [];
+    shot.querySelectorAll(".mk").forEach(function (mk) {
+      var x = parseFloat(mk.dataset.x), y = parseFloat(mk.dataset.y);
+      var ax = pad + W * x / 100, ay = pad + H * y / 100;
+      var side = x < 50 ? "L" : "R";
+      var bx = side === "L" ? ax - OFF : ax + OFF;
+      bx = Math.max(14, Math.min(pad + W + 6, bx));
+      items.push({ ax: ax, ay: ay, bx: bx, side: side, el: mk });
+    });
+    items.sort(function (a, b) { return a.ay - b.ay; });
+    var cols = { L: [], R: [] };
+    items.forEach(function (it) {
+      var col = cols[it.side];
+      var minY = col.length ? col[col.length - 1].targetY + GAP : TOP;
+      it.targetY = Math.max(it.ay, minY);
+      col.push(it);
+    });
+    ["L", "R"].forEach(function (s) {
+      var col = cols[s];
+      if (!col.length) return;
+      var over = col[col.length - 1].targetY - BOTTOM;
+      if (over > 0) {
+        col.forEach(function (it, i) {
+          it.targetY -= over;
+          it.targetY = Math.max(it.targetY, i ? col[i - 1].targetY + GAP : TOP);
+        });
+      }
+    });
+    items.forEach(function (it) {
+      it.el.style.left = it.bx + "px";
+      it.el.style.top = it.targetY + "px";
+    });
+  });
+}
+document.querySelectorAll(".shot img").forEach(function (im) {
+  if (im.complete) { fitNotes(); layoutLinks(); }
+  else im.addEventListener("load", function () { fitNotes(); layoutLinks(); });
+});
+window.addEventListener("resize", function () { fitNotes(); layoutLinks(); });
+
+/* ================= 标记 ↔ 批注 双向联动 ================= */
+function clearHl() {
+  document.querySelectorAll(".mk.hl,.note.hl").forEach(function (el) { el.classList.remove("hl"); });
+}
+document.addEventListener("click", function (e) {
+  var mk = e.target.closest(".mk");
+  var note = e.target.closest(".note");
+  if (mk) {
+    clearHl();
+    mk.classList.add("hl");
+    var n = document.getElementById(mk.dataset.p + "-n" + mk.dataset.n);
+    if (n) {
+      n.classList.add("hl");
+      var box = n.parentElement;
+      if (box && box.classList.contains("notes") && box.scrollHeight > box.clientHeight) {
+        var target = box.scrollTop + n.getBoundingClientRect().top - box.getBoundingClientRect().top
+                   - (box.clientHeight - n.clientHeight) / 2;
+        box.scrollTo({ top: Math.max(target, 0), behavior: "smooth" });
+      } else {
+        n.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+  } else if (note) {
+    clearHl();
+    note.classList.add("hl");
+    var m = document.querySelector('.mk[data-p="' + note.dataset.p + '"][data-n="' + note.dataset.n + '"]');
+    if (m) { m.classList.add("hl"); }
+  }
+});
+
+/* ================= 滑动菜单折叠 ================= */
+document.querySelectorAll(".m-gtitle").forEach(function (t) {
+  t.addEventListener("click", function () { t.parentElement.classList.toggle("open"); });
+});
+
+/* ================= 目录 scroll-spy 滚动联动 ================= */
+var navLinks = document.querySelectorAll(".m-items a[data-sec]");
+var spyMap = {};
+navLinks.forEach(function (a) { spyMap[a.dataset.sec] = a; });
+
+function setActive(secId) {
+  document.querySelectorAll(".m-items a.active").forEach(function (x) { x.classList.remove("active"); });
+  var link = spyMap[secId];
+  if (!link) return;
+  link.classList.add("active");
+  var grp = link.closest(".m-group");
+  if (grp && !grp.classList.contains("open")) grp.classList.add("open");
+  var menu = document.querySelector(".sidemenu");
+  var r = link.getBoundingClientRect();
+  if (r.top < 60 || r.bottom > menu.clientHeight - 10) {
+    link.scrollIntoView({ block: "nearest" });
+  }
+}
+
+var spyTick = null;
+function spyScroll() {
+  if (spyTick) return;
+  spyTick = true;
+  var trigger = window.scrollY + window.innerHeight * 0.2;
+  var best = null, bestDist = Infinity;
+  navLinks.forEach(function (a) {
+    var sec = document.getElementById(a.dataset.sec);
+    if (!sec) return;
+    var top = sec.getBoundingClientRect().top + window.scrollY;
+    if (top <= trigger) {
+      var dist = trigger - top;
+      if (dist < bestDist) { bestDist = dist; best = a.dataset.sec; }
+    }
+  });
+  if (!best && navLinks[0]) best = navLinks[0].dataset.sec;
+  if (best) setActive(best);
+  spyTick = false;
+}
+window.addEventListener("scroll", spyScroll, { passive: true });
+window.addEventListener("load", spyScroll);
+setTimeout(spyScroll, 100);
+setTimeout(spyScroll, 500);
+setTimeout(spyScroll, 1500);
+setInterval(spyScroll, 1000);
+window.__spyScroll = spyScroll;
+
+navLinks.forEach(function (a) {
+  a.addEventListener("click", function (e) {
+    e.preventDefault();
+    var sec = document.getElementById(a.dataset.sec);
+    if (sec) sec.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+});
+</script>
+</body>
+</html>

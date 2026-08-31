@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OPC 需求平台 — 原型截图标注文档</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#3B5BFD;--primary-light:#eef1ff;
+  --text-main:#1a1d26;--text-sub:#6b7280;--text-hint:#9ca3af;
+  --border:#e5e7eb;--bg:#f5f6fa;--card:#fff;
+  --marker:#e5484d;--green:#16a34a;--orange:#ea580c;--purple:#7c3aed;
+  --sidebar-bg:#1e1e2e;--sidebar-text:#cdd6f4;--sidebar-active:#89b4fa;
+}
+body{font-family:"Noto Sans SC",sans-serif;background:var(--bg);color:var(--text-main);line-height:1.7;font-size:14px}
+
+/* Sidebar */
+.sidebar{position:fixed;top:0;left:0;width:240px;height:100vh;background:var(--sidebar-bg);overflow-y:auto;z-index:100;padding:16px 0}
+.sidebar-logo{padding:8px 20px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sidebar-logo .row{display:flex;align-items:center;gap:8px}
+.sidebar-logo .icon{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,var(--primary),#6d5dfc);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff}
+.sidebar-logo .name{font-size:13px;font-weight:600;color:#fff}
+.sidebar-logo .sub{font-size:11px;color:rgba(255,255,255,.35);margin-top:3px}
+.nav-section{padding:8px 0}
+.nav-title{padding:6px 20px;font-size:11px;font-weight:600;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.5px}
+.nav-item{display:block;padding:7px 20px;font-size:13px;color:var(--sidebar-text);text-decoration:none;cursor:pointer;transition:all .15s;border-left:3px solid transparent}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff}
+.nav-item.active{background:rgba(137,180,250,.1);color:var(--sidebar-active);border-left-color:var(--sidebar-active)}
+
+/* Main */
+.main{margin-left:240px;padding:40px 40px 80px}
+@media(max-width:1024px){.sidebar{display:none}.main{margin-left:0;padding:24px}}
+
+/* Section */
+.section{margin-bottom:64px;scroll-margin-top:20px}
+.section h1{font-size:26px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.section h1 .num{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--primary),#6d5dfc);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px}
+.section .lead{color:var(--text-sub);margin-bottom:24px;font-size:14px}
+.shot-label{font-size:15px;font-weight:700;margin:24px 0 12px;padding-left:10px;border-left:4px solid var(--primary)}
+
+/* Annotated screenshot */
+.annot-wrap{display:flex;gap:0;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.screenshot-area{position:relative;width:960px;height:600px;flex-shrink:0;background:#f0f1f5;overflow:hidden}
+.screenshot-area img{display:block;width:960px;height:600px;object-fit:cover}
+.marker{position:absolute;width:26px;height:26px;border-radius:50%;background:var(--marker);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;z-index:10;box-shadow:0 2px 8px rgba(229,72,77,.5);cursor:pointer;transition:transform .15s;animation:popIn .4s ease-out}
+.marker:hover,.marker.active{transform:scale(1.3);z-index:11}
+@keyframes popIn{0%{transform:scale(0);opacity:0}70%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+
+/* Notes panel */
+.notes-panel{flex:1;border-left:1px solid var(--border);background:#fafbfc;overflow-y:auto;max-height:600px}
+@media(max-width:1400px){.annot-wrap{flex-direction:column}.screenshot-area{width:100%;height:auto}.screenshot-area img{width:100%;height:auto}.notes-panel{max-height:none}}
+
+.note-item{padding:14px 16px;border-bottom:1px solid var(--border);transition:background .15s;cursor:pointer}
+.note-item:hover,.note-item.active{background:var(--primary-light)}
+.note-header{display:flex;align-items:flex-start;gap:8px}
+.note-num{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--marker);color:#fff;font-size:11px;font-weight:700;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.note-title{font-weight:600;font-size:13px;flex:1}
+.note-tag{display:inline-block;padding:1px 7px;border-radius:3px;font-size:10px;font-weight:600;margin-left:4px}
+.note-tag.req{background:#fef2f2;color:var(--marker)}
+.note-tag.opt{background:#f3f4f6;color:var(--text-hint)}
+.note-tag.logic{background:var(--primary-light);color:var(--primary)}
+.note-desc{margin-top:6px;margin-left:30px;font-size:12.5px;color:var(--text-sub);line-height:1.65}
+.note-desc strong{color:var(--text-main)}
+
+/* Table */
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+th{background:var(--primary-light);color:var(--primary);font-weight:600;text-align:left;padding:10px 14px;border-bottom:2px solid var(--border);white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:hover td{background:#fafbfc}
+.divider{height:1px;background:var(--border);margin:40px 0}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="row"><div class="icon">O</div><span class="name">OPC 需求平台</span></div>
+    <div class="sub">原型截图标注 v1.3</div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-title">页面标注</div>
+    <a class="nav-item active" onclick="go('page-login')">1. 登录/注册页</a>
+    <a class="nav-item" onclick="go('page-dashboard')">2. 工作台首页</a>
+    <a class="nav-item" onclick="go('page-roleauth')">3. 角色认证页</a>
+    <a class="nav-item" onclick="go('page-reqform')">4. 发布需求表单</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-title">附录</div>
+    <a class="nav-item" onclick="go('field-rules')">字段规则汇总</a>
+    <a class="nav-item" onclick="go('error-codes')">错误提示汇总</a>
+  </div>
+</nav>
+
+<div class="main">
+<div style="max-width:1200px;margin:0 auto">
+
+<!-- ===== PAGE 1: LOGIN ===== -->
+<div class="section" id="page-login">
+  <h1><span class="num">1</span> 登录/注册页</h1>
+  <p class="lead">居中毛玻璃卡片布局，顶部品牌区 + 登录卡片。支持登录/注册模式切换、Tab 切换、拼图人机验证。这是同一个页面的两种状态，下面分别标注「登录界面」和「注册界面」。</p>
+
+  <div class="shot-label">① 登录界面（默认状态）</div>
+  <div class="annot-wrap">
+    <div class="screenshot-area">
+      <img src="screenshots/01-login.png" alt="登录页截图">
+      <div class="marker" style="top:40px;left:468px" onclick="hl(1)">1</div>
+      <div class="marker" style="top:176px;left:377px" onclick="hl(2)">2</div>
+      <div class="marker" style="top:245px;left:377px" onclick="hl(3)">3</div>
+      <div class="marker" style="top:298px;left:377px" onclick="hl(4)">4</div>
+      <div class="marker" style="top:346px;left:377px" onclick="hl(5)">5</div>
+      <div class="marker" style="top:383px;left:368px" onclick="hl(6)">6</div>
+      <div class="marker" style="top:433px;left:467px" onclick="hl(7)">7</div>
+      <div class="marker" style="top:553px;left:467px" onclick="hl(8)">8</div>
+      <div class="marker" style="top:511px;left:467px" onclick="hl(9)">9</div>
+    </div>
+    <div class="notes-panel">
+      <div class="note-item" id="n1" onclick="hl(1)">
+        <div class="note-header"><span class="note-num">1</span><span class="note-title">顶部品牌区</span></div>
+        <div class="note-desc">Logo 方块 + 平台名称「OPC 需求平台」+ 一句标语。登录和注册状态都显示。</div>
+      </div>
+      <div class="note-item" id="n2" onclick="hl(2)">
+        <div class="note-header"><span class="note-num">2</span><span class="note-title">登录卡片标题</span></div>
+        <div class="note-desc">显示「欢迎回来」+ 副标题「登录以发布需求或查看你的需求列表」。卡片是半透明白底、边缘圆角，背后有模糊效果。</div>
+      </div>
+      <div class="note-item" id="n3" onclick="hl(3)">
+        <div class="note-header"><span class="note-num">3</span><span class="note-title">登录方式切换 <span class="note-tag logic">交互</span></span></div>
+        <div class="note-desc">登录状态：「手机号登录」「账号密码登录」两个标签可点切换，选中的那条下方有蓝色下划线。注册状态：只剩「账号密码注册」一个标签。</div>
+      </div>
+      <div class="note-item" id="n4" onclick="hl(4)">
+        <div class="note-header"><span class="note-num">4</span><span class="note-title">手机号输入框 <span class="note-tag req">必填</span></span></div>
+        <div class="note-desc">前面固定显示「+86」。只允许输入 11 位数字、以 1 开头的手机号，格式不对就提示「请输入正确的手机号」。</div>
+      </div>
+      <div class="note-item" id="n5" onclick="hl(5)">
+        <div class="note-header"><span class="note-num">5</span><span class="note-title">验证码 + 获取按钮 <span class="note-tag logic">交互</span></span></div>
+        <div class="note-desc">点「获取验证码」会先弹出<strong>拼图验证</strong>：按住滑块往右拖，把图块对到虚线框里才算通过。通过后按钮变成 60 秒倒计时，期间不能再点。</div>
+      </div>
+      <div class="note-item" id="n6" onclick="hl(6)">
+        <div class="note-header"><span class="note-num">6</span><span class="note-title">协议勾选 <span class="note-tag req">必勾</span></span></div>
+        <div class="note-desc">不勾选就点登录会被拦下，提示「请先同意用户协议和隐私政策」。文案里说明「未注册的手机号将自动创建账号」。</div>
+      </div>
+      <div class="note-item" id="n7" onclick="hl(7)">
+        <div class="note-header"><span class="note-num">7</span><span class="note-title">登录按钮 <span class="note-tag logic">交互</span></span></div>
+        <div class="note-desc">登录状态显示「登录」，注册状态显示「注册」。校验全部通过后跳到工作台。</div>
+      </div>
+      <div class="note-item" id="n8" onclick="hl(8)">
+        <div class="note-header"><span class="note-num">8</span><span class="note-title">登录/注册切换链接 <span class="note-tag logic">交互</span></span></div>
+        <div class="note-desc">登录状态显示「还没有账号？立即注册」，点进去变成注册界面；注册状态这里变成「← 返回登录」按钮，点一下就回到登录界面。</div>
+      </div>
+      <div class="note-item" id="n9" onclick="hl(9)">
+        <div class="note-header"><span class="note-num">9</span><span class="note-title">第三方登录 <span class="note-tag opt">占位</span></span></div>
+        <div class="note-desc">微信、GitHub、Google 三个圆形图标。现在只是展示，点了提示「即将上线」。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="shot-label" id="shot-register">② 注册界面（在登录页点「立即注册」后切换成这个状态）</div>
+  <div class="annot-wrap">
+    <div class="screenshot-area">
+      <img src="screenshots/01b-register.png" alt="注册页截图">
+      <div class="marker" style="top:326px;left:557px" onclick="hl(10)">10</div>
+      <div class="marker" style="top:286px;left:377px" onclick="hl(11)">11</div>
+      <div class="marker" style="top:327px;left:377px" onclick="hl(12)">12</div>
+      <div class="marker" style="top:142px;left:382px" onclick="hl(13)">13</div>
+      <div class="marker" style="top:548px;left:447px" onclick="hl(14)">14</div>
+    </div>
+    <div class="notes-panel">
+      <div class="note-item" id="n10" onclick="hl(10)">
+        <div class="note-header"><span class="note-num">10</span><span class="note-title">密码可见小眼睛 <span class="note-tag logic">交互</span></span></div>
+        <div class="note-desc">密码框和「确认密码」框右边各有一只小眼睛，点一下显示明文，再点一下变回密文。每个框只有一只眼睛，不会重影。</div>
+      </div>
+      <div class="note-item" id="n11" onclick="hl(11)">
+        <div class="note-header"><span class="note-num">11</span><span class="note-title">注册才有的字段 <span class="note-tag req">必填</span></span></div>
+        <div class="note-desc">和登录相比，表单多出两个输入框：<strong>手机号</strong>（带 +86 前缀，规则同登录）和<strong>确认密码</strong>。确认密码必须和密码一模一样，否则提示「两次输入的密码不一致」。</div>
+      </div>
+      <div class="note-item" id="n12" onclick="hl(12)">
+        <div class="note-header"><span class="note-num">12</span><span class="note-title">密码强度要求 <span class="note-tag req">必填</span></span></div>
+        <div class="note-desc">输入框里直接写着提示「需包含大小写字母和符号，≥6位」。至少 6 位，且同时包含大写字母、小写字母和符号，不满足就提示「密码需包含大写字母、小写字母和符号」。<strong>例外</strong>：管理员账号不受这条限制。</div>
+      </div>
+      <div class="note-item" id="n13" onclick="hl(13)">
+        <div class="note-header"><span class="note-num">13</span><span class="note-title">标题区随状态切换 <span class="note-tag logic">交互</span></span></div>
+        <div class="note-desc">登录状态标题是「欢迎回来」，注册状态变成「创建账号」，副标题变成「注册后即可发布需求，开始高效协作」。下方的登录方式标签也只剩「账号密码注册」一个，「手机号登录」标签整个隐藏。</div>
+      </div>
+      <div class="note-item" id="n14" onclick="hl(14)">
+        <div class="note-header"><span class="note-num">14</span><span class="note-title">返回登录按钮 <span class="note-tag logic">交互</span></span></div>
+        <div class="note-desc">登录页底部的「还没有账号？立即注册」链接，在注册状态变成带边框的「← 返回登录」按钮。点一下回到登录界面，刚才输入过的内容不会清空。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ===== PAGE 2: DASHBOARD ===== -->
+<div class="section" id="page-dashboard">
+  <h1><span class="num">2</span> 工作台首页</h1>
+  <p class="lead">左侧深色导航 + 右侧内容区：欢迎横幅、四个统计卡、六个快捷入口。</p>
+
+  <div class="annot-wrap">
+    <div class="screenshot-area">
+      <img src="screenshots/02-dashboard.png" alt="工作台截图">
+      <div class="marker" style="top:85px;left:70px" onclick="hl(21)">1</div>
+      <div class="marker" style="top:12px;left:933px" onclick="hl(22)">2</div>
+      <div class="marker" style="top:100px;left:245px" onclick="hl(23)">3</div>
+      <div class="marker" style="top:200px;left:225px" onclick="hl(24)">4</div>
+      <div class="marker" style="top:380px;left:290px" onclick="hl(25)">5</div>
+      <div class="marker" style="top:540px;left:290px" onclick="hl(26)">6</div>
+      <div class="marker" style="top:565px;left:55px" onclick="hl(27)">7</div>
+    </div>
+    <div class="notes-panel">
+      <div class="note-item" id="n21" onclick="hl(21)">
+        <div class="note-header"><span class="note-num">1</span><span class="note-title">侧边导航栏</span></div>
+        <div class="note-desc">深色竖条，最上面是平台 Logo，中间是菜单（工作台、发布需求、我的需求、草稿箱、消息通知、角色认证、设置、帮助中心），当前在哪一页哪一项就高亮。</div>
+      </div>
+      <div class="note-item" id="n22" onclick="hl(22)">
+        <div class="note-header"><span class="note-num">2</span><span class="note-title">日期 + 角色徽章</span></div>
+        <div class="note-desc">右上角显示今天日期，旁边是你的角色标签：管理员是紫色「超级管理员」、OPC 是绿色、企业是橙色、没认证是灰色。点标签可以去做认证。</div>
+      </div>
+      <div class="note-item" id="n23" onclick="hl(23)">
+        <div class="note-header"><span class="note-num">3</span><span class="note-title">欢迎横幅</span></div>
+        <div class="note-desc">蓝色大横幅，写着「欢迎回来，×××」和一句介绍。右边白色按钮「+ 发布新需求」，点了直接去发布需求页。</div>
+      </div>
+      <div class="note-item" id="n24" onclick="hl(24)">
+        <div class="note-header"><span class="note-num">4</span><span class="note-title">统计卡片 ×4</span></div>
+        <div class="note-desc">横着排四张：发布需求总数、已匹配服务者、进行中任务、草稿数量。每张一个大数字配个小图标。</div>
+      </div>
+      <div class="note-item" id="n25" onclick="hl(25)">
+        <div class="note-header"><span class="note-num">5</span><span class="note-title">快捷入口 · 第一排</span></div>
+        <div class="note-desc">发布需求、我的需求、草稿箱三张卡。每张有图标、标题、一句话说明和「立即发布 →」这样的链接，「发布需求」点了跳表单页。</div>
+      </div>
+      <div class="note-item" id="n26" onclick="hl(26)">
+        <div class="note-header"><span class="note-num">6</span><span class="note-title">快捷入口 · 第二排</span></div>
+        <div class="note-desc">消息通知、能力标签库、账号设置三张卡。目前点了会提示功能尚未开放。</div>
+      </div>
+      <div class="note-item" id="n27" onclick="hl(27)">
+        <div class="note-header"><span class="note-num">7</span><span class="note-title">用户卡片 + 退出</span></div>
+        <div class="note-desc">左下角显示头像和用户名，旁边有个 ⏻ 退出按钮，点了退出登录回到登录页。</div>
+      </div>
+      <div class="note-item" onclick="hl(28)">
+        <div class="note-header"><span class="note-num">8</span><span class="note-title">没登录进不来</span></div>
+        <div class="note-desc">没登录的人打开这页会自动跳回登录页。登录状态放太久（7 天）也会失效，要重新登录。</div>
+      </div>
+      <div class="note-item" onclick="hl(29)">
+        <div class="note-header"><span class="note-num">9</span><span class="note-title">小屏幕适配</span></div>
+        <div class="note-desc">屏幕窄到一定程度，左边导航栏收起来，卡片一张张竖着排。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ===== PAGE 3: ROLE AUTH ===== -->
+<div class="section" id="page-roleauth">
+  <h1><span class="num">3</span> 角色认证页</h1>
+  <p class="lead">三步走：先选角色，再填资料，最后提交。管理员不用认证，直接进工作台。</p>
+
+  <div class="annot-wrap">
+    <div class="screenshot-area">
+      <img src="screenshots/03-role-auth.png" alt="角色认证页截图">
+      <div class="marker" style="top:13px;left:933px" onclick="hl(31)">1</div>
+      <div class="marker" style="top:148px;left:410px" onclick="hl(32)">2</div>
+      <div class="marker" style="top:430px;left:450px" onclick="hl(33)">3</div>
+      <div class="marker" style="top:430px;left:710px" onclick="hl(34)">4</div>
+    </div>
+    <div class="notes-panel">
+      <div class="note-item" id="n31" onclick="hl(31)">
+        <div class="note-header"><span class="note-num">1</span><span class="note-title">角色徽章（右上角）</span></div>
+        <div class="note-desc">还没认证时显示灰色「未认证」。提交认证后变成「OPC 服务者 / 认证中」（绿）或「企业需求方 / 认证中」（橙）。管理员直接是紫色「超级管理员」。</div>
+      </div>
+      <div class="note-item" id="n32" onclick="hl(32)">
+        <div class="note-header"><span class="note-num">2</span><span class="note-title">步骤条</span></div>
+        <div class="note-desc">① 选择角色 → ② 填写认证 → ③ 确认提交。走到哪一步哪一步的圆圈是黑色，走过的变绿色打勾，中间连线也会变绿。<strong>管理员登录时整条步骤条不显示</strong>，只出现一张「直接进工作台」的卡片。</div>
+      </div>
+      <div class="note-item" id="n33" onclick="hl(33)">
+        <div class="note-header"><span class="note-num">3</span><span class="note-title">OPC 服务者卡片</span></div>
+        <div class="note-desc">点这张卡展开 OPC 认证表单，要填：真实姓名、手机号、身份证号、所在城市、擅长领域（下拉选一个）、个人简介（可不填）、接单状态，还要上传<strong>身份证正面和反面</strong>两张照片，缺一面都会单独提示。</div>
+      </div>
+      <div class="note-item" id="n34" onclick="hl(34)">
+        <div class="note-header"><span class="note-num">4</span><span class="note-title">企业需求方卡片</span></div>
+        <div class="note-desc">点这张卡展开企业认证表单，要填：企业名称、统一社会信用代码、所属行业、企业规模、所在城市、企业地址、联系人、联系电话，还要上传<strong>营业执照正本和副本</strong>，缺一本都会单独提示。</div>
+      </div>
+      <div class="note-item" onclick="hl(35)">
+        <div class="note-header"><span class="note-num">5</span><span class="note-title">管理员不用认证</span></div>
+        <div class="note-desc">管理员账号登录后，这页只显示紫色「超级管理员」卡片和一个「进入工作台」按钮，点了直接过去，不需要任何认证。</div>
+      </div>
+      <div class="note-item" onclick="hl(36)">
+        <div class="note-header"><span class="note-num">6</span><span class="note-title">擅长领域</span></div>
+        <div class="note-desc">下拉框里选一个方向（文案、设计、开发、数据分析等），只能选一个。</div>
+      </div>
+      <div class="note-item" onclick="hl(37)">
+        <div class="note-header"><span class="note-num">7</span><span class="note-title">提交认证</span></div>
+        <div class="note-desc">所有必填项都填好才能提交，少哪项就提示哪项。提交后自动跳回工作台，徽章变成「认证中」。填到一半可以点「返回」重新选角色，已填内容不会丢。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ===== PAGE 4: REQUIREMENT FORM ===== -->
+<div class="section" id="page-reqform">
+  <h1><span class="num">4</span> 发布需求表单</h1>
+  <p class="lead">三段式表单：①基本信息 ②需求参数 ③联系信息。顶部有提交、预览、存草稿、导模板、填写设置五个操作。</p>
+
+  <div class="annot-wrap">
+    <div class="screenshot-area">
+      <img src="screenshots/04-requirement-form.png" alt="需求发布表单截图">
+      <div class="marker" style="top:82px;left:60px" onclick="hl(41)">1</div>
+      <div class="marker" style="top:15px;left:200px" onclick="hl(42)">2</div>
+      <div class="marker" style="top:75px;left:190px" onclick="hl(43)">3</div>
+      <div class="marker" style="top:120px;left:190px" onclick="hl(44)">4</div>
+      <div class="marker" style="top:190px;left:190px" onclick="hl(45)">5</div>
+      <div class="marker" style="top:330px;left:190px" onclick="hl(46)">6</div>
+      <div class="marker" style="top:480px;left:190px" onclick="hl(47)">7</div>
+      <div class="marker" style="top:530px;left:350px" onclick="hl(48)">8</div>
+      <div class="marker" style="top:530px;left:600px" onclick="hl(49)">9</div>
+    </div>
+    <div class="notes-panel">
+      <div class="note-item" id="n41" onclick="hl(41)">
+        <div class="note-header"><span class="note-num">1</span><span class="note-title">侧边导航栏</span></div>
+        <div class="note-desc">左侧竖条，「发布需求」高亮，下面还有基本信息、需求参数、联系信息三个小项，点了直接滚到对应分区。</div>
+      </div>
+      <div class="note-item" id="n42" onclick="hl(42)">
+        <div class="note-header"><span class="note-num">2</span><span class="note-title">顶部操作栏 <span class="note-tag logic">交互</span></span></div>
+        <div class="note-desc">五个按钮：<strong>提交需求</strong>（蓝色主按钮，检查所有必填项）、<strong>预览</strong>（弹出需求单长什么样）、<strong>保存草稿</strong>、<strong>导入模板</strong>、<strong>填写设置</strong>。</div>
+      </div>
+      <div class="note-item" id="n43" onclick="hl(43)">
+        <div class="note-header"><span class="note-num">3</span><span class="note-title">① 基本信息分区</span></div>
+        <div class="note-desc">蓝色圆圈序号「1」。包含需求标题、任务描述、交付标准三块，全是必填。</div>
+      </div>
+      <div class="note-item" id="n44" onclick="hl(44)">
+        <div class="note-header"><span class="note-num">4</span><span class="note-title">需求标题 <span class="note-tag req">必填</span></span></div>
+        <div class="note-desc">最多写 80 个字，中文英文都行。右下角一直显示「已写多少/80」，快写满时数字变红提醒。</div>
+      </div>
+      <div class="note-item" id="n45" onclick="hl(45)">
+        <div class="note-header"><span class="note-num">5</span><span class="note-title">任务描述 + 附件 <span class="note-tag req">必填</span></span></div>
+        <div class="note-desc">提示写清业务背景、目标、任务范围、输入资料、限制条件、不希望出现的结果。下面「📎 插入附件」可以传图片和文档，能传多个，传完以小标签形式列出来，可以单独删掉。</div>
+      </div>
+      <div class="note-item" id="n46" onclick="hl(46)">
+        <div class="note-header"><span class="note-num">6</span><span class="note-title">交付标准 + 附件 <span class="note-tag req">必填</span></span></div>
+        <div class="note-desc">提示写清最终交付物、格式、数量、验收标准、返修规则。同样可以传附件，和上面任务描述的附件互不影响。</div>
+      </div>
+      <div class="note-item" id="n47" onclick="hl(47)">
+        <div class="note-header"><span class="note-num">7</span><span class="note-title">② 需求参数分区</span></div>
+        <div class="note-desc">蓝色圆圈序号「2」。包含预算、周期、付款方式、远程协作、能力标签，全部必填。</div>
+      </div>
+      <div class="note-item" id="n48" onclick="hl(48)">
+        <div class="note-header"><span class="note-num">8</span><span class="note-title">预算 + 周期 <span class="note-tag req">必填</span></span></div>
+        <div class="note-desc"><strong>预算</strong>：填数字，不确定就填 0，代表「面议」。<strong>周期</strong>：点出来选日期，用来判断任务急不急、怎么排期。</div>
+      </div>
+      <div class="note-item" id="n49" onclick="hl(49)">
+        <div class="note-header"><span class="note-num">9</span><span class="note-title">付款方式 + 远程协作 <span class="note-tag req">必填</span></span></div>
+        <div class="note-desc">都是下拉选择。付款方式可选：一次性付款 / 按里程碑 / 按小时 / 面议。远程协作可选：支持远程 / 需到场 / 混合。</div>
+      </div>
+      <div class="note-item" onclick="hl(50)">
+        <div class="note-header"><span class="note-num">10</span><span class="note-title">能力标签 <span class="note-tag req">至少选1个</span></span></div>
+        <div class="note-desc">打字搜索标签，点一下就加成小芯片，可以一个个删掉。系统会根据选的标签去匹配合适的服务者。</div>
+      </div>
+      <div class="note-item" onclick="hl(51)">
+        <div class="note-header"><span class="note-num">11</span><span class="note-title">③ 联系信息</span></div>
+        <div class="note-desc">填联系人/部门 + 联系方式（手机号、微信或邮箱都行）。<strong>预览时，联系方式里的数字会一位一位变成 * 号</strong>，别人看到的是打码后的。</div>
+      </div>
+      <div class="note-item" onclick="hl(52)">
+        <div class="note-header"><span class="note-num">12</span><span class="note-title">草稿和模板</span></div>
+        <div class="note-desc"><strong>保存草稿</strong>：存下来，下次打开这页会弹窗问你要不要接着写。<strong>导入模板</strong>：可以把当前填的存成模板，下次点一下就能整套填回来。需求提交成功后，对应的草稿自动清掉。</div>
+      </div>
+      <div class="note-item" onclick="hl(53)">
+        <div class="note-header"><span class="note-num">13</span><span class="note-title">填写设置</span></div>
+        <div class="note-desc">点开后有几个开关：自动保存草稿（每 30 秒自己存一次）、提交后保留已填内容（方便连发几条相似需求）等。</div>
+      </div>
+      <div class="note-item" onclick="hl(54)">
+        <div class="note-header"><span class="note-num">14</span><span class="note-title">预览弹窗</span></div>
+        <div class="note-desc">点「预览」弹出一张需求单，就是服务者看到的样子：标题、描述、交付标准、参数、标签、联系信息（打码）。点右上角叉、底部按钮或遮罩空白处都能关。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ===== FIELD RULES ===== -->
+<div class="section" id="field-rules">
+  <h1>字段规则汇总</h1>
+  <table>
+    <thead><tr><th>页面</th><th>字段</th><th>必填</th><th>填写要求</th><th>出错时提示</th></tr></thead>
+    <tbody>
+      <tr><td>登录</td><td>手机号</td><td><span class="note-tag req">必填</span></td><td>11 位数字，1 开头</td><td>请输入正确的手机号</td></tr>
+      <tr><td>登录</td><td>验证码</td><td><span class="note-tag req">必填</span></td><td>至少 4 位</td><td>请输入验证码</td></tr>
+      <tr><td>登录</td><td>账号</td><td><span class="note-tag req">必填</span></td><td>至少 2 个字符</td><td>请输入账号名或账号ID</td></tr>
+      <tr><td>登录</td><td>密码</td><td><span class="note-tag req">必填</span></td><td>至少 6 位，含大写、小写、符号（管理员不限）</td><td>密码至少 6 位 / 需包含大小写字母和符号</td></tr>
+      <tr><td>注册</td><td>确认密码</td><td><span class="note-tag req">必填</span></td><td>和密码一模一样</td><td>两次输入的密码不一致</td></tr>
+      <tr><td>OPC认证</td><td>真实姓名</td><td><span class="note-tag req">必填</span></td><td>至少 2 个字</td><td>请输入真实姓名</td></tr>
+      <tr><td>OPC认证</td><td>身份证号</td><td><span class="note-tag req">必填</span></td><td>18 位，末位可以是 X</td><td>请输入正确的身份证号</td></tr>
+      <tr><td>企业认证</td><td>信用代码</td><td><span class="note-tag req">必填</span></td><td>18 位统一社会信用代码</td><td>请输入正确的统一社会信用代码</td></tr>
+      <tr><td>企业认证</td><td>企业地址</td><td><span class="note-tag req">必填</span></td><td>至少 5 个字</td><td>请输入详细企业地址</td></tr>
+      <tr><td>需求表单</td><td>需求标题</td><td><span class="note-tag req">必填</span></td><td>最多 80 字，中英文都行</td><td>请输入需求标题</td></tr>
+      <tr><td>需求表单</td><td>预算范围</td><td><span class="note-tag req">必填</span></td><td>填数字，0 代表面议</td><td>请输入预算范围</td></tr>
+      <tr><td>需求表单</td><td>能力标签</td><td><span class="note-tag req">必填</span></td><td>至少选 1 个</td><td>请至少选择一个能力标签</td></tr>
+      <tr><td>需求表单</td><td>联系方式</td><td><span class="note-tag req">必填</span></td><td>手机/微信/邮箱，预览打码</td><td>请输入联系方式</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="divider"></div>
+
+<!-- ===== ERROR CODES ===== -->
+<div class="section" id="error-codes">
+  <h1>错误提示汇总</h1>
+  <table>
+    <thead><tr><th>页面</th><th>什么情况</th><th>提示文案</th></tr></thead>
+    <tbody>
+      <tr><td>登录</td><td>手机号格式不对</td><td>请输入正确的手机号</td></tr>
+      <tr><td>登录</td><td>验证码太短</td><td>请输入验证码</td></tr>
+      <tr><td>登录</td><td>没勾协议</td><td>请先同意用户协议和隐私政策</td></tr>
+      <tr><td>登录</td><td>账号太短</td><td>请输入账号名或账号ID</td></tr>
+      <tr><td>登录</td><td>密码不到 6 位</td><td>密码至少 6 位</td></tr>
+      <tr><td>登录</td><td>密码强度不够（非管理员）</td><td>密码需包含大写字母、小写字母和符号</td></tr>
+      <tr><td>注册</td><td>手机号格式不对</td><td>请输入正确的手机号</td></tr>
+      <tr><td>注册</td><td>两次密码不一样</td><td>两次输入的密码不一致</td></tr>
+      <tr><td>角色认证</td><td>身份证号不对</td><td>请输入正确的身份证号</td></tr>
+      <tr><td>角色认证</td><td>信用代码不对</td><td>请输入正确的统一社会信用代码</td></tr>
+      <tr><td>需求表单</td><td>标题没填</td><td>请输入需求标题</td></tr>
+      <tr><td>需求表单</td><td>标签一个都没选</td><td>请至少选择一个能力标签</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div style="text-align:center;margin-top:60px;padding-top:32px;border-top:1px solid var(--border);color:var(--text-hint);font-size:13px">
+  OPC 需求平台 · 原型截图标注文档 · v1.3 · 2026-08-26
+</div>
+
+</div>
+</div>
+
+<script>
+function go(id){document.getElementById(id).scrollIntoView({behavior:'smooth'});}
+function hl(num){
+  document.querySelectorAll('.marker').forEach(function(m){
+    m.classList.remove('active');
+    if(parseInt(m.textContent)===num)m.classList.add('active');
+  });
+  document.querySelectorAll('.note-item').forEach(function(n){n.classList.remove('active')});
+  var n=document.getElementById('n'+num);
+  if(n){n.classList.add('active');n.scrollIntoView({behavior:'smooth',block:'nearest'});}
+}
+var secs=document.querySelectorAll('.section');
+var navItems=document.querySelectorAll('.sidebar .nav-item');
+window.addEventListener('scroll',function(){
+  var y=window.scrollY+80;
+  var cur='';
+  secs.forEach(function(s){if(s.offsetTop<=y)cur=s.id;});
+  navItems.forEach(function(n){
+    var o=n.getAttribute('onclick')||'';
+    if(o.indexOf(cur)>-1)n.classList.add('active');else if(o.indexOf('go(')>-1)n.classList.remove('active');
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OPC 需求平台 — 原型标注文档</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#3B5BFD;--primary-light:#eef1ff;--primary-dark:#2d47e0;
+  --text-main:#1a1d26;--text-sub:#6b7280;--text-hint:#9ca3af;
+  --border:#e5e7eb;--bg:#f5f6fa;--card:#fff;
+  --red:#e5484d;--green:#16a34a;--orange:#ea580c;--purple:#7c3aed;
+  --sidebar-bg:#1e1e2e;--sidebar-text:#cdd6f4;--sidebar-active:#89b4fa;
+  --marker:#e5484d;
+}
+html{scroll-behavior:smooth}
+body{font-family:"Noto Sans SC",sans-serif;background:var(--bg);color:var(--text-main);line-height:1.7;font-size:14px}
+
+/* === Sidebar (axhub style) === */
+.sidebar{position:fixed;top:0;left:0;width:260px;height:100vh;background:var(--sidebar-bg);overflow-y:auto;z-index:100;padding:16px 0}
+.sidebar-logo{padding:12px 20px 20px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sidebar-logo .logo-box{display:flex;align-items:center;gap:8px}
+.sidebar-logo .logo-icon{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,var(--primary),#6d5dfc);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff}
+.sidebar-logo .logo-text{font-size:14px;font-weight:600;color:#fff}
+.sidebar-logo .logo-sub{font-size:11px;color:rgba(255,255,255,.4);margin-top:4px}
+.nav-group{padding:8px 0}
+.nav-group-title{padding:6px 20px;font-size:11px;font-weight:600;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px}
+.nav-item{display:block;padding:8px 20px 8px 36px;font-size:13px;color:var(--sidebar-text);text-decoration:none;transition:all .15s;cursor:pointer;border-left:3px solid transparent}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff}
+.nav-item.active{background:rgba(137,180,250,.1);color:var(--sidebar-active);border-left-color:var(--sidebar-active)}
+.nav-item.sub{padding-left:48px;font-size:12px}
+.nav-item.sub::before{content:"·";margin-right:6px;color:rgba(255,255,255,.3)}
+.nav-toggle{padding:8px 20px;font-size:13px;color:var(--sidebar-text);cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none}
+.nav-toggle .arrow{font-size:10px;transition:transform .2s}
+.nav-toggle.collapsed .arrow{transform:rotate(-90deg)}
+.nav-children{overflow:hidden;transition:max-height .3s}
+.nav-children.collapsed{max-height:0!important}
+
+/* === Main === */
+.main{margin-left:260px;padding:40px 48px 80px}
+@media(max-width:1024px){.sidebar{display:none}.main{margin-left:0;padding:24px}}
+
+/* Section */
+.section{margin-bottom:64px;scroll-margin-top:20px}
+.section h1{font-size:28px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.section h1 .icon{width:32px;height:32px;border-radius:8px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px}
+.section h2{font-size:22px;font-weight:600;margin:32px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--border)}
+.section h3{font-size:17px;font-weight:600;margin:24px 0 10px}
+.section .lead{color:var(--text-sub);margin-bottom:20px;font-size:14px}
+
+/* Version table */
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+th{background:var(--primary-light);color:var(--primary);font-weight:600;text-align:left;padding:10px 14px;border-bottom:2px solid var(--border);white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:hover td{background:#fafbfc}
+
+/* === Annotated Page Mockup === */
+.mockup-wrapper{display:flex;gap:0;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.mockup-area{flex:1;position:relative;min-width:0;background:#f0f1f5}
+.mockup-notes{width:320px;flex-shrink:0;border-left:1px solid var(--border);background:#fafbfc;padding:0;overflow-y:auto}
+@media(max-width:900px){.mockup-wrapper{flex-direction:column}.mockup-notes{width:100%;border-left:none;border-top:1px solid var(--border)}}
+
+/* Annotation marker */
+.marker{position:absolute;width:24px;height:24px;border-radius:50%;background:var(--marker);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;z-index:10;box-shadow:0 2px 6px rgba(229,72,77,.4);cursor:pointer;transition:transform .15s;animation:markerPulse .6s ease-out}
+.marker:hover,.marker.active{transform:scale(1.25);z-index:11}
+@keyframes markerPulse{0%{transform:scale(0);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+
+/* Side notes */
+.note-item{padding:14px 16px;border-bottom:1px solid var(--border);transition:background .15s;cursor:pointer}
+.note-item:hover,.note-item.active{background:var(--primary-light)}
+.note-num{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--marker);color:#fff;font-size:11px;font-weight:700;align-items:center;justify-content:center;margin-right:8px;vertical-align:middle}
+.note-title{font-weight:600;font-size:13px;display:inline-block;vertical-align:middle}
+.note-desc{margin-top:6px;margin-left:30px;font-size:12.5px;color:var(--text-sub);line-height:1.6}
+.note-desc code{font-family:"JetBrains Mono",monospace;font-size:11.5px;background:#f3f4f6;padding:1px 5px;border-radius:3px;color:var(--text-main)}
+
+/* === Mini Page Mockups === */
+/* Login mockup */
+.mini-login{padding:24px;background:linear-gradient(135deg,#e0e7ff 0%,#f0e7ff 50%,#ffe7f0 100%);min-height:420px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
+.mini-login .ml-bg-circle{position:absolute;border-radius:50%;filter:blur(40px);opacity:.4}
+.mini-login .ml-bg-circle.c1{width:200px;height:200px;background:#6d5dfc;top:-40px;left:-20px}
+.mini-login .ml-bg-circle.c2{width:180px;height:180px;background:#ec4899;bottom:-30px;right:-20px}
+.mini-login .ml-logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--primary),#6d5dfc);margin-bottom:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px;z-index:1}
+.mini-login .ml-title{font-size:18px;font-weight:700;background:linear-gradient(135deg,var(--primary),#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;z-index:1}
+.mini-login .ml-subtitle{font-size:11px;color:var(--text-sub);margin-bottom:12px;z-index:1}
+.mini-login .ml-card{width:280px;background:rgba(255,255,255,.75);backdrop-filter:blur(20px);border-radius:16px;padding:16px;box-shadow:0 8px 32px rgba(0,0,0,.08);z-index:1}
+.mini-login .ml-tabs{display:flex;gap:16px;margin-bottom:12px;border-bottom:2px solid var(--border)}
+.mini-login .ml-tab{padding:4px 0;font-size:12px;color:var(--text-sub);border-bottom:2px solid transparent;margin-bottom:-2px}
+.mini-login .ml-tab.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:600}
+.mini-login .ml-input{width:100%;height:34px;border:1.5px solid var(--border);border-radius:8px;margin-bottom:8px;padding:0 10px;font-size:12px;background:rgba(255,255,255,.6)}
+.mini-login .ml-input-with-prefix{display:flex;align-items:center;gap:0}
+.mini-login .ml-prefix{padding:0 8px 0 10px;font-size:12px;color:var(--text-main);border:1.5px solid var(--border);border-right:none;border-radius:8px 0 0 8px;height:34px;display:flex;align-items:center}
+.mini-login .ml-input-prefix{flex:1;border-radius:0 8px 8px 0;margin:0}
+.mini-login .ml-btn{width:100%;height:34px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;margin-top:8px}
+.mini-login .ml-link{text-align:center;font-size:11px;margin-top:8px;color:var(--text-sub)}
+.mini-login .ml-link a{color:var(--primary);text-decoration:none}
+.mini-login .ml-agree{font-size:11px;color:var(--text-sub);margin:6px 0}
+.mini-login .ml-agree input{margin-right:4px}
+.mini-login .ml-social{text-align:center;margin-top:10px}
+.mini-login .ml-social-label{font-size:11px;color:var(--text-hint);margin-bottom:6px}
+.mini-login .ml-social-icons{display:flex;justify-content:center;gap:10px}
+.mini-login .ml-social-icons span{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;background:#fff}
+.mini-login .ml-code-btn{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--primary);background:none;border:none;cursor:pointer}
+
+/* Dashboard mockup */
+.mini-dashboard{padding:16px;background:linear-gradient(135deg,#eef2ff,#f0f4ff);min-height:480px;display:flex;gap:12px}
+.mini-dashboard .md-sidebar{width:140px;background:rgba(255,255,255,.6);backdrop-filter:blur(16px);border-radius:12px;padding:12px 8px;flex-shrink:0}
+.mini-dashboard .md-sidebar-logo{font-size:11px;font-weight:700;color:var(--primary);margin-bottom:10px;padding:0 4px}
+.mini-dashboard .md-nav-item{padding:5px 8px;font-size:11px;border-radius:6px;color:var(--text-sub);margin-bottom:2px}
+.mini-dashboard .md-nav-item.active{background:var(--primary);color:#fff}
+.mini-dashboard .md-main{flex:1;display:flex;flex-direction:column;gap:10px}
+.mini-dashboard .md-banner{background:linear-gradient(135deg,var(--primary),#6d5dfc);border-radius:12px;padding:14px;color:#fff;display:flex;justify-content:space-between;align-items:center}
+.mini-dashboard .md-banner-text{font-size:13px;font-weight:600}
+.mini-dashboard .md-banner-btn{background:rgba(255,255,255,.2);padding:4px 12px;border-radius:6px;font-size:11px}
+.mini-dashboard .md-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.mini-dashboard .md-stat{background:rgba(255,255,255,.7);backdrop-filter:blur(12px);border-radius:10px;padding:10px;text-align:center}
+.mini-dashboard .md-stat-num{font-size:18px;font-weight:700;color:var(--primary)}
+.mini-dashboard .md-stat-label{font-size:10px;color:var(--text-sub)}
+.mini-dashboard .md-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mini-dashboard .md-card{background:rgba(255,255,255,.7);backdrop-filter:blur(12px);border-radius:10px;padding:10px;border-top:3px solid}
+.mini-dashboard .md-card .icon{font-size:16px;margin-bottom:4px}
+.mini-dashboard .md-card .title{font-size:11px;font-weight:600}
+.mini-dashboard .md-card .desc{font-size:9px;color:var(--text-sub)}
+.mini-dashboard .md-list{background:rgba(255,255,255,.7);backdrop-filter:blur(12px);border-radius:10px;padding:10px}
+.mini-dashboard .md-list-title{font-size:11px;font-weight:600;margin-bottom:6px}
+.mini-dashboard .md-list-item{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:10px}
+
+/* Role auth mockup */
+.mini-roleauth{padding:24px;background:linear-gradient(135deg,#eef2ff,#f0f4ff);min-height:480px;display:flex;flex-direction:column;align-items:center}
+.mini-roleauth .mr-stepper{display:flex;align-items:center;gap:0;margin-bottom:20px;width:100%;max-width:400px}
+.mini-roleauth .mr-step{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.mini-roleauth .mr-step-circle{width:28px;height:28px;border-radius:50%;background:#1a1d26;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.mini-roleauth .mr-step-circle.done{background:var(--green)}
+.mini-roleauth .mr-step-label{font-size:11px;font-weight:500}
+.mini-roleauth .mr-line{flex:1;height:2px;background:var(--border);margin:0 8px}
+.mini-roleauth .mr-line.done{background:var(--green)}
+.mini-roleauth .mr-cards{display:flex;gap:12px;width:100%;max-width:500px}
+.mini-roleauth .mr-role-card{flex:1;background:#fff;border:2px solid var(--border);border-radius:12px;padding:16px;text-align:center;cursor:pointer}
+.mini-roleauth .mr-role-card .icon{font-size:24px;margin-bottom:6px}
+.mini-roleauth .mr-role-card .title{font-size:13px;font-weight:600;margin-bottom:4px}
+.mini-roleauth .mr-role-card .desc{font-size:11px;color:var(--text-sub)}
+.mini-roleauth .mr-admin-card{background:rgba(124,58,237,.06);border:2px solid var(--purple);border-radius:12px;padding:20px;text-align:center;width:100%;max-width:400px}
+.mini-roleauth .mr-admin-card .badge{display:inline-block;padding:3px 12px;background:var(--purple);color:#fff;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:8px}
+.mini-roleauth .mr-form{width:100%;max-width:400px;background:#fff;border-radius:12px;padding:16px;border:1px solid var(--border)}
+.mini-roleauth .mr-form .mr-field{margin-bottom:8px}
+.mini-roleauth .mr-form .mr-label{font-size:11px;font-weight:600;margin-bottom:3px}
+.mini-roleauth .mr-form .mr-input{width:100%;height:30px;border:1.5px solid var(--border);border-radius:7px;padding:0 10px;font-size:11px}
+.mini-roleauth .mr-upload-row{display:flex;gap:8px}
+.mini-roleauth .mr-upload-box{flex:1;height:60px;border:2px dashed var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text-hint)}
+
+/* Requirement form mockup */
+.mini-reqform{padding:0;background:var(--bg);min-height:500px;display:flex}
+.mini-reqform .mrq-sidebar{width:140px;background:rgba(255,255,255,.6);backdrop-filter:blur(16px);border-right:1px solid var(--border);padding:12px 8px;flex-shrink:0}
+.mini-reqform .mrq-sidebar-logo{font-size:11px;font-weight:700;color:var(--primary);margin-bottom:10px}
+.mini-reqform .mrq-nav-item{padding:5px 8px;font-size:11px;border-radius:6px;color:var(--text-sub);margin-bottom:2px}
+.mini-reqform .mrq-nav-item.active{background:var(--primary-light);color:var(--primary);font-weight:600}
+.mini-reqform .mrq-main{flex:1;padding:12px}
+.mini-reqform .mrq-toolbar{display:flex;gap:6px;margin-bottom:10px;background:#fff;border-radius:8px;padding:6px 10px;align-items:center}
+.mini-reqform .mrq-toolbar .btn{padding:3px 8px;font-size:10px;border-radius:5px;border:1px solid var(--border);background:#fff}
+.mini-reqform .mrq-toolbar .btn.primary{background:var(--primary);color:#fff;border:none}
+.mini-reqform .mrq-section{background:#fff;border-radius:10px;border:1px solid var(--border);padding:12px;margin-bottom:10px}
+.mini-reqform .mrq-section-title{font-size:12px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.mini-reqform .mrq-section-num{width:20px;height:20px;border-radius:50%;background:var(--primary);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center}
+.mini-reqform .mrq-field{margin-bottom:6px}
+.mini-reqform .mrq-label{font-size:10px;font-weight:600;margin-bottom:2px;color:var(--text-sub)}
+.mini-reqform .mrq-label .req{color:var(--red)}
+.mini-reqform .mrq-input{width:100%;height:26px;border:1px solid var(--border);border-radius:6px;padding:0 8px;font-size:10px}
+.mini-reqform .mrq-textarea{width:100%;height:50px;border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:10px;resize:none}
+.mini-reqform .mrq-counter{font-size:9px;color:var(--text-hint);text-align:right}
+.mini-reqform .mrq-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:2px}
+.mini-reqform .mrq-tag{padding:2px 8px;background:var(--primary-light);color:var(--primary);border-radius:4px;font-size:9px}
+.mini-reqform .mrq-att{display:flex;align-items:center;gap:4px;margin-top:4px;font-size:10px;color:var(--text-sub)}
+.mini-reqform .mrq-row{display:flex;gap:8px}
+.mini-reqform .mrq-row .mrq-field{flex:1}
+
+/* Callout */
+.callout{border-radius:8px;padding:12px 16px;margin:12px 0;font-size:13px;border-left:4px solid}
+.callout.info{background:var(--primary-light);border-color:var(--primary)}
+.callout.warn{background:#fff7ed;border-color:var(--orange)}
+.callout.danger{background:#fef2f2;border-color:var(--red)}
+.callout strong{display:block;margin-bottom:4px;font-size:14px}
+
+/* Badge */
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.badge.req{background:#fef2f2;color:var(--red)}
+.badge.opt{background:#f3f4f6;color:var(--text-hint)}
+
+/* Divider */
+.divider{height:1px;background:var(--border);margin:40px 0}
+</style>
+</head>
+<body>
+
+<!-- ============ SIDEBAR ============ -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-box">
+      <div class="logo-icon">O</div>
+      <span class="logo-text">OPC 需求平台</span>
+    </div>
+    <div class="logo-sub">原型标注文档 v1.0</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">文档</div>
+    <a class="nav-item active" onclick="scrollToSection('doc-overview')">文档概览</a>
+    <a class="nav-item" onclick="scrollToSection('version-history')">版本修订记录</a>
+    <a class="nav-item" onclick="scrollToSection('product-overview')">产品概述</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">页面标注</div>
+    <div class="nav-toggle" onclick="toggleNav(this)">
+      <span class="arrow">▼</span> 登录注册模块
+    </div>
+    <div class="nav-children">
+      <a class="nav-item sub" onclick="scrollToSection('page-login')">登录/注册页</a>
+    </div>
+
+    <div class="nav-toggle" onclick="toggleNav(this)">
+      <span class="arrow">▼</span> 工作台模块
+    </div>
+    <div class="nav-children">
+      <a class="nav-item sub" onclick="scrollToSection('page-dashboard')">工作台首页</a>
+    </div>
+
+    <div class="nav-toggle" onclick="toggleNav(this)">
+      <span class="arrow">▼</span> 角色认证模块
+    </div>
+    <div class="nav-children">
+      <a class="nav-item sub" onclick="scrollToSection('page-roleauth')">角色认证页</a>
+    </div>
+
+    <div class="nav-toggle" onclick="toggleNav(this)">
+      <span class="arrow">▼</span> 需求发布模块
+    </div>
+    <div class="nav-children">
+      <a class="nav-item sub" onclick="scrollToSection('page-reqform')">发布需求表单</a>
+    </div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">全局</div>
+    <a class="nav-item" onclick="scrollToSection('global-spec')">全局说明</a>
+    <a class="nav-item" onclick="scrollToSection('non-functional')">非功能性需求</a>
+  </div>
+</nav>
+
+<!-- ============ MAIN ============ -->
+<div class="main">
+<div style="max-width:1100px;margin:0 auto">
+
+<!-- ===== DOC OVERVIEW ===== -->
+<div class="section" id="doc-overview">
+  <h1><span class="icon">📋</span> OPC 需求平台 — 原型标注文档</h1>
+  <p class="lead">本文档基于 Axure 原型标注模式，对平台四个核心页面进行逐元素编号标注与旁侧批注，面向开发与设计团队。</p>
+
+  <div class="callout info">
+    <strong>📌 阅读方式</strong>
+    每个页面标注区分为左右两部分：<strong>左侧为页面可视化截图</strong>（红色编号标记对应关键元素），<strong>右侧为旁侧批注面板</strong>（编号与标记一一对应，含字段约束、交互逻辑、错误提示）。点击右侧批注项可高亮对应标记。
+  </div>
+
+  <table>
+    <thead><tr><th>标注页面</th><th>标记数</th><th>核心功能</th></tr></thead>
+    <tbody>
+      <tr><td>登录/注册页 <code>login.html</code></td><td>12</td><td>登录、注册、拼图验证、密码切换</td></tr>
+      <tr><td>工作台首页 <code>dashboard.html</code></td><td>10</td><td>导航、统计、功能卡片、需求列表</td></tr>
+      <tr><td>角色认证页 <code>role-auth.html</code></td><td>11</td><td>步骤条、角色选择、OPC/企业认证</td></tr>
+      <tr><td>发布需求表单 <code>requirement-form.html</code></td><td>14</td><td>三分区表单、附件、标签、草稿、预览</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="divider"></div>
+
+<!-- ===== VERSION HISTORY ===== -->
+<div class="section" id="version-history">
+  <h2>版本修订记录</h2>
+  <table>
+    <thead><tr><th>版本号</th><th>修订日期</th><th>修订内容</th><th>修改原因</th><th>修订人</th><th>审核人</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr><td>V1.0</td><td>2026-08-24</td><td>新建文档，完成四页标注</td><td>初始创建</td><td>—</td><td>—</td><td>初稿</td></tr>
+      <tr><td>V1.1</td><td>2026-08-25</td><td>新增密码校验规则、管理员特判、拼图验证</td><td>功能迭代</td><td>—</td><td>—</td><td>修订</td></tr>
+      <tr><td>V1.2</td><td>2026-08-26</td><td>新增角色认证步骤条、联系方式打码规则</td><td>体验优化</td><td>—</td><td>—</td><td>修订</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="divider"></div>
+
+<!-- ===== PRODUCT OVERVIEW ===== -->
+<div class="section" id="product-overview">
+  <h2>产品概述</h2>
+  <h3>产品介绍</h3>
+  <p>OPC 需求平台是一个面向企业需求方与 OPC 服务者的需求发布与匹配平台。企业用户可结构化发布需求（基本信息、需求参数、联系信息），系统据此匹配具备对应能力标签的 OPC 服务者，完成撮合交易。</p>
+
+  <h3>产品用户</h3>
+  <table>
+    <thead><tr><th>角色</th><th>描述</th><th>核心诉求</th></tr></thead>
+    <tbody>
+      <tr><td>企业需求方</td><td>有外包/协作需求的企业用户</td><td>快速发布需求、获得匹配、管理进度</td></tr>
+      <tr><td>OPC 服务者</td><td>提供专业服务的个人/团队</td><td>浏览需求、接单、交付成果</td></tr>
+      <tr><td>超级管理员</td><td>平台运营人员</td><td>审核认证、管理用户、监控平台</td></tr>
+    </tbody>
+  </table>
+
+  <h3>功能清单</h3>
+  <table>
+    <thead><tr><th>模块</th><th>功能</th><th>优先级</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr><td>登录注册</td><td>手机号验证码登录、账号密码登录、注册、拼图验证</td><td>P0</td><td>✅ 已实现</td></tr>
+      <tr><td>工作台</td><td>统计卡片、功能导航、需求列表</td><td>P0</td><td>✅ 已实现</td></tr>
+      <tr><td>角色认证</td><td>OPC 认证、企业认证、管理员直通</td><td>P0</td><td>✅ 已实现</td></tr>
+      <tr><td>需求发布</td><td>三段式表单、附件、标签、草稿、预览</td><td>P0</td><td>✅ 已实现</td></tr>
+      <tr><td>需求管理</td><td>我的需求、草稿箱、消息通知</td><td>P1</td><td>⏳ 规划中</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="divider"></div>
+
+<!-- ===== PAGE 1: LOGIN ===== -->
+<div class="section" id="page-login">
+  <h1><span class="icon">🔐</span> 登录/注册页 <code style="font-size:14px;font-weight:400">login.html</code></h1>
+  <p class="lead">居中毛玻璃卡片布局，顶部品牌区 + 登录卡片。支持登录/注册模式切换、Tab 切换、拼图人机验证。</p>
+
+  <div class="mockup-wrapper">
+    <!-- Mockup -->
+    <div class="mockup-area">
+      <div class="mini-login" style="min-height:460px">
+        <div class="ml-bg-circle c1"></div>
+        <div class="ml-bg-circle c2"></div>
+
+        <!-- 1 顶部品牌区 -->
+        <div class="marker" style="top:16px;left:50%;transform:translateX(-50%)" onclick="highlightNote(1)">1</div>
+        <div class="ml-logo">O</div>
+        <div class="ml-title">OPC 需求平台</div>
+        <div class="ml-subtitle">高效协作，精准匹配</div>
+
+        <!-- 2 登录卡片 -->
+        <div style="position:relative">
+          <div class="marker" style="top:-8px;left:-8px" onclick="highlightNote(2)">2</div>
+          <div class="ml-card">
+            <!-- 3 Tab 切换 -->
+            <div style="position:relative">
+              <div class="marker" style="top:-4px;right:-8px" onclick="highlightNote(3)">3</div>
+              <div class="ml-tabs">
+                <div class="ml-tab active">手机号登录</div>
+                <div class="ml-tab">账号密码登录</div>
+              </div>
+            </div>
+
+            <!-- 4 手机号输入 -->
+            <div style="position:relative">
+              <div class="marker" style="top:5px;left:-12px" onclick="highlightNote(4)">4</div>
+              <div class="ml-input-with-prefix">
+                <span class="ml-prefix">+86</span>
+                <input class="ml-input ml-input-prefix" placeholder="请输入手机号" readonly>
+              </div>
+            </div>
+
+            <!-- 5 验证码 -->
+            <div style="position:relative">
+              <div class="marker" style="top:5px;left:-12px" onclick="highlightNote(5)">5</div>
+              <div style="position:relative">
+                <input class="ml-input" placeholder="请输入验证码" readonly>
+                <button class="ml-code-btn">获取验证码</button>
+              </div>
+            </div>
+
+            <!-- 6 协议勾选 -->
+            <div style="position:relative">
+              <div class="marker" style="top:2px;left:-12px" onclick="highlightNote(6)">6</div>
+              <div class="ml-agree"><input type="checkbox"> 我已阅读并同意<a href="#">《用户协议》</a>和<a href="#">《隐私政策》</a></div>
+            </div>
+
+            <!-- 7 提交按钮 -->
+            <div style="position:relative">
+              <div class="marker" style="top:4px;right:-12px" onclick="highlightNote(7)">7</div>
+              <button class="ml-btn">登录</button>
+            </div>
+
+            <!-- 8 模式切换 -->
+            <div style="position:relative">
+              <div class="marker" style="top:4px;left:50%;transform:translateX(-50%)" onclick="highlightNote(8)">8</div>
+              <div class="ml-link"><a href="#">还没有账号？立即注册</a></div>
+            </div>
+
+            <!-- 9 第三方登录 -->
+            <div style="position:relative;margin-top:4px">
+              <div class="marker" style="top:8px;right:-8px" onclick="highlightNote(9)">9</div>
+              <div class="ml-social">
+                <div class="ml-social-label">其他方式</div>
+                <div class="ml-social-icons">
+                  <span>💬</span><span>🐦</span><span>G</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 10 拼图验证（示意浮层） -->
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:12px;padding:12px;box-shadow:0 8px 32px rgba(0,0,0,.15);width:240px;z-index:5">
+          <div class="marker" style="top:-8px;right:-8px" onclick="highlightNote(10)">10</div>
+          <div style="width:100%;height:80px;background:linear-gradient(135deg,#a8d8ea,#aabeea);border-radius:6px;position:relative;margin-bottom:8px">
+            <div style="position:absolute;left:60px;top:10px;width:36px;height:36px;border:2px dashed rgba(255,255,255,.6);border-radius:6px"></div>
+            <div style="position:absolute;left:10px;top:10px;width:36px;height:36px;background:rgba(255,255,255,.8);border-radius:6px"></div>
+          </div>
+          <div style="height:32px;background:#f0f1f5;border-radius:16px;position:relative">
+            <div style="position:absolute;left:0;top:0;width:50px;height:32px;background:var(--primary);border-radius:16px 0 0 16px"></div>
+            <div style="position:absolute;left:6px;top:4px;width:24px;height:24px;background:#fff;border-radius:50%;box-shadow:0 2px 4px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;font-size:10px">→</div>
+          </div>
+          <div style="text-align:center;font-size:10px;color:var(--text-hint);margin-top:4px">向右拖动滑块完成验证</div>
+        </div>
+
+        <!-- 11 密码小眼睛 (账号密码Tab示意) -->
+        <div style="position:absolute;bottom:80px;right:20%;z-index:3">
+          <div class="marker" style="top:-8px;right:-8px" onclick="highlightNote(11)">11</div>
+          <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:4px 8px;font-size:10px">密码 👁 (隐藏/显示)</div>
+        </div>
+
+        <!-- 12 注册额外字段 -->
+        <div style="position:absolute;bottom:20px;right:5%;z-index:3">
+          <div class="marker" style="top:-8px;right:-8px" onclick="highlightNote(12)">12</div>
+          <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:4px 8px;font-size:10px">注册: 手机号+确认密码</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="mockup-notes">
+      <div class="note-item" id="note-1" onclick="highlightMarker(1)">
+        <span class="note-num">1</span><span class="note-title">顶部品牌区</span>
+        <div class="note-desc">Logo 方块（64×64px，蓝紫渐变）+ 平台名称（渐变文字）+ 标语。始终可见，登录/注册模式均显示。</div>
+      </div>
+      <div class="note-item" id="note-2" onclick="highlightMarker(2)">
+        <span class="note-num">2</span><span class="note-title">登录卡片</span>
+        <div class="note-desc">毛玻璃效果：<code>backdrop-filter: blur(20px)</code>，<code>background: rgba(255,255,255,.75)</code>，圆角 16px，入场动画 fadeIn + translateY 0.5s。</div>
+      </div>
+      <div class="note-item" id="note-3" onclick="highlightMarker(3)">
+        <span class="note-num">3</span><span class="note-title">Tab 切换栏</span>
+        <div class="note-desc">登录模式：「手机号登录」+「账号密码登录」两个 Tab。注册模式：「手机号登录」Tab <code>display:none</code>，仅显示「账号密码注册」。Tab 文字随模式切换。</div>
+      </div>
+      <div class="note-item" id="note-4" onclick="highlightMarker(4)">
+        <span class="note-num">4</span><span class="note-title">手机号输入框</span>
+        <div class="note-desc"><span class="badge req">必填</span> +86 前缀，<code>maxlength=11</code>，正则 <code>/^1[3-9]\d{9}$/</code>，错误提示「请输入正确的手机号」。</div>
+      </div>
+      <div class="note-item" id="note-5" onclick="highlightMarker(5)">
+        <span class="note-num">5</span><span class="note-title">验证码 + 获取按钮</span>
+        <div class="note-desc">点击「获取验证码」先弹出拼图验证（标记⑩），通过后 60s 倒计时。验证码 <code>maxlength=6</code>，<code>&lt;4</code> 位时拦截。</div>
+      </div>
+      <div class="note-item" id="note-6" onclick="highlightMarker(6)">
+        <span class="note-num">6</span><span class="note-title">协议勾选</span>
+        <div class="note-desc"><span class="badge req">必勾</span> 未勾选时提交拦截，提示「请先同意用户协议和隐私政策」。</div>
+      </div>
+      <div class="note-item" id="note-7" onclick="highlightMarker(7)">
+        <span class="note-num">7</span><span class="note-title">提交按钮</span>
+        <div class="note-desc">全宽蓝色圆角按钮。登录模式文字「登录」，注册模式文字「注册」。成功后存入 <code>opc_user</code> 并跳转工作台。</div>
+      </div>
+      <div class="note-item" id="note-8" onclick="highlightMarker(8)">
+        <span class="note-num">8</span><span class="note-title">模式切换链接</span>
+        <div class="note-desc">登录模式：「还没有账号？立即注册」。注册模式：「← 返回登录」（蓝色边框按钮样式）。点击切换 <code>isRegMode</code>。</div>
+      </div>
+      <div class="note-item" id="note-9" onclick="highlightMarker(9)">
+        <span class="note-num">9</span><span class="note-title">第三方登录</span>
+        <div class="note-desc">微信、GitHub、Google 三个圆形按钮。点击 toast 提示「即将上线」，当前为装饰按钮。</div>
+      </div>
+      <div class="note-item" id="note-10" onclick="highlightMarker(10)">
+        <span class="note-num">10</span><span class="note-title">拼图人机验证</span>
+        <div class="note-desc">点击获取验证码触发。拖动滑块对齐拼图块，容错 <code>±6px</code>。通过后 600ms 关闭 + 开始倒计时；失败 800ms 后重置。</div>
+      </div>
+      <div class="note-item" id="note-11" onclick="highlightMarker(11)">
+        <span class="note-num">11</span><span class="note-title">密码可见切换</span>
+        <div class="note-desc">密码框和确认密码框各有 👁/🙈 切换。输入框 <code>padding-right:42px</code> 防重叠。已禁用浏览器原生 <code>::-ms-reveal</code>。</div>
+      </div>
+      <div class="note-item" id="note-12" onclick="highlightMarker(12)">
+        <span class="note-num">12</span><span class="note-title">注册模式额外字段</span>
+        <div class="note-desc">注册时在密码下方显示：手机号输入框 + 确认密码输入框。CSS 类 <code>.reg-only</code> 控制显隐。确认密码需与密码一致。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ===== PAGE 2: DASHBOARD ===== -->
+<div class="section" id="page-dashboard">
+  <h1><span class="icon">📊</span> 工作台首页 <code style="font-size:14px;font-weight:400">dashboard.html</code></h1>
+  <p class="lead">卡片式仪表盘首页，毛玻璃浮动导航 + 欢迎横幅 + 统计卡片 + 功能卡片 + 最近需求列表。</p>
+
+  <div class="mockup-wrapper">
+    <div class="mockup-area">
+      <div class="mini-dashboard" style="min-height:500px">
+        <!-- Sidebar -->
+        <div class="md-sidebar" style="position:relative">
+          <div class="marker" style="top:-4px;right:-8px" onclick="highlightNote(21)">1</div>
+          <div class="md-sidebar-logo">⬡ OPC 平台</div>
+          <div class="md-nav-item active">工作台</div>
+          <div class="md-nav-item">发布需求</div>
+          <div class="md-nav-item">我的需求</div>
+          <div class="md-nav-item">草稿箱</div>
+          <div class="md-nav-item">消息通知</div>
+          <div style="margin-top:auto;padding:8px 4px;border-top:1px solid var(--border);margin-top:20px">
+            <div style="display:flex;align-items:center;gap:4px">
+              <div style="width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center">U</div>
+              <div style="font-size:10px">用户名</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="md-main">
+          <!-- Banner -->
+          <div style="position:relative">
+            <div class="marker" style="top:-4px;right:-8px" onclick="highlightNote(22)">2</div>
+            <div class="md-banner">
+              <div class="md-banner-text">👋 欢迎回来，用户名</div>
+              <div class="md-banner-btn">+ 发布新需求</div>
+            </div>
+          </div>
+
+          <!-- Stats -->
+          <div style="position:relative">
+            <div class="marker" style="top:18px;left:50%;transform:translateX(-50%)" onclick="highlightNote(23)">3</div>
+            <div class="md-stats">
+              <div class="md-stat"><div class="md-stat-num">5</div><div class="md-stat-label">发布需求</div></div>
+              <div class="md-stat"><div class="md-stat-num">3</div><div class="md-stat-label">已匹配</div></div>
+              <div class="md-stat"><div class="md-stat-num">2</div><div class="md-stat-label">进行中</div></div>
+              <div class="md-stat"><div class="md-stat-num">1</div><div class="md-stat-label">草稿</div></div>
+            </div>
+          </div>
+
+          <!-- Function cards -->
+          <div style="position:relative">
+            <div class="marker" style="top:30px;left:50%;transform:translateX(-50%)" onclick="highlightNote(24)">4</div>
+            <div class="md-cards">
+              <div class="md-card" style="border-top-color:#3b5bfd"><div class="icon">📝</div><div class="title">发布需求</div><div class="desc">创建新的需求</div></div>
+              <div class="md-card" style="border-top-color:#16a34a"><div class="icon">📋</div><div class="title">我的需求</div><div class="desc">管理已发布</div></div>
+              <div class="md-card" style="border-top-color:#ea580c"><div class="icon">📂</div><div class="title">草稿箱</div><div class="desc">未完成的需求</div></div>
+              <div class="md-card" style="border-top-color:#7c3aed"><div class="icon">🔔</div><div class="title">消息通知</div><div class="desc">系统与对话</div></div>
+              <div class="md-card" style="border-top-color:#0891b2"><div class="icon">🏷️</div><div class="title">能力标签库</div><div class="desc">浏览标签</div></div>
+              <div class="md-card" style="border-top-color:#e5484d"><div class="icon">⚙️</div><div class="title">账号设置</div><div class="desc">个人配置</div></div>
+            </div>
+          </div>
+
+          <!-- Recent list -->
+          <div style="position:relative">
+            <div class="marker" style="top:8px;right:-8px" onclick="highlightNote(25)">5</div>
+            <div class="md-list">
+              <div class="md-list-title">最近需求</div>
+              <div class="md-list-item"><span>品牌文案撰写</span><span style="color:#16a34a">● 进行中</span></div>
+              <div class="md-list-item"><span>小程序 UI 设计</span><span style="color:#3b5bfd">● 已匹配</span></div>
+              <div class="md-list-item"><span>数据分析报告</span><span style="color:#ea580c">● 匹配中</span></div>
+              <div class="md-list-item"><span>短视频剪辑</span><span style="color:#9ca3af">● 草稿</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top bar markers -->
+        <div style="position:absolute;top:8px;right:12px;z-index:5">
+          <div class="marker" style="top:0;right:0" onclick="highlightNote(26)">6</div>
+          <div style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-size:10px">🔔 ⚙️ 👤</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mockup-notes">
+      <div class="note-item" id="note-21" onclick="highlightMarker(21)">
+        <span class="note-num">1</span><span class="note-title">毛玻璃浮动导航栏</span>
+        <div class="note-desc"><code>backdrop-filter: blur(16px)</code>，半透明白底，浮动卡片样式。宽度 240px，鸿蒙蓝 <code>#007DFF</code> 主色。包含 Logo + 5 个菜单项 + 用户卡片。</div>
+      </div>
+      <div class="note-item" id="note-22" onclick="highlightMarker(22)">
+        <span class="note-num">2</span><span class="note-title">欢迎横幅</span>
+        <div class="note-desc">蓝紫渐变背景 + 浮动光圈动画。显示 <code>user.username</code> 或 <code>user.phone</code>（打码）。「发布新需求」按钮跳转 <code>requirement-form.html</code>。</div>
+      </div>
+      <div class="note-item" id="note-23" onclick="highlightMarker(23)">
+        <span class="note-num">3</span><span class="note-title">统计卡片 ×4</span>
+        <div class="note-desc">发布需求总数 / 已匹配 / 进行中 / 草稿数量。数字滚动动画。点击可跳转对应列表页（未上线功能 toast 提示）。</div>
+      </div>
+      <div class="note-item" id="note-24" onclick="highlightMarker(24)">
+        <span class="note-num">4</span><span class="note-title">功能卡片 ×6</span>
+        <div class="note-desc">2×3 网格，每张卡片有独立色系（蓝/绿/橙/紫/青/红），悬停上浮 + 顶部色条展开。仅「发布需求」有实际跳转，其余 toast「即将上线」。</div>
+      </div>
+      <div class="note-item" id="note-25" onclick="highlightMarker(25)">
+        <span class="note-num">5</span><span class="note-title">最近需求列表</span>
+        <div class="note-desc">展示 4 条示例需求，含状态标签（进行中/已匹配/匹配中/草稿）、能力标签芯片、日期。点击可跳转详情页。</div>
+      </div>
+      <div class="note-item" id="note-26" onclick="highlightMarker(26)">
+        <span class="note-num">6</span><span class="note-title">顶部工具栏</span>
+        <div class="note-desc">消息通知 🔔 + 填写设置 ⚙️ + 用户头像/角色徽章。角色徽章颜色：管理员紫、OPC 绿、企业橙、未认证灰。点击徽章跳转角色认证页。</div>
+      </div>
+      <div class="note-item" onclick="highlightMarker(27)">
+        <span class="note-num">7</span><span class="note-title">背景效果</span>
+        <div class="note-desc">三层径向渐变光斑（蓝、紫、青），营造未来感氛围。body 背景固定，滚动时光斑视差移动。</div>
+      </div>
+      <div class="note-item" onclick="highlightMarker(28)">
+        <span class="note-num">8</span><span class="note-title">响应式</span>
+        <div class="note-desc"><code>max-width:768px</code> 时侧边栏隐藏，卡片网格变单列，功能卡片纵向排列。</div>
+      </div>
+      <div class="note-item" onclick="highlightMarker(29)">
+        <span class="note-num">9</span><span class="note-title">退出登录</span>
+        <div class="note-desc">用户卡片右侧 ⏻ 按钮，点击确认后 <code>removeItem("opc_user")</code> 并跳转登录页。</div>
+      </div>
+      <div class="note-item" onclick="highlightMarker(30)">
+        <span class="note-num">10</span><span class="note-title">登录态校验</span>
+        <div class="note-desc">页面加载时检查 <code>opc_user</code>，未登录或超过 7 天（604800000ms）自动跳转 <code>login.html</code>。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ===== PAGE 3: ROLE AUTH ===== -->
+<div class="section" id="page-roleauth">
+  <h1><span class="icon">🪪</span> 角色认证页 <code style="font-size:14px;font-weight:400">role-auth.html</code></h1>
+  <p class="lead">三步式认证流程：选择角色 → 填写认证 → 确认提交。管理员直接跳过，显示紫色直通卡片。</p>
+
+  <div class="mockup-wrapper">
+    <div class="mockup-area">
+      <div class="mini-roleauth" style="min-height:540px">
+
+        <!-- 1 步骤条 -->
+        <div style="position:relative;width:100%;max-width:400px">
+          <div class="marker" style="top:-8px;left:50%;transform:translateX(-50%)" onclick="highlightNote(31)">1</div>
+          <div class="mr-stepper">
+            <div class="mr-step"><div class="mr-step-circle">1</div><span class="mr-step-label">选择角色</span></div>
+            <div class="mr-line"></div>
+            <div class="mr-step"><div class="mr-step-circle" style="background:var(--border);color:var(--text-hint)">2</div><span class="mr-step-label" style="color:var(--text-hint)">填写认证</span></div>
+            <div class="mr-line"></div>
+            <div class="mr-step"><div class="mr-step-circle" style="background:var(--border);color:var(--text-hint)">3</div><span class="mr-step-label" style="color:var(--text-hint)">确认提交</span></div>
+          </div>
+        </div>
+
+        <!-- 2 角色选择卡片 -->
+        <div style="position:relative;width:100%;max-width:500px;margin-top:12px">
+          <div class="marker" style="top:-8px;left:50%;transform:translateX(-50%)" onclick="highlightNote(32)">2</div>
+          <div class="mr-cards">
+            <div class="mr-role-card" style="border-color:var(--green)">
+              <div class="icon">🧑‍💼</div>
+              <div class="title">OPC 服务者</div>
+              <div class="desc">提供专业服务，接单交付</div>
+            </div>
+            <div class="mr-role-card" style="border-color:var(--orange)">
+              <div class="icon">🏢</div>
+              <div class="title">企业需求方</div>
+              <div class="desc">发布需求，管理项目</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 OPC认证表单（示意） -->
+        <div style="position:relative;width:100%;max-width:400px;margin-top:16px">
+          <div class="marker" style="top:-8px;left:-8px" onclick="highlightNote(33)">3</div>
+          <div class="mr-form">
+            <div class="mr-field"><div class="mr-label">真实姓名 <span style="color:var(--red)">*</span></div><div class="mr-input" style="line-height:30px;color:var(--text-hint)">请输入真实姓名</div></div>
+            <div class="mr-field"><div class="mr-label">手机号 <span style="color:var(--red)">*</span></div><div class="mr-input" style="line-height:30px;color:var(--text-hint)">请输入手机号</div></div>
+            <div class="mr-field"><div class="mr-label">身份证号 <span style="color:var(--red)">*</span></div><div class="mr-input" style="line-height:30px;color:var(--text-hint)">18位身份证号</div></div>
+            <div class="mr-field"><div class="mr-label">所在城市 <span style="color:var(--red)">*</span></div><div class="mr-input" style="line-height:30px;color:var(--text-hint)">请输入所在城市</div></div>
+            <div class="mr-field"><div class="mr-label">擅长领域 <span style="color:var(--red)">*</span></div><div class="mr-input" style="line-height:30px;color:var(--text-hint)">请选择擅长领域 ▾</div></div>
+            <div class="mr-field"><div class="mr-label">个人简介（选填）</div><div class="mr-input" style="height:40px;color:var(--text-hint)">个人简介...</div></div>
+
+            <!-- 4 身份证上传 -->
+            <div style="position:relative;margin-top:8px">
+              <div class="marker" style="top:-4px;right:-8px" onclick="highlightNote(34)">4</div>
+              <div class="mr-label">身份证 <span style="color:var(--red)">*</span></div>
+              <div class="mr-upload-row">
+                <div class="mr-upload-box">正面（人像面）</div>
+                <div class="mr-upload-box">反面（国徽面）</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5 管理员直通（示意浮层） -->
+        <div style="position:absolute;top:80px;right:20px;z-index:5">
+          <div class="marker" style="top:-8px;right:-8px" onclick="highlightNote(35)">5</div>
+          <div class="mr-admin-card" style="width:180px">
+            <div class="badge">超级管理员</div>
+            <div style="font-size:11px;color:var(--text-sub);margin-bottom:6px">无需认证，直接进入工作台</div>
+            <div style="background:var(--purple);color:#fff;padding:4px 12px;border-radius:6px;font-size:11px;text-align:center">进入工作台 →</div>
+          </div>
+        </div>
+
+        <!-- 6 企业认证字段（示意浮层） -->
+        <div style="position:absolute;bottom:20px;left:20px;z-index:5;width:180px">
+          <div class="marker" style="top:-8px;left:-8px" onclick="highlightNote(36)">6</div>
+          <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px;font-size:10px">
+            <strong>企业认证字段：</strong><br>
+            企业名称 / 信用代码 / 行业 / 规模 / 城市 / 地址 / 联系人 / 电话 / 营业执照正副本
+          </div>
+        </div>
+
+        <!-- 7 角色徽章 -->
+        <div style="position:absolute;top:8px;right:12px;z-index:5">
+          <div class="marker" style="top:-4px;right:-8px" onclick="highlightNote(37)">7</div>
+          <div style="background:var(--purple);color:#fff;padding:2px 10px;border-radius:4px;font-size:10px;font-weight:600">超级管理员</div>
+        </div>
+
+        <!-- 8 提交按钮 -->
+        <div style="position:absolute;bottom:60px;right:30px;z-index:5">
+          <div class="marker" style="top:-8px;right:-8px" onclick="highlightNote(38)">8</div>
+          <div style="background:var(--primary);color:#fff;padding:6px 20px;border-radius:8px;font-size:12px">提交认证</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mockup-notes">
+      <div class="note-item" id="note-31" onclick="highlightMarker(31)">
+        <span class="note-num">1</span><span class="note-title">步骤条</span>
+        <div class="note-desc">三步：① 选择角色 → ② 填写认证 → ③ 确认提交。当前步骤黑色圆圈，已完成绿色 ✓，连接线完成后变绿。<strong>管理员登录时整个步骤条 <code>hidden</code>。</strong></div>
+      </div>
+      <div class="note-item" id="note-32" onclick="highlightMarker(32)">
+        <span class="note-num">2</span><span class="note-title">角色选择卡片</span>
+        <div class="note-desc">OPC 服务者（绿色边框）+ 企业需求方（橙色边框）。点击展开对应认证表单，步骤条进入 Step 2。</div>
+      </div>
+      <div class="note-item" id="note-33" onclick="highlightMarker(33)">
+        <span class="note-num">3</span><span class="note-title">OPC 认证表单</span>
+        <div class="note-desc">8 个必填字段：真实姓名、手机号、身份证号（18位正则）、所在城市、擅长领域（下拉选择）、个人简介（选填）、接单状态（单选）、身份证正反面。</div>
+      </div>
+      <div class="note-item" id="note-34" onclick="highlightMarker(34)">
+        <span class="note-num">4</span><span class="note-title">身份证上传</span>
+        <div class="note-desc">左右并排两个上传区：<strong>正面（人像面）</strong> + <strong>反面（国徽面）</strong>。分别校验，分别提示缺哪面。移动端自动堆叠。</div>
+      </div>
+      <div class="note-item" id="note-35" onclick="highlightMarker(35)">
+        <span class="note-num">5</span><span class="note-title">管理员直通卡片</span>
+        <div class="note-desc"><code>role === "admin"</code> 时显示紫色卡片，隐藏角色选择和步骤条。点击「进入工作台」直接跳转 <code>dashboard.html</code>。</div>
+      </div>
+      <div class="note-item" id="note-36" onclick="highlightMarker(36)">
+        <span class="note-num">6</span><span class="note-title">企业认证字段</span>
+        <div class="note-desc">10 个必填字段：企业名称、统一社会信用代码（18位正则 <code>/^[0-9A-HJ-NPQRTUWXY]{18}$/</code>）、行业、规模、城市、地址（≥5字）、联系人、电话、营业执照正副本。</div>
+      </div>
+      <div class="note-item" id="note-37" onclick="highlightMarker(37)">
+        <span class="note-num">7</span><span class="note-title">角色徽章</span>
+        <div class="note-desc">右上角统一显示。管理员紫色「超级管理员」，OPC 绿色「OPC 服务者 / 认证中」，企业橙色「企业需求方 / 认证中」。点击跳转认证页。</div>
+      </div>
+      <div class="note-item" id="note-38" onclick="highlightMarker(38)">
+        <span class="note-num">8</span><span class="note-title">提交认证</span>
+        <div class="note-desc">校验所有必填项，失败时 toast 提示对应字段。成功后存入 <code>opc_role</code>（含 type/status/data），步骤条进入 Step 3，跳转工作台。</div>
+      </div>
+      <div class="note-item" onclick="highlightMarker(39)">
+        <span class="note-num">9</span><span class="note-title">返回按钮</span>
+        <div class="note-desc">填写认证阶段可点「返回」回退到 Step 1 重新选择角色。已填写的表单数据保留。</div>
+      </div>
+      <div class="note-item" onclick="highlightMarker(40)">
+        <span class="note-num">10</span><span class="note-title">营业执照上传</span>
+        <div class="note-desc">企业认证时显示。左右并排：<strong>正本</strong> + <strong>副本</strong>。分别校验，分别提示缺哪个。</div>
+      </div>
+      <div class="note-item" onclick="highlightMarker(41)">
+        <span class="note-num">11</span><span class="note-title">擅长领域</span>
+        <div class="note-desc">下拉单选（非多选），选项含文案创作、设计创意、技术开发、数据分析等方向。非默认占位时通过校验。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ===== PAGE 4: REQUIREMENT FORM ===== -->
+<div class="section" id="page-reqform">
+  <h1><span class="icon">📝</span> 发布需求表单 <code style="font-size:14px;font-weight:400">requirement-form.html</code></h1>
+  <p class="lead">三段式表单（基本信息 + 需求参数 + 联系信息），左侧毛玻璃导航 + 顶部操作栏 + 编辑区。支持附件、标签搜索、草稿、模板、预览。</p>
+
+  <div class="mockup-wrapper">
+    <div class="mockup-area">
+      <div class="mini-reqform" style="min-height:600px">
+
+        <!-- Sidebar -->
+        <div class="mrq-sidebar" style="position:relative">
+          <div class="marker" style="top:-4px;right:-8px" onclick="highlightNote(51)">1</div>
+          <div class="mrq-sidebar-logo">⬡ OPC</div>
+          <div class="mrq-nav-item">工作台</div>
+          <div class="mrq-nav-item active">📝 发布需求</div>
+          <div class="mrq-nav-item" style="padding-left:16px;font-size:10px">① 基本信息</div>
+          <div class="mrq-nav-item" style="padding-left:16px;font-size:10px">② 需求参数</div>
+          <div class="mrq-nav-item" style="padding-left:16px;font-size:10px">③ 联系信息</div>
+          <div class="mrq-nav-item">我的需求</div>
+          <div class="mrq-nav-item">角色认证</div>
+          <div style="margin-top:20px;padding:6px 4px;border-top:1px solid var(--border)">
+            <div style="font-size:9px;color:var(--text-sub)">用户名</div>
+            <div style="font-size:9px;color:var(--text-hint)">⏻ 退出</div>
+          </div>
+        </div>
+
+        <div class="mrq-main">
+          <!-- Toolbar -->
+          <div style="position:relative">
+            <div class="marker" style="top:-4px;right:-8px" onclick="highlightNote(52)">2</div>
+            <div class="mrq-toolbar">
+              <button class="btn primary">✈ 提交需求</button>
+              <button class="btn">👁 预览</button>
+              <button class="btn">💾 保存草稿</button>
+              <button class="btn">📄 导入模板</button>
+              <button class="btn">⚙ 填写设置</button>
+            </div>
+          </div>
+
+          <!-- Section 1: 基本信息 -->
+          <div style="position:relative">
+            <div class="marker" style="top:-4px;left:-8px" onclick="highlightNote(53)">3</div>
+            <div class="mrq-section">
+              <div class="mrq-section-title"><span class="mrq-section-num">1</span> 基本信息</div>
+
+              <!-- 4 需求标题 -->
+              <div style="position:relative">
+                <div class="marker" style="top:14px;right:-8px" onclick="highlightNote(54)">4</div>
+                <div class="mrq-field">
+                  <div class="mrq-label">需求标题 <span class="req">*</span></div>
+                  <input class="mrq-input" placeholder="对业务场景和任务类型的具体概括" readonly>
+                  <div class="mrq-counter">0/80</div>
+                </div>
+              </div>
+
+              <!-- 5 任务描述 -->
+              <div style="position:relative">
+                <div class="marker" style="top:14px;right:-8px" onclick="highlightNote(55)">5</div>
+                <div class="mrq-field">
+                  <div class="mrq-label">任务描述 <span class="req">*</span></div>
+                  <textarea class="mrq-textarea" placeholder="说明业务背景、目标、任务范围..." readonly></textarea>
+                  <div class="mrq-att">📎 插入附件</div>
+                </div>
+              </div>
+
+              <!-- 6 交付标准 -->
+              <div style="position:relative">
+                <div class="marker" style="top:14px;right:-8px" onclick="highlightNote(56)">6</div>
+                <div class="mrq-field">
+                  <div class="mrq-label">交付标准 <span class="req">*</span></div>
+                  <textarea class="mrq-textarea" placeholder="写明最终交付物、格式、验收标准..." readonly></textarea>
+                  <div class="mrq-att">📎 插入附件</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: 需求参数 -->
+          <div style="position:relative">
+            <div class="marker" style="top:-4px;left:-8px" onclick="highlightNote(57)">7</div>
+            <div class="mrq-section">
+              <div class="mrq-section-title"><span class="mrq-section-num">2</span> 需求参数</div>
+
+              <div class="mrq-row">
+                <!-- 8 预算 -->
+                <div style="position:relative;flex:1">
+                  <div class="marker" style="top:14px;right:-8px" onclick="highlightNote(58)">8</div>
+                  <div class="mrq-field">
+                    <div class="mrq-label">预算范围（元）<span class="req">*</span></div>
+                    <input class="mrq-input" placeholder="0 = 面议" readonly>
+                  </div>
+                </div>
+                <!-- 9 周期 -->
+                <div style="position:relative;flex:1">
+                  <div class="marker" style="top:14px;right:-8px" onclick="highlightNote(59)">9</div>
+                  <div class="mrq-field">
+                    <div class="mrq-label">期望完成周期 <span class="req">*</span></div>
+                    <input class="mrq-input" type="text" placeholder="选择日期" readonly>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mrq-row">
+                <!-- 10 付款方式 -->
+                <div style="position:relative;flex:1">
+                  <div class="marker" style="top:14px;right:-8px" onclick="highlightNote(60)">10</div>
+                  <div class="mrq-field">
+                    <div class="mrq-label">付款方式 <span class="req">*</span></div>
+                    <input class="mrq-input" placeholder="请选择 ▾" readonly>
+                  </div>
+                </div>
+                <!-- 11 远程协作 -->
+                <div style="position:relative;flex:1">
+                  <div class="marker" style="top:14px;right:-8px" onclick="highlightNote(61)">11</div>
+                  <div class="mrq-field">
+                    <div class="mrq-label">远程协作 <span class="req">*</span></div>
+                    <input class="mrq-input" placeholder="请选择 ▾" readonly>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 12 能力标签 -->
+              <div style="position:relative">
+                <div class="marker" style="top:14px;right:-8px" onclick="highlightNote(62)">12</div>
+                <div class="mrq-field">
+                  <div class="mrq-label">所需 OPC 能力标签 <span class="req">*</span></div>
+                  <input class="mrq-input" placeholder="搜索并选择标签..." readonly>
+                  <div class="mrq-tags">
+                    <span class="mrq-tag">文案撰写 ×</span>
+                    <span class="mrq-tag">内容策划 ×</span>
+                    <span class="mrq-tag">新媒体运营 ×</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: 联系信息 -->
+          <div style="position:relative">
+            <div class="marker" style="top:-4px;left:-8px" onclick="highlightNote(63)">13</div>
+            <div class="mrq-section">
+              <div class="mrq-section-title"><span class="mrq-section-num">3</span> 联系信息</div>
+              <div class="mrq-row">
+                <div style="position:relative;flex:1">
+                  <div class="marker" style="top:14px;right:-8px" onclick="highlightNote(64)">14</div>
+                  <div class="mrq-field">
+                    <div class="mrq-label">联系人/部门 <span class="req">*</span></div>
+                    <input class="mrq-input" placeholder="请输入联系人或部门" readonly>
+                  </div>
+                </div>
+                <div style="position:relative;flex:1">
+                  <div class="marker" style="top:14px;right:-8px" onclick="highlightNote(65)">15</div>
+                  <div class="mrq-field">
+                    <div class="mrq-label">联系方式 <span class="req">*</span></div>
+                    <input class="mrq-input" placeholder="手机号/微信/邮箱" readonly>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mockup-notes">
+      <div class="note-item" id="note-51" onclick="highlightMarker(51)">
+        <span class="note-num">1</span><span class="note-title">左侧毛玻璃导航栏</span>
+        <div class="note-desc">240px 宽，<code>backdrop-filter: blur(16px)</code>。含 Logo + 导航菜单（含三个分区锚点）+ 用户卡片 + 退出按钮。移动端隐藏。</div>
+      </div>
+      <div class="note-item" id="note-52" onclick="highlightMarker(52)">
+        <span class="note-num">2</span><span class="note-title">顶部操作栏</span>
+        <div class="note-desc">5 个按钮：① 提交需求（蓝色主按钮）② 预览 ③ 保存草稿 ④ 导入模板 ⑤ 填写设置。</div>
+      </div>
+      <div class="note-item" id="note-53" onclick="highlightMarker(53)">
+        <span class="note-num">3</span><span class="note-title">① 基本信息分区</span>
+        <div class="note-desc">含需求标题、任务描述（+附件）、交付标准（+附件）。三个字段均必填。</div>
+      </div>
+      <div class="note-item" id="note-54" onclick="highlightMarker(54)">
+        <span class="note-num">4</span><span class="note-title">需求标题</span>
+        <div class="note-desc"><span class="badge req">必填</span> <code>maxlength=80</code>，中英文各计 1。右下角实时计数 <code>X/80</code>，≥70 变红。<strong>固定常显，不可关闭。</strong></div>
+      </div>
+      <div class="note-item" id="note-55" onclick="highlightMarker(55)">
+        <span class="note-num">5</span><span class="note-title">任务描述 + 附件</span>
+        <div class="note-desc"><span class="badge req">必填</span> 引导文案：业务背景、目标、任务范围、输入资料、限制条件。下方有「📎 插入附件」按钮，支持图片和文档多选。</div>
+      </div>
+      <div class="note-item" id="note-56" onclick="highlightMarker(56)">
+        <span class="note-num">6</span><span class="note-title">交付标准 + 附件</span>
+        <div class="note-desc"><span class="badge req">必填</span> 引导文案：最终交付物、格式、数量、验收标准、返修规则。同样有附件按钮。</div>
+      </div>
+      <div class="note-item" id="note-57" onclick="highlightMarker(57)">
+        <span class="note-num">7</span><span class="note-title">② 需求参数分区</span>
+        <div class="note-desc">含预算范围、期望周期、付款方式、远程协作、能力标签。全部必填。</div>
+      </div>
+      <div class="note-item" id="note-58" onclick="highlightMarker(58)">
+        <span class="note-num">8</span><span class="note-title">预算范围</span>
+        <div class="note-desc"><span class="badge req">必填</span> 数字输入，≥0。填 0 = 面议。</div>
+      </div>
+      <div class="note-item" id="note-59" onclick="highlightMarker(59)">
+        <span class="note-num">9</span><span class="note-title">期望完成周期</span>
+        <div class="note-desc"><span class="badge req">必填</span> 日期选择器，用于判断任务紧急程度和 OPC 排期。</div>
+      </div>
+      <div class="note-item" id="note-60" onclick="highlightMarker(60)">
+        <span class="note-num">10</span><span class="note-title">付款方式</span>
+        <div class="note-desc"><span class="badge req">必填</span> 下拉选择。枚举：一次性付款 / 按里程碑 / 按小时 / 面议。</div>
+      </div>
+      <div class="note-item" id="note-61" onclick="highlightMarker(61)">
+        <span class="note-num">11</span><span class="note-title">远程协作</span>
+        <div class="note-desc"><span class="badge req">必填</span> 下拉选择。枚举：支持远程 / 需到场 / 混合。</div>
+      </div>
+      <div class="note-item" id="note-62" onclick="highlightMarker(62)">
+        <span class="note-num">12</span><span class="note-title">OPC 能力标签</span>
+        <div class="note-desc"><span class="badge req">必填 ≥1</span> 关键词搜索过滤，点击添加为芯片，逐个可移除。系统据此同步预算和交付标准预设。</div>
+      </div>
+      <div class="note-item" id="note-63" onclick="highlightMarker(63)">
+        <span class="note-num">13</span><span class="note-title">③ 联系信息分区</span>
+        <div class="note-desc">含联系人/部门、联系方式。两个必填字段。</div>
+      </div>
+      <div class="note-item" id="note-64" onclick="highlightMarker(64)">
+        <span class="note-num">14</span><span class="note-title">联系人/部门</span>
+        <div class="note-desc"><span class="badge req">必填</span> <code>length ≥ 2</code>，错误提示「请输入联系人或部门名称」。</div>
+      </div>
+      <div class="note-item" id="note-65" onclick="highlightMarker(65)">
+        <span class="note-num">15</span><span class="note-title">联系方式</span>
+        <div class="note-desc"><span class="badge req">必填</span> 可输入手机号/微信/邮箱。<strong>预览时数字逐位打码为 <code>*</code></strong>：<code>contactInfo.replace(/\d/g, "*")</code>。非数字字符保留。</div>
+      </div>
+      <div class="note-item" onclick="highlightMarker(66)">
+        <span class="note-num">16</span><span class="note-title">草稿/模板功能</span>
+        <div class="note-desc">「保存草稿」→ 存入 <code>opc_draft</code>，下次进入弹窗询问恢复。「导入模板」→ 存入 <code>opc_template</code>，点击后询问是否导入。提交成功后自动清除草稿。</div>
+      </div>
+      <div class="note-item" onclick="highlightMarker(67)">
+        <span class="note-num">17</span><span class="note-title">填写设置</span>
+        <div class="note-desc">3 个开关：自动保存草稿（每30s）/ 提交后保留内容 / （字数统计已移除，固定常显）。状态存 <code>localStorage</code>。</div>
+      </div>
+      <div class="note-item" onclick="highlightMarker(68)">
+        <span class="note-num">18</span><span class="note-title">预览弹窗</span>
+        <div class="note-desc">点击「👁 预览」弹出。以服务者视角展示需求单：蓝色头部 + 任务描述 + 交付标准 + 需求参数四宫格 + 能力标签芯片 + 联系信息（打码）。支持 × / 返回 / 遮罩关闭。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ===== GLOBAL SPEC ===== -->
+<div class="section" id="global-spec">
+  <h2>全局说明</h2>
+
+  <h3>设计规范</h3>
+  <table>
+    <thead><tr><th>项目</th><th>规范</th></tr></thead>
+    <tbody>
+      <tr><td>主色</td><td><code>#3B5BFD</code>（登录/表单/认证页）、<code>#007DFF</code>（工作台鸿蒙蓝）</td></tr>
+      <tr><td>字体</td><td>HarmonyOS Sans SC, PingFang SC, Microsoft YaHei</td></tr>
+      <tr><td>圆角</td><td>输入框 10px / 卡片 12-20px / 按钮 10px</td></tr>
+      <tr><td>毛玻璃</td><td><code>backdrop-filter: blur(16-20px)</code> + 半透明白底</td></tr>
+      <tr><td>响应式断点</td><td>768px（移动端单列）、900px（表单左右→单列）</td></tr>
+    </tbody>
+  </table>
+
+  <h3>登录态管理</h3>
+  <table>
+    <thead><tr><th>键名</th><th>用途</th><th>过期</th></tr></thead>
+    <tbody>
+      <tr><td><code>opc_user</code></td><td>用户登录信息</td><td>7 天（604800000ms）</td></tr>
+      <tr><td><code>opc_draft</code></td><td>需求草稿</td><td>提交成功后清除</td></tr>
+      <tr><td><code>opc_template</code></td><td>需求模板</td><td>用户手动删除</td></tr>
+      <tr><td><code>opc_role</code></td><td>角色认证信息</td><td>—</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="divider"></div>
+
+<!-- ===== NON-FUNCTIONAL ===== -->
+<div class="section" id="non-functional">
+  <h2>非功能性需求</h2>
+  <table>
+    <thead><tr><th>类别</th><th>要求</th></tr></thead>
+    <tbody>
+      <tr><td>性能</td><td>首屏加载 ≤ 2s，页面切换 ≤ 500ms</td></tr>
+      <tr><td>兼容性</td><td>Chrome 90+ / Edge 90+ / Safari 14+ / 移动端 iOS 14+ / Android 10+</td></tr>
+      <tr><td>安全</td><td>密码不明文存储（演示版除外）、联系方式预览打码、登录态 7 天过期</td></tr>
+      <tr><td>无障碍</td><td>所有按钮有 aria-label、表单有关联 label、颜色对比度 ≥ 4.5:1</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div style="text-align:center;margin-top:60px;padding-top:32px;border-top:1px solid var(--border);color:var(--text-hint);font-size:13px">
+  OPC 需求平台 · 原型标注文档 · v1.2 · 2026-08-26
+</div>
+
+</div>
+</div>
+
+<script>
+// Nav scroll
+function scrollToSection(id){
+  document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'});
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active')});
+  var el=event.target; if(el) el.classList.add('active');
+}
+
+// Nav toggle
+function toggleNav(el){
+  el.classList.toggle('collapsed');
+  var next=el.nextElementSibling;
+  if(next) next.classList.toggle('collapsed');
+}
+
+// Highlight marker when note clicked
+function highlightMarker(num){
+  document.querySelectorAll('.marker').forEach(function(m){
+    m.classList.remove('active');
+    if(parseInt(m.textContent)===num) m.classList.add('active');
+  });
+  document.querySelectorAll('.note-item').forEach(function(n){n.classList.remove('active')});
+  var note=document.getElementById('note-'+num);
+  if(note) note.classList.add('active');
+}
+
+// Highlight note when marker clicked
+function highlightNote(num){
+  document.querySelectorAll('.note-item').forEach(function(n){n.classList.remove('active')});
+  var note=document.getElementById('note-'+num);
+  if(note){
+    note.classList.add('active');
+    note.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+  document.querySelectorAll('.marker').forEach(function(m){
+    m.classList.remove('active');
+    if(parseInt(m.textContent)===num) m.classList.add('active');
+  });
+}
+
+// Sidebar active tracking
+var sections=document.querySelectorAll('.section');
+var navItems=document.querySelectorAll('.sidebar .nav-item');
+window.addEventListener('scroll',function(){
+  var y=window.scrollY+80;
+  var current='';
+  sections.forEach(function(s){
+    if(s.offsetTop<=y) current=s.id;
+  });
+  navItems.forEach(function(n){
+    var onclick=n.getAttribute('onclick')||'';
+    if(onclick.indexOf(current)>-1) n.classList.add('active');
+    else if(onclick.indexOf('scrollToSection')>-1) n.classList.remove('active');
+  });
+});
+</script>
+</body>
+</html>

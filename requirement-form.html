@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>发布需求 - OPC 任务协作平台</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --primary: #3b5bfd;
+    --primary-light: #eef1ff;
+    --text-main: #1a1d26;
+    --text-sub: #6b7280;
+    --text-hint: #9ca3af;
+    --border: #e5e7eb;
+    --border-focus: #3b5bfd;
+    --error: #e5484d;
+    --error-bg: #fff5f5;
+    --bg: #f3f5f9;
+    --card: #ffffff;
+    --sidebar-bg: #eaf0f8;
+  }
+
+  html, body { height: 100%; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text-main);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* ===== 左侧导航栏 ===== */
+  .sidebar {
+    width: 216px;
+    flex-shrink: 0;
+    background: var(--sidebar-bg);
+    padding: 18px 14px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px 18px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #1f3b8f;
+  }
+  .logo-badge {
+    width: 26px; height: 26px;
+    border-radius: 7px;
+    background: var(--primary);
+    color: #fff;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .nav-group { font-size: 12px; color: #8a94a8; padding: 12px 12px 6px; }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #37415a;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background .2s;
+    margin-bottom: 2px;
+  }
+  .nav-item:hover { background: rgba(59, 91, 253, .08); }
+  .nav-item.active {
+    background: var(--primary);
+    color: #fff;
+    font-weight: 600;
+  }
+  .nav-item.sub { padding-left: 34px; font-size: 13px; color: #5a6478; }
+  .nav-item .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #b8c2d8;
+    flex-shrink: 0;
+  }
+  .nav-item.sub:hover .dot { background: var(--primary); }
+
+  /* ===== 侧边栏用户信息 ===== */
+  .user-box {
+    margin-top: auto;
+    padding: 12px 16px;
+    border-top: 1px solid rgba(0,0,0,.06);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .user-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .user-meta { flex: 1; min-width: 0; }
+  .user-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .user-sub {
+    font-size: 11.5px;
+    color: var(--text-hint);
+  }
+  .logout-btn {
+    width: 28px; height: 28px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
+    color: var(--text-hint);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .2s;
+    flex-shrink: 0;
+  }
+  .logout-btn:hover { background: rgba(229,72,77,.1); color: var(--error); }
+
+  /* 角色徽章 */
+  .role-badge { display: flex; align-items: center; gap: 7px; padding: 5px 12px; border-radius: 20px; font-size: 12.5px; font-weight: 600; transition: all .2s; }
+  .role-badge:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+  .role-badge .rb-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .role-badge.admin { background: #f5f3ff; color: #7c3aed; }
+  .role-badge.admin .rb-dot { background: #7c3aed; }
+  .role-badge.opc { background: #ecfdf5; color: #059669; }
+  .role-badge.opc .rb-dot { background: #059669; }
+  .role-badge.enterprise { background: #fff7ed; color: #ea580c; }
+  .role-badge.enterprise .rb-dot { background: #ea580c; }
+  .role-badge.unverified { background: #f3f4f6; color: var(--text-sub); }
+  .role-badge.unverified .rb-dot { background: var(--text-hint); }
+
+  /* ===== 右侧主区域 ===== */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* 顶部操作栏 */
+  .topbar {
+    background: var(--card);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .tb-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: #fff;
+    font-size: 14px;
+    color: #37415a;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .2s;
+  }
+  .tb-btn:hover { border-color: var(--primary); color: var(--primary); }
+  .tb-btn.primary {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+    font-weight: 600;
+  }
+  .tb-btn.primary:hover { background: #2f4de0; }
+  .topbar .spacer { flex: 1; }
+  .topbar .save-hint { font-size: 12.5px; color: var(--text-hint); }
+
+  /* 内容滚动区 */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 28px 48px;
+  }
+
+  /* 编辑区卡片（类似写信正文） */
+  .compose {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    max-width: 1080px;
+  }
+
+  .compose-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .compose-row > .row-label {
+    width: 92px;
+    flex-shrink: 0;
+    font-size: 14px;
+    font-weight: 600;
+    padding-top: 9px;
+    color: #37415a;
+  }
+  .row-label .required { color: var(--error); margin-left: 2px; }
+  .compose-row > .row-body { flex: 1; min-width: 0; }
+
+  /* 字段内插入附件 */
+  .attach-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .attach-btn {
+    border: 1px dashed #c3cbf5;
+    background: #fafbff;
+    color: var(--primary);
+    padding: 6px 14px;
+    font-size: 13px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all .2s;
+    flex-shrink: 0;
+  }
+  .attach-btn:hover { background: var(--primary-light); border-color: var(--primary); }
+  .attach-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .attach-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f0f3fa;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12.5px;
+    color: #37415a;
+    max-width: 240px;
+  }
+  .attach-chip .fname {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .attach-chip .fremove { cursor: pointer; color: var(--text-hint); font-size: 14px; line-height: 1; }
+  .attach-chip .fremove:hover { color: var(--error); }
+
+  .section-anchor { scroll-margin-top: 16px; }
+  .section-caption {
+    padding: 18px 24px 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: #8a94a8;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .sec-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    font-size: 12.5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    letter-spacing: 0;
+  }
+
+  .form-item { margin-bottom: 18px; }
+  .form-item:last-child { margin-bottom: 0; }
+
+  label {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  label .required { color: var(--error); margin-left: 3px; }
+
+  .field-hint {
+    font-size: 12.5px;
+    color: var(--text-hint);
+    margin-bottom: 6px;
+    line-height: 1.5;
+  }
+
+  input[type="text"],
+  input[type="number"],
+  input[type="date"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 10px 13px;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text-main);
+    background: #fff;
+    transition: border-color .2s, box-shadow .2s;
+    outline: none;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(59, 91, 253, .12);
+  }
+  textarea { resize: vertical; }
+  #description { min-height: 150px; }
+  #deliverable { min-height: 120px; }
+
+  .input-error { border-color: var(--error) !important; background: var(--error-bg); }
+  .error-msg { display: none; color: var(--error); font-size: 12.5px; margin-top: 5px; }
+  .error-msg.show { display: block; }
+
+  .row { display: flex; gap: 18px; }
+  .row .form-item { flex: 1; }
+
+  .input-unit { position: relative; }
+  .input-unit .unit {
+    position: absolute;
+    right: 13px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-sub);
+    font-size: 13px;
+    pointer-events: none;
+  }
+  .input-unit input { padding-right: 42px; }
+
+  .char-count {
+    text-align: right;
+    font-size: 12px;
+    color: var(--text-hint);
+    margin-top: 4px;
+  }
+  .char-count.near-limit { color: var(--error); }
+
+  /* 能力标签多选搜索 */
+  .tag-select { position: relative; }
+  .tag-input-box {
+    min-height: 46px;
+    padding: 5px 9px;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    cursor: text;
+    transition: border-color .2s, box-shadow .2s;
+    background: #fff;
+  }
+  .tag-input-box.focused {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(59, 91, 253, .12);
+  }
+  .tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--primary-light);
+    color: var(--primary);
+    border: 1px solid #ccd5ff;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .tag-chip .remove { cursor: pointer; font-size: 15px; line-height: 1; opacity: .6; }
+  .tag-chip .remove:hover { opacity: 1; }
+  #tagSearch {
+    border: none !important;
+    box-shadow: none !important;
+    flex: 1;
+    min-width: 130px;
+    padding: 6px 4px;
+    font-size: 14px;
+    background: transparent;
+  }
+  .tag-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0; right: 0;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 10px 32px rgba(20, 30, 80, .14);
+    max-height: 240px;
+    overflow-y: auto;
+    z-index: 50;
+    display: none;
+  }
+  .tag-dropdown.open { display: block; }
+  .tag-option {
+    padding: 10px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .tag-option:hover { background: #f3f5ff; }
+  .tag-option.selected { color: var(--text-hint); cursor: default; background: #fafafa; }
+  .tag-option.selected::after { content: "已选择"; font-size: 12px; color: #c0c4cc; }
+  .tag-option .cat { font-size: 12px; color: var(--text-hint); margin-left: 8px; }
+  .tag-empty { padding: 16px; text-align: center; color: var(--text-hint); font-size: 13px; }
+
+  /* 签名式联系卡片 */
+  .signature {
+    max-width: 1080px;
+    margin-top: 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+  }
+  .signature .sig-body { flex: 1; min-width: 0; }
+  .signature .sig-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #8a94a8;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .toast {
+    position: fixed;
+    top: 24px; left: 50%;
+    transform: translateX(-50%) translateY(-80px);
+    background: #22a06b;
+    color: #fff;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-size: 14px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.18);
+    transition: transform .35s cubic-bezier(.2,.9,.3,1.2);
+    z-index: 999;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ===== 预览弹窗 ===== */
+  .preview-mask {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 20, 40, .45);
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    z-index: 200;
+    overflow-y: auto;
+    padding: 48px 16px;
+  }
+  .preview-mask.open { display: flex; }
+  .preview-card {
+    background: #fff;
+    border-radius: 14px;
+    width: 720px;
+    max-width: 100%;
+    box-shadow: 0 24px 64px rgba(10, 20, 60, .25);
+    overflow: hidden;
+    animation: pop .25s ease;
+  }
+  @keyframes pop {
+    from { transform: translateY(16px) scale(.98); opacity: 0; }
+    to { transform: none; opacity: 1; }
+  }
+  .pv-head {
+    background: linear-gradient(135deg, #2b3a8f, var(--primary));
+    color: #fff;
+    padding: 22px 28px;
+    position: relative;
+  }
+  .pv-head .pv-badge {
+    display: inline-block;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    border: 1px solid rgba(255,255,255,.5);
+    border-radius: 999px;
+    padding: 2px 12px;
+    margin-bottom: 10px;
+    opacity: .9;
+  }
+  .pv-head h2 { font-size: 21px; line-height: 1.4; word-break: break-all; }
+  .pv-close {
+    position: absolute;
+    top: 16px; right: 18px;
+    border: none;
+    background: rgba(255,255,255,.15);
+    color: #fff;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  .pv-close:hover { background: rgba(255,255,255,.3); }
+  .pv-body { padding: 24px 28px 28px; }
+  .pv-sec { margin-bottom: 22px; }
+  .pv-sec:last-child { margin-bottom: 0; }
+  .pv-sec-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pv-sec-title::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .pv-text { font-size: 14.5px; white-space: pre-wrap; word-break: break-word; color: #2b3040; }
+  .pv-empty { color: var(--text-hint); font-size: 13.5px; }
+  .pv-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px 24px;
+  }
+  .pv-kv .k { font-size: 12.5px; color: var(--text-hint); margin-bottom: 2px; }
+  .pv-kv .v { font-size: 14.5px; font-weight: 600; }
+  .pv-kv .v.highlight { color: var(--primary); }
+  .pv-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pv-foot {
+    border-top: 1px solid var(--border);
+    padding: 14px 28px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    background: #fafbfe;
+  }
+  .pv-foot button {
+    padding: 8px 20px;
+    border-radius: 7px;
+    font-size: 13.5px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .pv-foot .back { border: 1px solid var(--border); background: #fff; color: #37415a; }
+  .pv-foot .back:hover { border-color: var(--primary); color: var(--primary); }
+
+  /* ===== 通用小弹窗（草稿） ===== */
+  .dlg-mask {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 20, 40, .45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 300;
+    padding: 16px;
+  }
+  .dlg-mask.open { display: flex; }
+  .dlg-card {
+    background: #fff;
+    border-radius: 12px;
+    width: 380px;
+    max-width: 100%;
+    padding: 28px 26px 22px;
+    text-align: center;
+    box-shadow: 0 20px 56px rgba(10, 20, 60, .25);
+    animation: pop .25s ease;
+  }
+  .dlg-icon {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: var(--primary-light);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 14px;
+  }
+  .dlg-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+  .dlg-text { font-size: 13.5px; color: var(--text-sub); line-height: 1.7; margin-bottom: 20px; }
+  .dlg-actions { display: flex; gap: 10px; justify-content: center; }
+  .dlg-actions button {
+    padding: 8px 22px;
+    border-radius: 7px;
+    font-size: 13.5px;
+    cursor: pointer;
+    font-family: inherit;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: #37415a;
+  }
+  .dlg-actions button:hover { border-color: var(--primary); color: var(--primary); }
+  .dlg-actions .primary-btn {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+    font-weight: 600;
+  }
+  .dlg-actions .primary-btn:hover { background: #2f4de0; color: #fff; }
+  .dlg-actions .danger-btn:hover { border-color: var(--error); color: var(--error); }
+
+  /* 设置弹窗 */
+  .settings-card { width: 440px; text-align: left; }
+  .settings-card .dlg-title { margin-bottom: 16px; }
+  .set-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .set-item:last-of-type { border-bottom: none; }
+  .set-name { font-size: 14.5px; font-weight: 600; }
+  .set-desc { font-size: 12.5px; color: var(--text-sub); margin-top: 2px; line-height: 1.5; }
+  .switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch .slider {
+    position: absolute;
+    inset: 0;
+    background: #d3d9e5;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .switch .slider::before {
+    content: "";
+    position: absolute;
+    width: 18px; height: 18px;
+    left: 3px; top: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform .2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,.2);
+  }
+  .switch input:checked + .slider { background: var(--primary); }
+  .switch input:checked + .slider::before { transform: translateX(20px); }
+  .settings-card .dlg-actions { justify-content: flex-end; margin-top: 16px; }
+
+  @media (max-width: 860px) {
+    .sidebar { display: none; }
+    .content { padding: 16px 14px 40px; }
+    .row { flex-direction: column; gap: 0; }
+    .compose-row { flex-direction: column; gap: 6px; }
+    .compose-row > .row-label { width: auto; padding-top: 0; }
+    .signature { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== 左侧导航 ===== -->
+<aside class="sidebar">
+  <div class="logo"><span class="logo-badge">OP</span>OPC 协作平台</div>
+
+  <div class="nav-group">需求管理</div>
+  <a class="nav-item" href="dashboard.html">🏠 工作台</a>
+  <a class="nav-item active" href="#sec-basic">✉️ 发布需求</a>
+  <a class="nav-item sub" href="#sec-basic"><span class="dot"></span>基本信息</a>
+  <a class="nav-item sub" href="#sec-params"><span class="dot"></span>需求参数</a>
+  <a class="nav-item sub" href="#sec-contact"><span class="dot"></span>联系信息</a>
+  <a class="nav-item" href="javascript:void(0)">📋 我的需求</a>
+  <a class="nav-item" href="javascript:void(0)">📝 草稿箱</a>
+  <a class="nav-item" href="javascript:void(0)">🔔 消息通知</a>
+
+  <div class="nav-group">其他</div>
+  <a class="nav-item" href="role-auth.html">🪪 角色认证</a>
+  <a class="nav-item" href="javascript:void(0)">⚙️ 设置</a>
+  <a class="nav-item" href="javascript:void(0)">❓ 帮助中心</a>
+
+  <div class="user-box" id="userBox">
+    <div class="user-avatar" id="userAvatar">U</div>
+    <div class="user-meta">
+      <div class="user-name" id="userName">未登录</div>
+      <div class="user-sub" id="userSub">点击登录</div>
+    </div>
+    <button class="logout-btn" id="logoutBtn" title="退出登录">⏻</button>
+  </div>
+</aside>
+
+<!-- ===== 主区域 ===== -->
+<div class="main">
+
+  <!-- 顶部操作栏 -->
+  <div class="topbar">
+    <button class="tb-btn primary" type="submit" form="requirementForm">✈ 提交需求</button>
+    <button class="tb-btn" type="button" id="previewBtn">👁 预览</button>
+    <button class="tb-btn" type="button" id="draftBtn">📎 保存草稿</button>
+    <button class="tb-btn" type="button" id="tplBtn">📄 导入模板</button>
+    <button class="tb-btn" type="button" id="settingsBtn">⚙ 填写设置</button>
+    <div class="spacer"></div>
+    <span class="save-hint">带 <span style="color:var(--error)">*</span> 为必填项</span>
+    <div class="role-badge unverified" id="roleBadge" onclick="window.location.href='role-auth.html'" style="cursor:pointer">
+      <span class="rb-dot"></span><span id="roleBadgeText">未认证</span>
+    </div>
+  </div>
+
+  <!-- 内容区 -->
+  <div class="content">
+    <form id="requirementForm" novalidate>
+
+      <!-- 编辑区主体 -->
+      <div class="compose">
+
+        <!-- 1 基本信息（含需求标题） -->
+        <div class="section-caption section-anchor" id="sec-basic"><span class="sec-num">1</span>基本信息 · BASIC INFO</div>
+        <div class="compose-row">
+          <div class="row-label">需求标题<span class="required">*</span></div>
+          <div class="row-body">
+            <div class="field-hint">对业务场景和任务类型的具体概括，例如「新品上市小红书种草文案撰写」，80 字以内，支持中英文</div>
+            <input type="text" id="title" name="title" maxlength="80" placeholder="一句话说明你需要什么服务（中文 / English）">
+            <div class="char-count"><span id="titleCount">0</span>/80</div>
+            <div class="error-msg">请填写需求标题</div>
+          </div>
+        </div>
+
+        <div class="compose-row">
+          <div class="row-label">任务描述<span class="required">*</span></div>
+          <div class="row-body">
+            <div class="field-hint">请说明业务背景、目标、任务范围、输入资料、限制条件，以及不希望出现的结果</div>
+            <textarea id="description" name="description" placeholder="例如：我们是一家初创咖啡品牌，需要为新品冷萃咖啡撰写上市推广文案……我们提供产品资料与品牌手册，不希望出现夸大功效的表述。"></textarea>
+            <div class="attach-row">
+              <button type="button" class="attach-btn" data-target="descFiles">📎 插入附件</button>
+              <input type="file" id="descFiles" hidden multiple accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.zip">
+              <div class="attach-list" id="descFileList"></div>
+            </div>
+            <div class="error-msg">请填写任务描述</div>
+          </div>
+        </div>
+        <div class="compose-row section-anchor">
+          <div class="row-label">交付标准<span class="required">*</span></div>
+          <div class="row-body">
+            <div class="field-hint">写明最终交付物、格式、数量、验收标准和返修规则</div>
+            <textarea id="deliverable" name="deliverable" placeholder="例如：交付 5 篇小红书图文文案（Word 格式，每篇 500 字以上），经我方确认无事实性错误即为验收通过，包含 2 次免费返修。"></textarea>
+            <div class="attach-row">
+              <button type="button" class="attach-btn" data-target="deliFiles">📎 插入附件</button>
+              <input type="file" id="deliFiles" hidden multiple accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.zip">
+              <div class="attach-list" id="deliFileList"></div>
+            </div>
+            <div class="error-msg">请填写交付标准</div>
+          </div>
+        </div>
+
+        <!-- 2 需求参数 -->
+        <div class="section-caption section-anchor" id="sec-params"><span class="sec-num">2</span>需求参数 · PARAMETERS</div>
+        <div class="compose-row">
+          <div class="row-label">预算 / 周期</div>
+          <div class="row-body">
+            <div class="row">
+              <div class="form-item">
+                <label for="budget">预算范围<span class="required">*</span></label>
+                <div class="field-hint">不确定时填 0，将按「面议」处理</div>
+                <div class="input-unit">
+                  <input type="number" id="budget" name="budget" min="0" step="0.01" placeholder="0 表示面议">
+                  <span class="unit">元</span>
+                </div>
+                <div class="error-msg">请填写预算金额（不确定请填 0）</div>
+              </div>
+              <div class="form-item">
+                <label for="deadline">期望完成周期<span class="required">*</span></label>
+                <div class="field-hint">用于判断任务紧急程度和 OPC 排期</div>
+                <input type="date" id="deadline" name="deadline">
+                <div class="error-msg">请选择期望完成日期</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="compose-row">
+          <div class="row-label">付款方式<span class="required">*</span></div>
+          <div class="row-body">
+            <select id="payment" name="payment">
+              <option value="" disabled selected>请选择付款方式</option>
+              <option value="一次性付款">一次性付款</option>
+              <option value="按里程碑付款">按里程碑付款</option>
+              <option value="分期付款">分期付款</option>
+              <option value="验收后付款">验收后付款</option>
+            </select>
+            <div class="error-msg">请选择付款方式</div>
+          </div>
+        </div>
+        <div class="compose-row">
+          <div class="row-label">远程协作<span class="required">*</span></div>
+          <div class="row-body">
+            <select id="remote" name="remote">
+              <option value="" disabled selected>请选择协作方式</option>
+              <option value="支持远程">支持远程</option>
+              <option value="需线下到场">需线下到场</option>
+              <option value="均可">均可</option>
+            </select>
+            <div class="error-msg">请选择协作方式</div>
+          </div>
+        </div>
+        <div class="compose-row" style="border-bottom:none;">
+          <div class="row-label">能力标签<span class="required">*</span></div>
+          <div class="row-body">
+            <div class="field-hint">可多选，支持搜索；系统会据此同步预算和交付标准预设</div>
+            <div class="tag-select">
+              <div class="tag-input-box" id="tagInputBox">
+                <input type="text" id="tagSearch" placeholder="搜索并选择标签，如「文案」">
+              </div>
+              <div class="tag-dropdown" id="tagDropdown"></div>
+            </div>
+            <div class="error-msg">请至少选择一个能力标签</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 签名式联系信息卡片 -->
+      <div class="signature section-anchor" id="sec-contact">
+        <div class="sig-body">
+          <div class="sig-title"><span class="sec-num">3</span>联系信息 · CONTACT（便于 OPC 服务者与你对接）</div>
+          <div class="row">
+            <div class="form-item">
+              <label for="contact">联系人 / 部门<span class="required">*</span></label>
+              <input type="text" id="contact" name="contact" placeholder="例如：张先生 / 市场部">
+              <div class="error-msg">请填写联系人或部门</div>
+            </div>
+            <div class="form-item">
+              <label for="contactInfo">联系方式<span class="required">*</span></label>
+              <div class="field-hint">支持手机号 / 微信 / 邮箱，便于服务者对接</div>
+              <input type="text" id="contactInfo" name="contactInfo" placeholder="手机号 / 微信 / 邮箱">
+              <div class="error-msg">请填写联系方式</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast">需求提交成功！系统将开始为你匹配 OPC 服务者</div>
+
+<!-- ===== 预览弹窗 ===== -->
+<div class="preview-mask" id="previewMask">
+  <div class="preview-card">
+    <div class="pv-head">
+      <span class="pv-badge">需求预览 · PREVIEW</span>
+      <h2 id="pvTitle">—</h2>
+      <button class="pv-close" id="pvClose" type="button">×</button>
+    </div>
+    <div class="pv-body">
+      <div class="pv-sec">
+        <div class="pv-sec-title">任务描述</div>
+        <div class="pv-text" id="pvDesc"></div>
+        <div class="pv-empty" id="pvDescFiles"></div>
+      </div>
+      <div class="pv-sec">
+        <div class="pv-sec-title">交付标准</div>
+        <div class="pv-text" id="pvDeli"></div>
+        <div class="pv-empty" id="pvDeliFiles"></div>
+      </div>
+      <div class="pv-sec">
+        <div class="pv-sec-title">需求参数</div>
+        <div class="pv-grid">
+          <div class="pv-kv"><div class="k">预算范围</div><div class="v highlight" id="pvBudget">—</div></div>
+          <div class="pv-kv"><div class="k">期望完成周期</div><div class="v" id="pvDeadline">—</div></div>
+          <div class="pv-kv"><div class="k">付款方式</div><div class="v" id="pvPay">—</div></div>
+          <div class="pv-kv"><div class="k">协作方式</div><div class="v" id="pvRemote">—</div></div>
+        </div>
+      </div>
+      <div class="pv-sec">
+        <div class="pv-sec-title">所需 OPC 能力标签</div>
+        <div class="pv-tags" id="pvTags"></div>
+      </div>
+      <div class="pv-sec">
+        <div class="pv-sec-title">联系信息</div>
+        <div class="pv-grid">
+          <div class="pv-kv"><div class="k">联系人 / 部门</div><div class="v" id="pvContact">—</div></div>
+          <div class="pv-kv"><div class="k">联系方式</div><div class="v" id="pvContactInfo">—</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="pv-foot">
+      <button class="back" type="button" id="pvBack">返回继续编辑</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 草稿：保存成功弹窗 ===== -->
+<div class="dlg-mask" id="draftSavedDlg">
+  <div class="dlg-card">
+    <div class="dlg-icon">💾</div>
+    <div class="dlg-title">草稿保存成功</div>
+    <div class="dlg-text">草稿已保存在本机浏览器中，<br>下次进入本页时会提示你继续修改。</div>
+    <div class="dlg-actions">
+      <button class="primary-btn" type="button" data-close="draftSavedDlg">知道了</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 草稿：恢复询问弹窗 ===== -->
+<div class="dlg-mask" id="draftRestoreDlg">
+  <div class="dlg-card">
+    <div class="dlg-icon">📝</div>
+    <div class="dlg-title">检测到未完成的草稿</div>
+    <div class="dlg-text">你于 <b id="draftTime"></b> 保存过一份草稿，<br>是否继续修改？</div>
+    <div class="dlg-actions">
+      <button class="danger-btn" type="button" id="draftDiscard">放弃草稿</button>
+      <button class="primary-btn" type="button" id="draftRestore">继续修改</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 模板：导入成功弹窗 ===== -->
+<div class="dlg-mask" id="tplSavedDlg">
+  <div class="dlg-card">
+    <div class="dlg-icon">✅</div>
+    <div class="dlg-title">模板保存成功</div>
+    <div class="dlg-text">当前填写内容已作为模板长期保存在本机，<br>之后点击「导入模板」即可随时引用。</div>
+    <div class="dlg-actions">
+      <button class="primary-btn" type="button" data-close="tplSavedDlg">知道了</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 模板：导入询问弹窗 ===== -->
+<div class="dlg-mask" id="tplUseDlg">
+  <div class="dlg-card">
+    <div class="dlg-icon">📄</div>
+    <div class="dlg-title">导入模板</div>
+    <div class="dlg-text">检测到你于 <b id="tplTime"></b> 保存的模板，<br>是否导入？导入后将覆盖当前填写内容。</div>
+    <div class="dlg-actions">
+      <button class="danger-btn" type="button" id="tplDelete">删除模板</button>
+      <button type="button" id="tplIgnore">取消</button>
+      <button class="primary-btn" type="button" id="tplApply">导入模板</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 填写设置弹窗 ===== -->
+<div class="dlg-mask" id="settingsDlg">
+  <div class="dlg-card settings-card">
+    <div class="dlg-title">填写设置</div>
+    <div class="set-item">
+      <div>
+        <div class="set-name">自动保存草稿</div>
+        <div class="set-desc">每 30 秒自动保存当前填写内容，无需手动点击</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="setAutoSave"><span class="slider"></span></label>
+    </div>
+    <div class="set-item">
+      <div>
+        <div class="set-name">提交后保留内容</div>
+        <div class="set-desc">提交成功后不清空表单，方便连续发布相似需求</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="setKeepSubmit"><span class="slider"></span></label>
+    </div>
+    <div class="dlg-actions">
+      <button class="primary-btn" type="button" data-close="settingsDlg">完成</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- Toast 辅助函数 ---------- */
+function showToast(msg) {
+  var t = document.getElementById("toast");
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(function () { t.classList.remove("show"); }, 2600);
+}
+
+/* ---------- 登录态校验 ---------- */
+(function checkLogin() {
+  var user = null;
+  try { user = JSON.parse(localStorage.getItem("opc_user")); } catch (e) {}
+  if (!user || !user.time || Date.now() - user.time > 7 * 24 * 3600 * 1000) {
+    alert("请先登录后再发布需求");
+    window.location.href = "login.html";
+    return;
+  }
+  var nameEl = document.getElementById("userName");
+  var subEl = document.getElementById("userSub");
+  var avatarEl = document.getElementById("userAvatar");
+  var displayName = user.username || (user.phone ? user.phone.replace(/(\d{3})\d{4}(\d{4})/, "$1****$2") : "用户");
+  nameEl.textContent = displayName;
+  subEl.textContent = user.role === "admin" ? "管理员" : (user.loginType === "account" ? "账号登录" : "手机号登录");
+  avatarEl.textContent = displayName.charAt(0).toUpperCase();
+  if (user.role === "admin") {
+    avatarEl.style.background = "#7c3aed";
+  }
+
+  var badge = document.getElementById("roleBadge");
+  var badgeText = document.getElementById("roleBadgeText");
+  if (user.role === "admin") {
+    badge.className = "role-badge admin";
+    badgeText.textContent = "超级管理员";
+  } else if (user.authRole === "opc") {
+    badge.className = "role-badge opc";
+    badgeText.textContent = user.authStatus === "approved" ? "OPC 服务者" : "OPC 认证中";
+  } else if (user.authRole === "enterprise") {
+    badge.className = "role-badge enterprise";
+    badgeText.textContent = user.authStatus === "approved" ? "企业需求方" : "企业认证中";
+  }
+
+  document.getElementById("logoutBtn").addEventListener("click", function () {
+    if (confirm("确定退出登录吗？")) {
+      localStorage.removeItem("opc_user");
+      window.location.href = "login.html";
+    }
+  });
+
+  document.getElementById("userBox").addEventListener("click", function (e) {
+    if (e.target.id !== "logoutBtn" && e.target.closest("#logoutBtn") === null) {
+      showToast(user.username || user.phone || "当前已登录");
+    }
+  });
+})();
+
+/* ---------- OPC 能力标签库 ---------- */
+const TAG_LIBRARY = [
+  { name: "文案撰写", cat: "内容创作" },
+  { name: "内容策划", cat: "内容创作" },
+  { name: "新媒体运营", cat: "内容创作" },
+  { name: "视频剪辑", cat: "内容创作" },
+  { name: "平面设计", cat: "设计创意" },
+  { name: "UI/UX 设计", cat: "设计创意" },
+  { name: "品牌设计", cat: "设计创意" },
+  { name: "插画绘制", cat: "设计创意" },
+  { name: "3D 建模渲染", cat: "设计创意" },
+  { name: "前端开发", cat: "技术开发" },
+  { name: "后端开发", cat: "技术开发" },
+  { name: "小程序开发", cat: "技术开发" },
+  { name: "数据分析", cat: "技术开发" },
+  { name: "AI 应用开发", cat: "技术开发" },
+  { name: "市场调研", cat: "商业服务" },
+  { name: "商业策划", cat: "商业服务" },
+  { name: "财务咨询", cat: "商业服务" },
+  { name: "法律咨询", cat: "商业服务" },
+  { name: "翻译本地化", cat: "语言服务" },
+  { name: "配音朗读", cat: "语言服务" },
+  { name: "活动策划", cat: "营销增长" },
+  { name: "私域运营", cat: "营销增长" },
+  { name: "SEO/SEM 优化", cat: "营销增长" },
+  { name: "直播带货", cat: "营销增长" }
+];
+
+const selectedTags = [];
+const tagInputBox = document.getElementById("tagInputBox");
+const tagSearch = document.getElementById("tagSearch");
+const tagDropdown = document.getElementById("tagDropdown");
+
+function renderChips() {
+  tagInputBox.querySelectorAll(".tag-chip").forEach(c => c.remove());
+  selectedTags.forEach(tag => {
+    const chip = document.createElement("span");
+    chip.className = "tag-chip";
+    chip.innerHTML = `${tag.name}<span class="remove" data-name="${tag.name}">×</span>`;
+    tagInputBox.insertBefore(chip, tagSearch);
+  });
+}
+
+function renderDropdown(keyword = "") {
+  const kw = keyword.trim().toLowerCase();
+  const list = TAG_LIBRARY.filter(t =>
+    t.name.toLowerCase().includes(kw) || t.cat.toLowerCase().includes(kw)
+  );
+  if (!list.length) {
+    tagDropdown.innerHTML = `<div class="tag-empty">未找到匹配的标签，换个关键词试试</div>`;
+  } else {
+    tagDropdown.innerHTML = list.map(t => {
+      const selected = selectedTags.some(s => s.name === t.name);
+      return `<div class="tag-option ${selected ? "selected" : ""}" data-name="${t.name}">
+        <span>${t.name}<span class="cat">${t.cat}</span></span>
+      </div>`;
+    }).join("");
+  }
+  tagDropdown.classList.add("open");
+}
+
+tagInputBox.addEventListener("click", () => tagSearch.focus());
+tagSearch.addEventListener("focus", () => {
+  tagInputBox.classList.add("focused");
+  renderDropdown(tagSearch.value);
+});
+tagSearch.addEventListener("blur", () => {
+  tagInputBox.classList.remove("focused");
+  setTimeout(() => tagDropdown.classList.remove("open"), 150);
+});
+tagSearch.addEventListener("input", () => renderDropdown(tagSearch.value));
+
+tagDropdown.addEventListener("mousedown", e => {
+  const opt = e.target.closest(".tag-option");
+  if (!opt || opt.classList.contains("selected")) return;
+  const tag = TAG_LIBRARY.find(t => t.name === opt.dataset.name);
+  selectedTags.push(tag);
+  tagSearch.value = "";
+  renderChips();
+  renderDropdown("");
+  clearError(tagInputBox.closest(".compose-row"));
+  tagSearch.focus();
+});
+
+tagInputBox.addEventListener("click", e => {
+  if (e.target.classList.contains("remove")) {
+    const idx = selectedTags.findIndex(t => t.name === e.target.dataset.name);
+    if (idx > -1) selectedTags.splice(idx, 1);
+    renderChips();
+  }
+});
+
+/* ---------- 需求标题字数统计 ---------- */
+const titleInput = document.getElementById("title");
+const titleCount = document.getElementById("titleCount");
+titleInput.addEventListener("input", () => {
+  titleCount.textContent = titleInput.value.length;
+  titleCount.parentElement.classList.toggle("near-limit", titleInput.value.length >= 70);
+});
+
+/* ---------- 字段内插入附件 ---------- */
+document.querySelectorAll(".attach-btn").forEach(btn => {
+  const input = document.getElementById(btn.dataset.target);
+  const list = document.getElementById(btn.dataset.target.replace("Files", "FileList"));
+  btn.addEventListener("click", () => input.click());
+  input.addEventListener("change", () => {
+    Array.from(input.files).forEach(f => {
+      const chip = document.createElement("span");
+      chip.className = "attach-chip";
+      chip.innerHTML = `<span class="fname">📄 ${f.name}</span><span class="fremove">×</span>`;
+      chip.querySelector(".fremove").addEventListener("click", () => chip.remove());
+      list.appendChild(chip);
+    });
+    input.value = "";
+  });
+});
+
+function attachNames(listId) {
+  return Array.from(document.querySelectorAll("#" + listId + " .fname"))
+    .map(el => el.textContent.replace(/^📄 /, ""));
+}
+
+/* ---------- 表单校验 ---------- */
+const form = document.getElementById("requirementForm");
+
+function errorContainer(item) {
+  return item.classList.contains("form-item") || item.classList.contains("compose-row")
+    ? item : item.closest(".form-item, .compose-row");
+}
+function showError(item) {
+  const input = item.querySelector("input, textarea, .tag-input-box");
+  if (input) input.classList.add("input-error");
+  item.querySelector(".error-msg").classList.add("show");
+}
+function clearError(item) {
+  if (!item) return;
+  const input = item.querySelector("input, textarea, .tag-input-box");
+  if (input) input.classList.remove("input-error");
+  const msg = item.querySelector(".error-msg");
+  if (msg) msg.classList.remove("show");
+}
+
+form.querySelectorAll("input[type=text], input[type=number], input[type=date], textarea")
+  .forEach(el => el.addEventListener("input", () =>
+    clearError(el.closest(".form-item") || el.closest(".compose-row"))));
+form.querySelectorAll("select")
+  .forEach(el => el.addEventListener("change", () => clearError(el.closest(".compose-row"))));
+
+form.addEventListener("submit", e => {
+  e.preventDefault();
+  let firstError = null;
+
+  const requireField = id => {
+    const el = document.getElementById(id);
+    const item = el.closest(".form-item") || el.closest(".compose-row");
+    if (!el.value.trim()) {
+      showError(item);
+      if (!firstError) firstError = item;
+    } else clearError(item);
+  };
+
+  requireField("title");
+  requireField("description");
+  requireField("deliverable");
+  requireField("budget");
+  requireField("deadline");
+  requireField("contact");
+  requireField("contactInfo");
+
+  const budgetEl = document.getElementById("budget");
+  if (budgetEl.value.trim() && Number(budgetEl.value) < 0) {
+    const item = budgetEl.closest(".form-item");
+    showError(item);
+    if (!firstError) firstError = item;
+  }
+
+  const requireSelect = id => {
+    const el = document.getElementById(id);
+    const item = el.closest(".compose-row");
+    if (!el.value) {
+      showError(item);
+      if (!firstError) firstError = item;
+    } else clearError(item);
+  };
+  requireSelect("payment");
+  requireSelect("remote");
+
+  const tagItem = tagInputBox.closest(".compose-row");
+  if (!selectedTags.length) {
+    showError(tagItem);
+    if (!firstError) firstError = tagItem;
+  } else clearError(tagItem);
+
+  if (firstError) {
+    firstError.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+
+  const formData = {
+    需求标题: document.getElementById("title").value.trim(),
+    任务描述: document.getElementById("description").value.trim(),
+    任务描述附件: attachNames("descFileList"),
+    交付标准: document.getElementById("deliverable").value.trim(),
+    交付标准附件: attachNames("deliFileList"),
+    预算范围: Number(budgetEl.value) === 0 ? "面议" : budgetEl.value + " 元",
+    期望完成周期: document.getElementById("deadline").value,
+    付款方式: document.getElementById("payment").value,
+    协作方式: document.getElementById("remote").value,
+    OPC能力标签: selectedTags.map(t => t.name),
+    联系人部门: document.getElementById("contact").value.trim(),
+    联系方式: document.getElementById("contactInfo").value.trim()
+  };
+  console.log("提交数据：", formData);
+
+  localStorage.removeItem("opc_req_draft");
+
+  const toast = document.getElementById("toast");
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 3000);
+
+  if (!appSettings.keepAfterSubmit) {
+    form.reset();
+    selectedTags.length = 0;
+    renderChips();
+    document.querySelectorAll(".attach-list").forEach(l => l.innerHTML = "");
+    titleCount.textContent = "0";
+    titleCount.parentElement.classList.remove("near-limit");
+  }
+});
+
+/* ---------- 需求预览 ---------- */
+const previewMask = document.getElementById("previewMask");
+
+function openPreview() {
+  const budgetVal = document.getElementById("budget").value.trim();
+  const pay = document.getElementById("payment").value;
+  const remote = document.getElementById("remote").value;
+
+  document.getElementById("pvTitle").textContent = document.getElementById("title").value.trim() || "（未填写需求标题）";
+  document.getElementById("pvDesc").textContent = document.getElementById("description").value.trim() || "（未填写）";
+  document.getElementById("pvDeli").textContent = document.getElementById("deliverable").value.trim() || "（未填写）";
+
+  const descFiles = attachNames("descFileList");
+  document.getElementById("pvDescFiles").textContent = descFiles.length ? "📎 附件：" + descFiles.join("、") : "";
+  const deliFiles = attachNames("deliFileList");
+  document.getElementById("pvDeliFiles").textContent = deliFiles.length ? "📎 附件：" + deliFiles.join("、") : "";
+
+  document.getElementById("pvBudget").textContent = budgetVal === "" ? "—" : (Number(budgetVal) === 0 ? "面议" : budgetVal + " 元");
+  document.getElementById("pvDeadline").textContent = document.getElementById("deadline").value || "—";
+  document.getElementById("pvPay").textContent = pay || "—";
+  document.getElementById("pvRemote").textContent = remote || "—";
+
+  document.getElementById("pvTags").innerHTML = selectedTags.length
+    ? selectedTags.map(t => `<span class="tag-chip">${t.name}</span>`).join("")
+    : '<span class="pv-empty">（未选择标签）</span>';
+
+  document.getElementById("pvContact").textContent = document.getElementById("contact").value.trim() || "—";
+  const contactRaw = document.getElementById("contactInfo").value.trim();
+  document.getElementById("pvContactInfo").textContent = contactRaw ? contactRaw.replace(/\d/g, "*") : "—";
+
+  previewMask.classList.add("open");
+}
+
+document.getElementById("previewBtn").addEventListener("click", openPreview);
+document.getElementById("pvClose").addEventListener("click", () => previewMask.classList.remove("open"));
+document.getElementById("pvBack").addEventListener("click", () => previewMask.classList.remove("open"));
+previewMask.addEventListener("click", e => {
+  if (e.target === previewMask) previewMask.classList.remove("open");
+});
+
+/* ---------- 草稿与模板（本地存储） ---------- */
+const DRAFT_KEY = "opc_req_draft";
+const TPL_KEY = "opc_req_template";
+
+function collectFormData() {
+  return {
+    title: document.getElementById("title").value,
+    description: document.getElementById("description").value,
+    deliverable: document.getElementById("deliverable").value,
+    budget: document.getElementById("budget").value,
+    deadline: document.getElementById("deadline").value,
+    payment: document.getElementById("payment").value,
+    remote: document.getElementById("remote").value,
+    tags: selectedTags.map(t => t.name),
+    contact: document.getElementById("contact").value,
+    contactInfo: document.getElementById("contactInfo").value,
+    descFiles: attachNames("descFileList"),
+    deliFiles: attachNames("deliFileList"),
+    savedAt: Date.now()
+  };
+}
+
+function addAttachChip(listId, name) {
+  const list = document.getElementById(listId);
+  const chip = document.createElement("span");
+  chip.className = "attach-chip";
+  chip.innerHTML = `<span class="fname">📄 ${name}</span><span class="fremove">×</span>`;
+  chip.querySelector(".fremove").addEventListener("click", () => chip.remove());
+  list.appendChild(chip);
+}
+
+function restoreFormData(d) {
+  document.getElementById("title").value = d.title || "";
+  titleInput.dispatchEvent(new Event("input"));
+  document.getElementById("description").value = d.description || "";
+  document.getElementById("deliverable").value = d.deliverable || "";
+  document.getElementById("budget").value = d.budget || "";
+  document.getElementById("deadline").value = d.deadline || "";
+  document.getElementById("payment").value = d.payment || "";
+  document.getElementById("remote").value = d.remote || "";
+  selectedTags.length = 0;
+  (d.tags || []).forEach(name => {
+    const t = TAG_LIBRARY.find(x => x.name === name);
+    if (t) selectedTags.push(t);
+  });
+  renderChips();
+  document.getElementById("contact").value = d.contact || "";
+  document.getElementById("contactInfo").value = d.contactInfo || "";
+  document.getElementById("descFileList").innerHTML = "";
+  document.getElementById("deliFileList").innerHTML = "";
+  (d.descFiles || []).forEach(n => addAttachChip("descFileList", n));
+  (d.deliFiles || []).forEach(n => addAttachChip("deliFileList", n));
+}
+
+function fmtTime(ts) {
+  const d = new Date(ts);
+  const p = n => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+function openDlg(id) { document.getElementById(id).classList.add("open"); }
+function closeDlg(id) { document.getElementById(id).classList.remove("open"); }
+document.querySelectorAll("[data-close]").forEach(b =>
+  b.addEventListener("click", () => closeDlg(b.dataset.close)));
+
+/* 保存草稿 */
+document.getElementById("draftBtn").addEventListener("click", () => {
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(collectFormData()));
+  openDlg("draftSavedDlg");
+});
+
+/* 导入模板：已有模板时询问是否导入；没有模板时把当前内容保存为模板 */
+document.getElementById("tplBtn").addEventListener("click", () => {
+  let tpl = null;
+  try { tpl = JSON.parse(localStorage.getItem(TPL_KEY)); } catch (e) {}
+  if (!tpl) {
+    localStorage.setItem(TPL_KEY, JSON.stringify(collectFormData()));
+    openDlg("tplSavedDlg");
+    return;
+  }
+  document.getElementById("tplTime").textContent = fmtTime(tpl.savedAt);
+  openDlg("tplUseDlg");
+  document.getElementById("tplApply").onclick = () => { restoreFormData(tpl); closeDlg("tplUseDlg"); };
+  document.getElementById("tplIgnore").onclick = () => closeDlg("tplUseDlg");
+  document.getElementById("tplDelete").onclick = () => { localStorage.removeItem(TPL_KEY); closeDlg("tplUseDlg"); };
+});
+
+/* ---------- 填写设置 ---------- */
+const SET_KEY = "opc_req_settings";
+const appSettings = Object.assign(
+  { autoSaveDraft: false, keepAfterSubmit: false },
+  (() => { try { return JSON.parse(localStorage.getItem(SET_KEY)) || {}; } catch (e) { return {}; } })()
+);
+
+let autoSaveTimer = null;
+function applySettings() {
+  if (appSettings.autoSaveDraft && !autoSaveTimer) {
+    autoSaveTimer = setInterval(() => {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(collectFormData()));
+    }, 30000);
+  } else if (!appSettings.autoSaveDraft && autoSaveTimer) {
+    clearInterval(autoSaveTimer);
+    autoSaveTimer = null;
+  }
+}
+
+const setInputs = {
+  setAutoSave: "autoSaveDraft",
+  setKeepSubmit: "keepAfterSubmit"
+};
+Object.entries(setInputs).forEach(([id, key]) => {
+  const el = document.getElementById(id);
+  el.checked = appSettings[key];
+  el.addEventListener("change", () => {
+    appSettings[key] = el.checked;
+    localStorage.setItem(SET_KEY, JSON.stringify(appSettings));
+    applySettings();
+  });
+});
+document.getElementById("settingsBtn").addEventListener("click", () => openDlg("settingsDlg"));
+applySettings();
+
+/* 页面加载：仅询问草稿，模板只在点击「导入模板」时处理 */
+(function initRecovery() {
+  let pendingDraft = null;
+  try { pendingDraft = JSON.parse(localStorage.getItem(DRAFT_KEY)); } catch (e) {}
+  if (!pendingDraft) return;
+
+  document.getElementById("draftTime").textContent = fmtTime(pendingDraft.savedAt);
+  openDlg("draftRestoreDlg");
+  document.getElementById("draftRestore").onclick = () => {
+    restoreFormData(pendingDraft);
+    closeDlg("draftRestoreDlg");
+  };
+  document.getElementById("draftDiscard").onclick = () => {
+    localStorage.removeItem(DRAFT_KEY);
+    closeDlg("draftRestoreDlg");
+  };
+})();
+</script>
+
+</body>
+</html>

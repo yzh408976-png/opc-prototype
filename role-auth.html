@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>角色认证 — OPC 需求平台</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --primary: #3b5bfd;
+    --primary-hover: #5a78ff;
+    --primary-light: #eef1ff;
+    --text-main: #1a1d26;
+    --text-sub: #6b7280;
+    --text-hint: #9ca3af;
+    --border: #e5e7eb;
+    --border-focus: #3b5bfd;
+    --error: #e5484d;
+    --error-bg: #fff5f5;
+    --bg: #f3f5f9;
+    --card: #ffffff;
+    --sidebar-bg: #eaf0f8;
+    --radius: 12px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.04);
+    --shadow-md: 0 2px 8px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.04);
+  }
+
+  html, body { height: 100%; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text-main);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* ===== 左侧导航栏 ===== */
+  .sidebar {
+    width: 216px;
+    flex-shrink: 0;
+    background: var(--sidebar-bg);
+    padding: 18px 14px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .logo { display: flex; align-items: center; gap: 8px; padding: 6px 10px 18px; font-size: 17px; font-weight: 700; color: #1f3b8f; }
+  .logo-badge { width: 26px; height: 26px; border-radius: 7px; background: var(--primary); color: #fff; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; }
+  .nav-group { font-size: 12px; color: #8a94a8; padding: 12px 12px 6px; }
+  .nav-item { display: flex; align-items: center; gap: 9px; padding: 9px 12px; border-radius: 8px; font-size: 14px; color: #37415a; cursor: pointer; text-decoration: none; transition: background .2s; margin-bottom: 2px; }
+  .nav-item:hover { background: rgba(59, 91, 253, .08); }
+  .nav-item.active { background: var(--primary); color: #fff; font-weight: 600; }
+
+  .user-box { margin-top: auto; padding: 12px 16px; border-top: 1px solid rgba(0,0,0,.06); display: flex; align-items: center; gap: 10px; }
+  .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; flex-shrink: 0; }
+  .user-meta { flex: 1; min-width: 0; }
+  .user-name { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .user-sub { font-size: 11.5px; color: var(--text-hint); }
+  .logout-btn { width: 28px; height: 28px; border: none; background: transparent; border-radius: 6px; cursor: pointer; font-size: 15px; color: var(--text-hint); display: flex; align-items: center; justify-content: center; transition: all .2s; flex-shrink: 0; }
+  .logout-btn:hover { background: rgba(229,72,77,.1); color: var(--error); }
+
+  /* ===== 主区域 ===== */
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow-y: auto; }
+
+  .topbar { background: var(--card); padding: 14px 28px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .topbar h1 { font-size: 20px; font-weight: 700; }
+  .topbar .spacer { flex: 1; }
+
+  /* 右上角角色徽章 */
+  .role-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .role-badge.admin { background: #f5f3ff; color: #7c3aed; }
+  .role-badge.opc { background: #ecfdf5; color: #059669; }
+  .role-badge.enterprise { background: #fff7ed; color: #ea580c; }
+  .role-badge.unverified { background: #f3f4f6; color: var(--text-sub); }
+  .role-badge:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+  .role-badge .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .role-badge.admin .dot { background: #7c3aed; }
+  .role-badge.opc .dot { background: #059669; }
+  .role-badge.enterprise .dot { background: #ea580c; }
+  .role-badge.unverified .dot { background: var(--text-hint); }
+
+  .content { padding: 28px; flex: 1; }
+
+  /* ===== 步骤条 ===== */
+  .stepper-wrap {
+    max-width: 680px;
+    margin: 0 auto 32px;
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    padding: 28px 36px 24px;
+  }
+  .stepper-header { text-align: center; margin-bottom: 28px; }
+  .stepper-header h2 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .stepper-header p { font-size: 13px; color: var(--text-sub); }
+
+  .stepper {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0;
+  }
+  .step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    flex-shrink: 0;
+    width: 130px;
+  }
+  .step-circle {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: #f3f4f6;
+    border: 2px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-hint);
+    transition: all .3s;
+    position: relative;
+    margin-bottom: 10px;
+  }
+  .step.active .step-circle {
+    background: var(--text-main);
+    border-color: var(--text-main);
+    color: #fff;
+  }
+  .step.completed .step-circle {
+    background: #16a34a;
+    border-color: #16a34a;
+    color: #fff;
+  }
+  .step-check {
+    display: none;
+    font-size: 18px;
+  }
+  .step.completed .step-check { display: block; }
+  .step.completed .step-num { display: none; }
+  .step.active .step-check { display: none; }
+  .step.active .step-num { display: block; }
+
+  .step-title { font-size: 14px; font-weight: 600; color: var(--text-hint); transition: color .3s; }
+  .step.active .step-title { color: var(--text-main); }
+  .step.completed .step-title { color: #16a34a; }
+  .step-desc { font-size: 12px; color: var(--text-hint); margin-top: 2px; }
+
+  .step-line {
+    flex: 1;
+    height: 2px;
+    background: #e5e7eb;
+    margin-top: 19px;
+    border-radius: 1px;
+    transition: background .3s;
+    min-width: 20px;
+  }
+  .step-line.done { background: #16a34a; }
+
+  /* ===== 管理员直通卡片 ===== */
+  .admin-pass {
+    max-width: 560px;
+    margin: 60px auto;
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+    border-radius: 18px;
+    padding: 48px 40px;
+    text-align: center;
+    color: #fff;
+    box-shadow: 0 8px 32px rgba(124,58,237,.25);
+  }
+  .admin-pass .icon { font-size: 56px; margin-bottom: 16px; }
+  .admin-pass h2 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+  .admin-pass p { font-size: 14px; opacity: .85; margin-bottom: 32px; }
+  .admin-pass button {
+    background: #fff; color: #7c3aed; border: none; border-radius: 10px;
+    padding: 12px 36px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .admin-pass button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.15); }
+
+  /* ===== 角色选择 ===== */
+  .role-select-wrap { max-width: 680px; margin: 40px auto; }
+  .role-select-wrap h2 { font-size: 22px; font-weight: 700; text-align: center; margin-bottom: 8px; }
+  .role-select-wrap > p { text-align: center; font-size: 14px; color: var(--text-sub); margin-bottom: 36px; }
+
+  .role-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .role-card {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 28px;
+    cursor: pointer;
+    transition: all .25s;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .role-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 4px;
+    background: var(--card-color);
+    transform: scaleX(0);
+    transition: transform .3s;
+  }
+  .role-card:hover { border-color: var(--card-color); box-shadow: var(--shadow-md); transform: translateY(-4px); }
+  .role-card:hover::before { transform: scaleX(1); }
+  .role-card.selected { border-color: var(--card-color); background: var(--card-bg); box-shadow: var(--shadow-md); }
+  .role-card.selected::before { transform: scaleX(1); }
+
+  .rc-icon { width: 64px; height: 64px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 16px; background: var(--card-bg); }
+  .rc-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .rc-desc { font-size: 13.5px; color: var(--text-sub); line-height: 1.7; }
+  .rc-features { margin-top: 16px; display: flex; flex-direction: column; gap: 6px; }
+  .rc-features li { list-style: none; font-size: 12.5px; color: var(--text-hint); display: flex; align-items: center; gap: 6px; justify-content: center; }
+
+  /* ===== 认证表单 ===== */
+  .auth-form-wrap { max-width: 680px; margin: 0 auto; }
+  .auth-header { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+  .auth-header .back-btn {
+    width: 36px; height: 36px; border-radius: 8px; border: 1.5px solid var(--border);
+    background: var(--card); cursor: pointer; font-size: 16px; color: var(--text-sub);
+    display: flex; align-items: center; justify-content: center; transition: all .2s;
+  }
+  .auth-header .back-btn:hover { border-color: var(--primary); color: var(--primary); }
+  .auth-header h2 { font-size: 20px; font-weight: 700; }
+  .auth-header p { font-size: 13px; color: var(--text-sub); }
+
+  .auth-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: 32px 36px; }
+
+  .form-section-title {
+    font-size: 14px; font-weight: 600; color: var(--text-sub);
+    padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 20px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .form-section-title .num {
+    width: 22px; height: 22px; border-radius: 50%; background: var(--primary-light); color: var(--primary);
+    font-size: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700;
+  }
+
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 20px; }
+  .field-grid .full { grid-column: 1 / -1; }
+
+  .form-item { margin-bottom: 0; }
+  .form-item label { font-size: 14px; font-weight: 500; display: block; margin-bottom: 6px; }
+  .form-item label .required { color: var(--error); }
+  .field-hint { font-size: 12px; color: var(--text-hint); margin-bottom: 6px; }
+  .form-item input, .form-item select, .form-item textarea {
+    width: 100%; height: 42px; padding: 0 14px;
+    border: 1.5px solid var(--border); border-radius: 8px;
+    font-size: 14px; font-family: inherit; outline: none;
+    transition: border-color .2s, box-shadow .2s; background: var(--card); color: var(--text-main);
+  }
+  .form-item textarea { height: 80px; padding: 10px 14px; resize: vertical; }
+  .form-item input:disabled, .form-item textarea:disabled {
+    background: #f9fafb; color: var(--text-main); cursor: default;
+    opacity: 1; -webkit-text-fill-color: var(--text-main);
+  }
+  .form-item input:focus, .form-item select:focus, .form-item textarea:focus {
+    border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(59,91,253,.1);
+  }
+  .form-item .error-msg { font-size: 12px; color: var(--error); margin-top: 4px; display: none; }
+  .form-item.error input, .form-item.error select, .form-item.error textarea {
+    border-color: var(--error); background: var(--error-bg);
+  }
+  .form-item.error .error-msg { display: block; }
+
+  .upload-area {
+    border: 2px dashed var(--border); border-radius: 10px; padding: 24px;
+    text-align: center; cursor: pointer; transition: all .2s; background: var(--bg);
+  }
+  .upload-area:hover { border-color: var(--primary); background: var(--primary-light); }
+  .upload-area .up-icon { font-size: 28px; margin-bottom: 8px; }
+  .upload-area .up-text { font-size: 14px; color: var(--text-sub); }
+  .upload-area .up-hint { font-size: 12px; color: var(--text-hint); margin-top: 4px; }
+  .upload-area input { display: none; }
+  .upload-preview { font-size: 13px; color: var(--primary); margin-top: 8px; }
+
+  .dual-upload { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .dual-upload .upload-area { min-height: 140px; display: flex; flex-direction: column; justify-content: center; }
+  @media (max-width: 768px) { .dual-upload { grid-template-columns: 1fr; } }
+
+  .agree-row { margin: 24px 0; font-size: 12.5px; color: var(--text-sub); display: flex; align-items: flex-start; gap: 8px; line-height: 1.7; }
+  .agree-row input { width: 15px; height: 15px; margin-top: 3px; accent-color: var(--primary); cursor: pointer; flex-shrink: 0; }
+  .agree-row a { color: var(--primary); text-decoration: none; }
+
+  .submit-btn {
+    width: 100%; height: 46px; border: none; border-radius: 10px;
+    background: var(--primary); color: #fff; font-size: 15.5px; font-weight: 600;
+    font-family: inherit; cursor: pointer; transition: background .2s, transform .1s; letter-spacing: 1px;
+  }
+  .submit-btn:hover { background: var(--primary-hover); }
+  .submit-btn:active { transform: scale(.98); }
+  .submit-btn:disabled { background: #c5cdf6; cursor: not-allowed; }
+
+  /* Toast */
+  .toast {
+    position: fixed; top: 24px; left: 50%;
+    transform: translateX(-50%) translateY(-80px);
+    background: var(--text-main); color: #fff; padding: 12px 24px; border-radius: 8px;
+    font-size: 14px; box-shadow: 0 4px 16px rgba(0,0,0,.15); z-index: 9999;
+    transition: transform .35s cubic-bezier(.34,1.56,.64,1); white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { background: #16a34a; }
+  .toast.error { background: var(--error); }
+
+  .hidden { display: none !important; }
+
+  /* ===== 省市区联动 / 多选标签 ===== */
+  .rm-city-row { display: flex; gap: 6px; }
+  .rm-city-sel { flex: 1; height: 42px; border: 1.5px solid var(--border); border-radius: 9px; padding: 0 8px; font-size: 13px; font-family: inherit; background: #fff; outline: none; transition: border-color .2s; }
+  .rm-city-sel:focus { border-color: var(--border-focus); }
+  .rm-city-sel:disabled { background: #f5f5f5; color: var(--text-hint); }
+  .rm-multi-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .rm-tag { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border: 1.5px solid var(--border); border-radius: 20px; font-size: 12.5px; cursor: pointer; transition: all .15s; user-select: none; }
+  .rm-tag:hover { border-color: var(--primary); }
+  .rm-tag input { width: auto; margin: 0; height: auto; }
+  .rm-tag:has(input:checked) { border-color: var(--primary); background: var(--primary-light); color: var(--primary); font-weight: 600; }
+
+  /* ===== 协议查看弹窗 ===== */
+  .agree-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .25s, visibility .25s;
+  }
+  .agree-overlay.show { opacity: 1; visibility: visible; pointer-events: auto; }
+  .agree-card {
+    background: #fff;
+    border-radius: 16px;
+    width: 560px;
+    max-width: 92vw;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    transform: scale(.95);
+    transition: transform .25s;
+  }
+  .agree-overlay.show .agree-card { transform: scale(1); }
+  .agree-head {
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .agree-head h3 { font-size: 16px; font-weight: 700; }
+  .agree-ver { font-size: 12px; font-weight: 400; color: var(--primary); background: var(--primary-light); padding: 2px 8px; border-radius: 4px; margin-left: 6px; }
+  .agree-close {
+    border: none;
+    background: #f3f4f6;
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-sub);
+    transition: background .2s;
+  }
+  .agree-close:hover { background: #e5e7eb; }
+  .agree-body {
+    padding: 20px 24px;
+    overflow-y: auto;
+    font-size: 13.5px;
+    line-height: 1.9;
+    color: var(--text-sub);
+    white-space: pre-wrap;
+  }
+
+  /* 响应式 */
+  @media (max-width: 768px) {
+    body { flex-direction: column; overflow-y: auto; }
+    .sidebar { display: none; }
+    .content { padding: 16px; }
+    .role-cards { grid-template-columns: 1fr; }
+    .field-grid { grid-template-columns: 1fr; }
+    .auth-card { padding: 20px; }
+  }
+
+  /* ===== 第三方平台绑定 ===== */
+  .oauth-section {
+    margin-top: 24px;
+    border-top: 1px solid var(--border);
+    padding-top: 24px;
+  }
+  .oauth-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .oauth-section-title::before {
+    content: "";
+    width: 4px; height: 16px;
+    background: var(--primary);
+    border-radius: 2px;
+  }
+  .oauth-hint {
+    font-size: 12px;
+    color: var(--text-hint);
+    margin-bottom: 16px;
+  }
+  .oauth-bind-list { display: flex; flex-direction: column; gap: 12px; }
+  .oauth-bind-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: #fafbfc;
+    transition: all .2s;
+  }
+  .oauth-bind-item:hover { border-color: rgba(0,125,255,.2); background: #f8faff; }
+  .oauth-platform-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .oauth-platform-info { flex: 1; }
+  .oauth-platform-name { font-size: 14px; font-weight: 600; }
+  .oauth-bind-status {
+    font-size: 12px;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .oauth-bind-status.bound { color: #16a34a; }
+  .oauth-bind-status.unbound { color: var(--text-hint); }
+  .oauth-bind-btn {
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .2s;
+    white-space: nowrap;
+  }
+  .oauth-bind-btn.bind {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+  .oauth-bind-btn.bind:hover { background: #0066d0; }
+  .oauth-bind-btn.unbind {
+    background: #fff;
+    color: var(--text-sub);
+    border-color: var(--border);
+  }
+  .oauth-bind-btn.unbind:hover { border-color: #e5484d; color: #e5484d; background: #fff5f5; }
+  @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .5; transform: scale(1.4); } }
+</style>
+</head>
+<body>
+
+<!-- 左侧导航栏 -->
+<aside class="sidebar">
+  <div class="logo"><span class="logo-badge">OP</span>OPC 协作平台</div>
+  <div class="nav-group">需求管理</div>
+  <a class="nav-item" href="dashboard.html">🏠 工作台</a>
+  <a class="nav-item" href="requirement-form.html">✈️ 发布需求</a>
+  <a class="nav-item" href="javascript:void(0)">📋 我的需求</a>
+  <a class="nav-item" href="javascript:void(0)">📝 草稿箱</a>
+  <a class="nav-item" href="javascript:void(0)">🔔 消息通知</a>
+  <div class="nav-group">其他</div>
+  <a class="nav-item active" href="role-auth.html">🪪 角色认证</a>
+  <a class="nav-item" href="javascript:void(0)">⚙️ 设置</a>
+  <a class="nav-item" href="javascript:void(0)">❓ 帮助中心</a>
+  <div class="user-box" id="userBox">
+    <div class="user-avatar" id="userAvatar">U</div>
+    <div class="user-meta">
+      <div class="user-name" id="userName">未登录</div>
+      <div class="user-sub" id="userSub">点击登录</div>
+    </div>
+    <button class="logout-btn" id="logoutBtn" title="退出登录">⏻</button>
+  </div>
+</aside>
+
+<!-- 主区域 -->
+<div class="main">
+  <div class="topbar">
+    <h1>角色认证</h1>
+    <div class="spacer"></div>
+    <div class="role-badge unverified" id="roleBadge">
+      <span class="dot"></span><span id="roleBadgeText">未认证</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ===== 管理员直通 ===== -->
+    <div class="admin-pass hidden" id="adminPass">
+      <div class="icon">👑</div>
+      <h2>超级管理员</h2>
+      <p>你的账号已自动认证为超级管理员，拥有平台全部管理权限</p>
+      <button onclick="window.location.href='dashboard.html'">进入工作台 →</button>
+    </div>
+
+    <!-- ===== 步骤条 ===== -->
+    <div class="stepper-wrap" id="stepper">
+      <div class="stepper-header">
+        <h2>角色认证流程</h2>
+        <p>完成认证后即可解锁对应平台能力，发布需求或接单服务</p>
+      </div>
+      <div class="stepper">
+        <div class="step active" id="step1">
+          <div class="step-circle"><span class="step-check">✓</span><span class="step-num">1</span></div>
+          <div class="step-info">
+            <div class="step-title">选择角色</div>
+            <div class="step-desc">选择 OPC 服务者或企业需求方</div>
+          </div>
+        </div>
+        <div class="step-line" id="line1"></div>
+        <div class="step" id="step2">
+          <div class="step-circle"><span class="step-check">✓</span><span class="step-num">2</span></div>
+          <div class="step-info">
+            <div class="step-title">填写认证</div>
+            <div class="step-desc">如实填写认证信息并上传资质</div>
+          </div>
+        </div>
+        <div class="step-line" id="line2"></div>
+        <div class="step" id="step3">
+          <div class="step-circle"><span class="step-check">✓</span><span class="step-num">3</span></div>
+          <div class="step-info">
+            <div class="step-title">确认提交</div>
+            <div class="step-desc">核对信息并提交审核</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 角色选择 ===== -->
+    <div class="role-select-wrap" id="roleSelect">
+      <h2>选择你的角色</h2>
+      <p>完成角色认证后，才能发布需求或接单服务</p>
+      <div class="role-cards">
+        <div class="role-card" data-role="opc" style="--card-color:#059669; --card-bg:#ecfdf5">
+          <div class="rc-icon">🛠️</div>
+          <div class="rc-title">OPC 服务者</div>
+          <div class="rc-desc">提供专业技能，承接需求方发布的任务</div>
+          <ul class="rc-features">
+            <li>✓ 接收匹配的需求推送</li>
+            <li>✓ 报价与交付管理</li>
+            <li>✓ 平台结算保障</li>
+          </ul>
+        </div>
+        <div class="role-card" data-role="enterprise" style="--card-color:#ea580c; --card-bg:#fff7ed">
+          <div class="rc-icon">🏢</div>
+          <div class="rc-title">企业需求方</div>
+          <div class="rc-desc">发布业务需求，匹配 OPC 服务者完成交付</div>
+          <ul class="rc-features">
+            <li>✓ 发布结构化需求</li>
+            <li>✓ 多人协作管理</li>
+            <li>✓ 验收与结算</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== OPC 认证表单 ===== -->
+    <div class="auth-form-wrap hidden" id="opcForm">
+      <div class="auth-header">
+        <button class="back-btn" id="opcBack">←</button>
+        <div>
+          <h2>OPC 服务者认证</h2>
+          <p>请如实填写以下信息，提交后 1-3 个工作日完成审核</p>
+        </div>
+      </div>
+      <div class="auth-card">
+        <form id="opcAuthForm" novalidate>
+          <div class="form-section-title"><span class="num">1</span>基本信息</div>
+          <div class="field-grid">
+            <div class="form-item">
+              <label>真实姓名<span class="required">*</span></label>
+              <div class="field-hint">需与身份证一致，用于实名认证</div>
+              <input type="text" id="opcName" placeholder="请输入真实姓名">
+              <div class="error-msg">请输入真实姓名</div>
+            </div>
+            <div class="form-item">
+              <label>手机号码<span class="required">*</span></label>
+              <div class="field-hint">用于接单通知与结算联系</div>
+              <input type="tel" id="opcPhone" placeholder="请输入手机号" maxlength="11">
+              <div class="error-msg">请输入正确的手机号</div>
+            </div>
+            <div class="form-item">
+              <label>身份证号<span class="required">*</span></label>
+              <div class="field-hint">18 位，用于实名认证与合同签署</div>
+              <input type="text" id="opcIdCard" placeholder="请输入身份证号" maxlength="18">
+              <div class="field-hint">需与姓名一致，仅用于实名核验</div>
+              <div class="error-msg">请输入正确的身份证号</div>
+            </div>
+            <div class="form-item">
+              <label>所在城市<span class="required">*</span></label>
+              <div class="field-hint">用于本地化需求匹配</div>
+              <div class="rm-city-row">
+                <select id="opcProvince" class="rm-city-sel"><option value="">省</option></select>
+                <select id="opcCitySel" class="rm-city-sel" disabled><option value="">市</option></select>
+                <select id="opcDistrict" class="rm-city-sel" disabled><option value="">区/县</option></select>
+              </div>
+              <div class="error-msg">请选择所在城市</div>
+            </div>
+          </div>
+
+          <div class="form-section-title"><span class="num">2</span>专业能力</div>
+          <div class="field-grid">
+            <div class="form-item full">
+              <label>擅长领域<span class="required">*</span></label>
+              <div class="field-hint">选择你最擅长的能力方向，可多选</div>
+              <div class="rm-multi-tags" id="opcFieldTags">
+                <label class="rm-tag"><input type="checkbox" value="文案撰写">文案撰写</label>
+                <label class="rm-tag"><input type="checkbox" value="内容策划">内容策划</label>
+                <label class="rm-tag"><input type="checkbox" value="新媒体运营">新媒体运营</label>
+                <label class="rm-tag"><input type="checkbox" value="视频剪辑">视频剪辑</label>
+                <label class="rm-tag"><input type="checkbox" value="平面设计">平面设计</label>
+                <label class="rm-tag"><input type="checkbox" value="UI/UX 设计">UI/UX 设计</label>
+                <label class="rm-tag"><input type="checkbox" value="品牌设计">品牌设计</label>
+                <label class="rm-tag"><input type="checkbox" value="插画绘制">插画绘制</label>
+                <label class="rm-tag"><input type="checkbox" value="3D 建模渲染">3D 建模渲染</label>
+                <label class="rm-tag"><input type="checkbox" value="前端开发">前端开发</label>
+                <label class="rm-tag"><input type="checkbox" value="后端开发">后端开发</label>
+                <label class="rm-tag"><input type="checkbox" value="小程序开发">小程序开发</label>
+                <label class="rm-tag"><input type="checkbox" value="数据分析">数据分析</label>
+              </div>
+              <div class="error-msg">请选择擅长领域</div>
+            </div>
+            <div class="form-item full">
+              <label>个人简介</label>
+              <div class="field-hint">介绍你的经验、作品和优势，选填</div>
+              <textarea id="opcBio" placeholder="例如：3 年新媒体运营经验，擅长生活方式类品牌的内容策划与文案撰写，曾服务过……"></textarea>
+              <div class="error-msg"></div>
+            </div>
+          </div>
+
+          <div class="form-section-title"><span class="num">3</span>接单设置</div>
+          <div class="field-grid">
+            <div class="form-item" style="grid-column:1/-1">
+              <label>接单状态<span class="required">*</span> <span style="font-size:12px;color:var(--text-hint)">（可多选）</span></label>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px" id="opcStatusTags">
+                <label style="display:inline-flex;align-items:center;gap:4px;padding:6px 14px;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px"><input type="checkbox" value="全职接单"> 全职接单</label>
+                <label style="display:inline-flex;align-items:center;gap:4px;padding:6px 14px;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px"><input type="checkbox" value="兼职接单"> 兼职接单（业余时间）</label>
+                <label style="display:inline-flex;align-items:center;gap:4px;padding:6px 14px;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px"><input type="checkbox" value="周末接单"> 周末接单</label>
+                <label style="display:inline-flex;align-items:center;gap:4px;padding:6px 14px;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px"><input type="checkbox" value="按需接单"> 按需接单</label>
+              </div>
+              <div class="error-msg">请选择接单状态</div>
+            </div>
+            <div class="form-item" style="grid-column:1/-1">
+              <label>作品集链接</label>
+              <div class="field-hint">可选，填写站外作品集或个人主页 URL</div>
+              <input type="text" id="opcPortfolio" placeholder="https://your-portfolio.com">
+              <div class="error-msg"></div>
+            </div>
+            <div class="form-item full">
+              <label>身份证照片（正反面）<span class="required">*</span></label>
+              <div class="field-hint">需上传身份证正面和反面各一张，用于实名核验，仅审核可见</div>
+              <div class="dual-upload">
+                <div class="upload-area" id="opcUploadFront">
+                  <div class="up-icon">🪪</div>
+                  <div class="up-text">点击上传正面（人像面）</div>
+                  <div class="up-hint">支持 JPG / PNG，大小不超过 5MB</div>
+                  <input type="file" id="opcFileFront" accept="image/*">
+                  <div class="upload-preview" id="opcFrontPreview"></div>
+                </div>
+                <div class="upload-area" id="opcUploadBack">
+                  <div class="up-icon">🪪</div>
+                  <div class="up-text">点击上传反面（国徽面）</div>
+                  <div class="up-hint">支持 JPG / PNG，大小不超过 5MB</div>
+                  <input type="file" id="opcFileBack" accept="image/*">
+                  <div class="upload-preview" id="opcBackPreview"></div>
+                </div>
+              </div>
+              <div class="error-msg" id="opcFileErr" style="margin-top:4px">请上传身份证正反面照片</div>
+            </div>
+          </div>
+
+          <div class="agree-row">
+            <input type="checkbox" id="opcAgree">
+            <label for="opcAgree">我已阅读并同意<a href="javascript:void(0)" data-agree="opc">《OPC 服务者协议》</a>和<a href="javascript:void(0)" data-agree="opc-privacy">《实名认证条款》</a>，承诺所填信息真实有效</label>
+          </div>
+          <button type="submit" class="submit-btn">提交认证申请</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ===== 企业认证表单 ===== -->
+    <div class="auth-form-wrap hidden" id="entForm">
+      <div class="auth-header">
+        <button class="back-btn" id="entBack">←</button>
+        <div>
+          <h2>企业需求方认证</h2>
+          <p>请填写企业真实信息，提交后 1-3 个工作日完成审核</p>
+        </div>
+      </div>
+      <div class="auth-card">
+        <form id="entAuthForm" novalidate>
+          <div class="form-section-title"><span class="num">1</span>企业信息</div>
+          <div class="field-grid">
+            <div class="form-item full">
+              <label>企业名称<span class="required">*</span></label>
+              <div class="field-hint">需与营业执照一致</div>
+              <input type="text" id="entName" placeholder="如：北京某某科技有限公司">
+              <div class="error-msg">请输入企业名称</div>
+            </div>
+            <div class="form-item">
+              <label>统一社会信用代码<span class="required">*</span></label>
+              <div class="field-hint">18 位，用于企业资质核验</div>
+              <input type="text" id="entCreditCode" placeholder="请输入统一社会信用代码" maxlength="18">
+              <div class="error-msg">请输入正确的统一社会信用代码</div>
+            </div>
+            <div class="form-item">
+              <label>所属行业<span class="required">*</span></label>
+              <select id="entIndustry">
+                <option value="" disabled selected>请选择</option>
+                <option value="互联网/科技">互联网/科技</option>
+                <option value="电子商务">电子商务</option>
+                <option value="教育培训">教育培训</option>
+                <option value="金融/保险">金融/保险</option>
+                <option value="医疗/健康">医疗/健康</option>
+                <option value="制造/工业">制造/工业</option>
+                <option value="文化传媒">文化传媒</option>
+                <option value="餐饮/零售">餐饮/零售</option>
+                <option value="房地产/建筑">房地产/建筑</option>
+                <option value="其他">其他</option>
+              </select>
+              <div class="error-msg">请选择所属行业</div>
+            </div>
+            <div class="form-item">
+              <label>企业规模<span class="required">*</span></label>
+              <select id="entScale">
+                <option value="" disabled selected>请选择</option>
+                <option value="1-10人">1-10 人</option>
+                <option value="11-50人">11-50 人</option>
+                <option value="51-200人">51-200 人</option>
+                <option value="201-1000人">201-1000 人</option>
+                <option value="1000人以上">1000 人以上</option>
+              </select>
+              <div class="error-msg">请选择企业规模</div>
+            </div>
+            <div class="form-item">
+              <label>所在城市<span class="required">*</span></label>
+              <input type="text" id="entCity" placeholder="如：上海市浦东新区">
+              <div class="error-msg">请输入所在城市</div>
+            </div>
+            <div class="form-item full">
+              <label>企业地址<span class="required">*</span></label>
+              <div class="field-hint">详细地址，用于线下合作场景</div>
+              <input type="text" id="entAddress" placeholder="如：上海市浦东新区张江高科技园区博云路 2 号">
+              <div class="error-msg">请输入企业地址</div>
+            </div>
+          </div>
+
+          <div class="form-section-title"><span class="num">2</span>联系人信息</div>
+          <div class="field-grid">
+            <div class="form-item">
+              <label>企业联系人<span class="required">*</span></label>
+              <div class="field-hint">负责需求发布与对接的指定人员</div>
+              <input type="text" id="entContact" placeholder="请输入联系人姓名">
+              <div class="error-msg">请输入企业联系人</div>
+            </div>
+            <div class="form-item">
+              <label>联系电话<span class="required">*</span></label>
+              <div class="field-hint">手机号或座机</div>
+              <input type="text" id="entPhone" placeholder="手机号或座机号">
+              <div class="error-msg">请输入联系电话</div>
+            </div>
+          </div>
+
+          <div class="form-section-title"><span class="num">3</span>资质上传</div>
+          <div class="field-grid">
+            <div class="form-item full">
+              <label>营业执照（正本）<span class="required">*</span></label>
+              <div class="field-hint">需上传营业执照正本一份，清晰显示企业名称与统一社会信用代码，仅审核可见</div>
+              <div class="dual-upload">
+                <div class="upload-area" id="entUploadOriginal">
+                  <div class="up-icon">📄</div>
+                  <div class="up-text">点击上传正本</div>
+                  <div class="up-hint">支持 JPG / PNG / PDF，大小不超过 10MB</div>
+                  <input type="file" id="entFileOriginal" accept="image/*,.pdf">
+                  <div class="upload-preview" id="entOriginalPreview"></div>
+                </div>
+              </div>
+              <div class="error-msg" id="entFileErr" style="margin-top:4px">请上传营业执照正本</div>
+            </div>
+          </div>
+
+          <div class="agree-row">
+            <input type="checkbox" id="entAgree">
+            <label for="entAgree">我已阅读并同意<a href="javascript:void(0)" data-agree="ent">《企业认证协议》</a>和<a href="javascript:void(0)" data-agree="ent-terms">《平台服务条款》</a>，承诺企业信息真实有效</label>
+          </div>
+          <button type="submit" class="submit-btn">提交认证申请</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 已认证信息展示 -->
+<div id="approvedView" class="hidden" style="max-width:680px;margin:0 auto">
+  <div class="auth-card" style="padding:36px">
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="font-size:48px;margin-bottom:10px" id="approvedIcon">✅</div>
+      <div style="font-size:20px;font-weight:700;margin-bottom:6px" id="approvedTitle">认证已通过</div>
+      <div style="font-size:13px;color:var(--text-sub)" id="approvedDesc">您的认证信息已通过审核，如需修改请点击下方「申请编辑信息」。</div>
+    </div>
+    <div class="form-section-title"><span class="num">✓</span>认证信息</div>
+    <div id="approvedInfo"></div>
+
+    <!-- 第三方平台绑定 -->
+    <div class="oauth-section">
+      <div class="oauth-section-title">第三方平台绑定</div>
+      <div class="oauth-hint">绑定后，下次登录可直接点击第三方平台按钮进入平台，无需再次输入邮箱和验证码。每个平台仅可绑定一个账号。</div>
+      <div class="oauth-bind-list">
+        <div class="oauth-bind-item" id="oauthGiteeItem">
+          <div class="oauth-platform-icon" style="background:#fff5f5;color:#c71d23">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M11.984 0A11.97 11.97 0 0 0 0 11.984a11.97 11.97 0 0 0 11.984 11.984 11.97 11.97 0 0 0 11.984-11.984A11.97 11.97 0 0 0 11.984 0zm6.844 16.273H9.34a1.16 1.16 0 0 1-1.157-1.157V8.884A1.16 1.16 0 0 1 9.34 7.727h8.431a1.16 1.16 0 0 1 1.157 1.157v6.232a1.16 1.16 0 0 1-1.157 1.157zm-2.92-3.46H10.45v-1.34h5.458v1.34z"/></svg>
+          </div>
+          <div class="oauth-platform-info">
+            <div class="oauth-platform-name">Gitee</div>
+            <div class="oauth-bind-status unbound" id="oauthGiteeStatus">未绑定</div>
+          </div>
+          <button type="button" class="oauth-bind-btn bind" id="oauthGiteeBtn">绑定</button>
+        </div>
+        <div class="oauth-bind-item" id="oauthFeishuItem">
+          <div class="oauth-platform-icon" style="background:#f0f4ff;color:#3370ff">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M3.6 7.2h6.6v6.6H3.6V7.2zm9.6 0h6.6v6.6h-6.6V7.2zM3.6 16.8h6.6v3.6H3.6v-3.6zm9.6 0h6.6v3.6h-6.6v-3.6z"/></svg>
+          </div>
+          <div class="oauth-platform-info">
+            <div class="oauth-platform-name">飞书</div>
+            <div class="oauth-bind-status unbound" id="oauthFeishuStatus">未绑定</div>
+          </div>
+          <button type="button" class="oauth-bind-btn bind" id="oauthFeishuBtn">绑定</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px;justify-content:center;align-items:center;border-top:1px solid var(--border);padding-top:24px">
+      <button type="button" id="editApplyBtn" style="padding:0 28px;height:42px;border-radius:10px;background:var(--primary);color:#fff;font-weight:600;font-size:14px;border:none;cursor:pointer;font-family:inherit">申请编辑信息</button>
+      <a href="dashboard.html" id="approvedBackBtn" style="padding:0 28px;height:42px;line-height:42px;border-radius:10px;background:#f3f4f6;color:var(--text-sub);font-weight:600;font-size:14px;text-decoration:none">返回工作台</a>
+    </div>
+  </div>
+</div>
+
+<!-- 申请编辑信息确认弹窗 -->
+<div id="editConfirmModal" class="hidden" style="position:fixed;inset:0;background:rgba(26,29,38,.45);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;border-radius:16px;max-width:420px;width:100%;padding:32px 28px;text-align:center;box-shadow:0 12px 48px rgba(0,0,0,.18)">
+    <div style="font-size:44px;margin-bottom:12px">✏️</div>
+    <div style="font-size:17px;font-weight:700;margin-bottom:10px">是否要编辑信息？</div>
+    <div id="editConfirmDesc" style="font-size:13px;color:var(--text-sub);line-height:1.8;margin-bottom:24px"></div>
+    <div style="display:flex;gap:12px;justify-content:center">
+      <button type="button" id="editCancelBtn" style="padding:0 24px;height:40px;border-radius:10px;background:#f3f4f6;color:var(--text-sub);font-weight:600;font-size:13.5px;border:none;cursor:pointer;font-family:inherit">取消</button>
+      <button type="button" id="editConfirmBtn" style="padding:0 24px;height:40px;border-radius:10px;background:var(--primary);color:#fff;font-weight:600;font-size:13.5px;border:none;cursor:pointer;font-family:inherit">确认编辑</button>
+    </div>
+  </div>
+</div>
+
+<!-- 审核中展示 -->
+<div id="pendingView" class="hidden" style="max-width:640px;margin:40px auto;padding:0 24px">
+  <div class="auth-card" style="text-align:center;padding:48px 32px">
+    <div style="font-size:56px;margin-bottom:16px">⏳</div>
+    <div style="font-size:20px;font-weight:700;margin-bottom:8px">认证审核中</div>
+    <div style="font-size:13.5px;color:var(--text-sub);margin-bottom:8px">您的认证申请已提交，管理员正在审核中，请耐心等待。</div>
+    <div style="font-size:12px;color:var(--text-hint);margin-bottom:24px;display:flex;align-items:center;justify-content:center;gap:6px"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;animation:pulse 2s infinite"></span>实时检测中，审核结果将自动更新</div>
+    <div style="display:flex;gap:12px;justify-content:center">
+      <a href="dashboard.html" class="submit-btn" style="display:inline-block;text-decoration:none;padding:0 32px;height:42px;line-height:42px;border-radius:10px;background:var(--primary);color:#fff;font-weight:600;font-size:14px">返回工作台</a>
+    </div>
+  </div>
+</div>
+
+<!-- 审核拒绝展示 -->
+<div id="rejectedView" class="hidden" style="max-width:640px;margin:40px auto;padding:0 24px">
+  <div class="auth-card" style="text-align:center;padding:48px 32px">
+    <div style="font-size:56px;margin-bottom:16px">❌</div>
+    <div style="font-size:20px;font-weight:700;margin-bottom:8px">认证未通过</div>
+    <div style="font-size:13.5px;color:var(--text-sub);margin-bottom:8px">您的认证申请未通过审核。</div>
+    <div id="rejectedReason" style="font-size:13px;color:var(--error);margin-bottom:24px;padding:12px 16px;background:#fff5f5;border-radius:8px;display:none"></div>
+    <div style="display:flex;gap:12px;justify-content:center">
+      <button class="submit-btn" id="reAuthBtn" style="padding:0 32px;height:42px;border-radius:10px;background:var(--primary);color:#fff;font-weight:600;font-size:14px;border:none;cursor:pointer;font-family:inherit">重新认证</button>
+      <a href="dashboard.html" class="submit-btn" style="display:inline-block;text-decoration:none;padding:0 32px;height:42px;line-height:42px;border-radius:10px;background:#f3f4f6;color:var(--text-sub);font-weight:600;font-size:14px">返回工作台</a>
+    </div>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- 协议查看弹窗 -->
+<div class="agree-overlay" id="agreeModal">
+  <div class="agree-card">
+    <div class="agree-head">
+      <h3 id="agreeTitle">协议</h3>
+      <button type="button" class="agree-close" id="agreeClose">✕</button>
+    </div>
+    <div class="agree-body" id="agreeBody"></div>
+  </div>
+</div>
+
+<script>
+/* ---------- Toast ---------- */
+function showToast(msg, type) {
+  var t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast" + (type ? " " + type : "");
+  requestAnimationFrame(function () { t.classList.add("show"); });
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(function () { t.classList.remove("show"); }, 2800);
+}
+
+/* ---------- 省市区三级联动数据 ---------- */
+var REGION_DATA = {
+  "福建省": {
+    "福州市": ["鼓楼区","台江区","仓山区","马尾区","晋安区","长乐区","闽侯县","连江县","罗源县","闽清县","永泰县","平潭县"],
+    "厦门市": ["思明区","湖里区","集美区","海沧区","同安区","翔安区"],
+    "泉州市": ["鲤城区","丰泽区","洛江区","泉港区","惠安县","安溪县","永春县","德化县","金门县","石狮市","晋江市","南安市"],
+    "漳州市": ["芗城区","龙文区","云霄县","漳浦县","诏安县","长泰县","东山县","南靖县","平和县","华安县","龙海市"],
+    "莆田市": ["城厢区","涵江区","荔城区","秀屿区","仙游县"],
+    "宁德市": ["蕉城区","霞浦县","古田县","屏南县","寿宁县","周宁县","柘荣县","福安市","福鼎市"],
+    "龙岩市": ["新罗区","永定区","长汀县","上杭县","武平县","连城县","漳平市"],
+    "三明市": ["梅列区","三元区","明溪县","清流县","宁化县","大田县","尤溪县","沙县","将乐县","泰宁县","建宁县","永安市"],
+    "南平市": ["延平区","建阳区","顺昌县","浦城县","光泽县","松溪县","政和县","邵武市","武夷山市","建瓯市"]
+  },
+  "广东省": {
+    "广州市": ["越秀区","海珠区","荔湾区","天河区","白云区","黄埔区","番禺区","花都区","南沙区","从化区","增城区"],
+    "深圳市": ["罗湖区","福田区","南山区","宝安区","龙岗区","盐田区","龙华区","坪山区","光明区","大鹏新区"],
+    "东莞市": ["莞城街道","东城街道","南城街道","万江街道","石碣镇","石龙镇","茶山镇","石排镇"],
+    "佛山市": ["禅城区","南海区","顺德区","三水区","高明区"]
+  },
+  "浙江省": {
+    "杭州市": ["上城区","下城区","江干区","拱墅区","西湖区","滨江区","萧山区","余杭区","富阳区","临安区","桐庐县","淳安县","建德市"],
+    "宁波市": ["海曙区","江北区","北仑区","镇海区","鄞州区","奉化区","象山县","宁海县","余姚市","慈溪市"],
+    "温州市": ["鹿城区","龙湾区","瓯海区","洞头区","永嘉县","平阳县","苍南县","文成县","泰顺县","瑞安市","乐清市","龙港市"]
+  },
+  "江苏省": {
+    "南京市": ["玄武区","秦淮区","建邺区","鼓楼区","浦口区","栖霞区","雨花台区","江宁区","六合区","溧水区","高淳区"],
+    "苏州市": ["姑苏区","吴中区","相城区","工业园区","高新区","吴江区","昆山市","太仓市","常熟市","张家港市"],
+    "无锡市": ["锡山区","惠山区","滨湖区","梁溪区","新吴区","江阴市","宜兴市"]
+  },
+  "北京市": {
+    "北京市": ["东城区","西城区","朝阳区","海淀区","丰台区","石景山区","门头沟区","房山区","通州区","顺义区","昌平区","大兴区","怀柔区","平谷区","密云区","延庆区"]
+  },
+  "上海市": {
+    "上海市": ["黄浦区","徐汇区","长宁区","静安区","普陀区","虹口区","杨浦区","浦东新区","闵行区","宝山区","嘉定区","金山区","松江区","青浦区","奉贤区","崇明区"]
+  }
+};
+
+/* ---------- 省市区联动初始化 ---------- */
+(function initOpcRegion() {
+  var selP = document.getElementById("opcProvince");
+  var selC = document.getElementById("opcCitySel");
+  var selD = document.getElementById("opcDistrict");
+  if (!selP || !selC || !selD) return;
+  Object.keys(REGION_DATA).forEach(function (p) {
+    var opt = document.createElement("option");
+    opt.value = p; opt.textContent = p;
+    selP.appendChild(opt);
+  });
+  selP.addEventListener("change", function () {
+    selC.innerHTML = '<option value="">市</option>';
+    selD.innerHTML = '<option value="">区/县</option>';
+    selD.disabled = true;
+    var cities = REGION_DATA[this.value];
+    if (cities) {
+      Object.keys(cities).forEach(function (c) {
+        var opt = document.createElement("option");
+        opt.value = c; opt.textContent = c;
+        selC.appendChild(opt);
+      });
+      selC.disabled = false;
+    } else { selC.disabled = true; }
+    var item = selP.closest(".form-item");
+    if (item) item.classList.remove("error");
+  });
+  selC.addEventListener("change", function () {
+    selD.innerHTML = '<option value="">区/县</option>';
+    var districts = REGION_DATA[selP.value] && REGION_DATA[selP.value][this.value];
+    if (districts) {
+      districts.forEach(function (d) {
+        var opt = document.createElement("option");
+        opt.value = d; opt.textContent = d;
+        selD.appendChild(opt);
+      });
+      selD.disabled = false;
+    } else { selD.disabled = true; }
+    var item = selC.closest(".form-item");
+    if (item) item.classList.remove("error");
+  });
+  selD.addEventListener("change", function () {
+    var item = selD.closest(".form-item");
+    if (item) item.classList.remove("error");
+  });
+})();
+
+/* ---------- 协议查看弹窗 ---------- */
+var DEFAULT_AGREEMENTS = {
+  user: "OPC 需求平台用户协议\n\n一、服务说明\n1. 本平台为需求方与 OPC 服务者提供需求发布、匹配与协作对接服务。\n2. 未注册的手机号或邮箱在首次登录时将自动创建账号，并分配唯一账号 ID。\n\n二、账号与使用\n1. 用户应保证注册信息真实、准确，账户名可自定义，但不得冒用他人名义。\n2. 通过验证码登录即视为本人操作，请妥善保管账号。\n3. 禁止发布违法、侵权、虚假或与真实需求不符的内容。\n\n三、需求与交付\n1. 需求描述、交付标准、预算与周期由需求方自行填写并对真实性负责。\n2. 平台仅提供信息撮合服务，具体交付与验收由双方协商完成。\n\n四、违规处理\n1. 连续多次验证码错误将触发临时封禁等安全限制。\n2. 对违反本协议的行为，平台有权限制或终止相关账号的使用。\n\n五、其他\n本协议自用户勾选同意之日起生效。平台保留根据运营需要修订本协议的权利，修订后将在登录页公示。",
+  privacy: "OPC 需求平台隐私政策\n\n一、信息收集\n1. 我们收集您主动提供的手机号、邮箱、账户名及角色认证资料。\n2. 登录与使用过程中产生的操作记录将用于安全校验与服务改进。\n\n二、信息使用\n1. 手机号、邮箱仅用于登录验证、账号识别与必要的通知。\n2. 您的联系方式在需求预览中将做打码处理，不会完整展示给其他用户。\n\n三、信息保护\n1. 我们采取合理的技术与管理措施保护您的信息安全。\n2. 除法律法规要求或取得您的授权外，我们不会向第三方提供您的个人信息。\n\n四、您的权利\n1. 您可以随时退出登录，退出后本地登录状态将被清除。\n2. 如需注销账号或删除个人信息，可联系平台管理员处理。\n\n五、政策更新\n本政策如有更新，将在登录页公示，继续使用即视为接受更新后的政策。",
+  opc: "OPC 服务者协议\n\n一、服务者资格\n1. 申请 OPC 服务者需完成实名认证，提供真实姓名、身份证号及正反面照片。\n2. 服务者应具备所声明擅长领域的专业技能，平台有权对能力进行核验。\n\n二、接单与交付\n1. 服务者通过抢单大厅浏览需求并提交报价，报价后需按时交付。\n2. 交付质量需符合需求方提出的交付标准，未达标可能影响服务者评级。\n3. 服务者不得私下交易，所有订单须通过平台完成结算。\n\n三、结算与收益\n1. 平台在需求方验收后向服务者结算收益。\n2. 服务者可在收益中心查看结算记录并申请提现。\n\n四、行为规范\n1. 服务者不得发布虚假信息、抄袭他人作品或进行恶意竞争。\n2. 违反本协议的服务者，平台有权限制接单、暂停账号或永久封禁。",
+  "opc-privacy": "实名认证条款\n\n1. 实名认证信息（身份证号、身份证照片）仅用于身份核验，不向需求方展示。\n2. 认证照片存储于平台安全服务器，仅管理员可查看。\n3. 服务者承诺所填信息真实有效，如发现伪造将永久封禁。",
+  ent: "企业认证协议\n\n一、企业资格\n1. 申请企业认证需提供有效的营业执照（正本）。\n2. 统一社会信用代码需与营业执照一致，用于资质核验。\n\n二、需求发布\n1. 企业认证通过后方可发布需求，需求描述需真实、准确。\n2. 企业需对发布的预算、交付标准、周期等信息负责。\n\n三、结算与验收\n1. 企业需在服务者交付后及时验收，验收后通过平台完成结算。\n2. 争议需在交付后 7 日内提出，逾期视为验收通过。\n\n四、行为规范\n1. 企业不得发布虚假需求、恶意压价或进行不正当竞争。\n2. 违反本协议的企业，平台有权限制发布需求、暂停账号或永久封禁。",
+  "ent-terms": "平台服务条款\n\n1. 平台为信息撮合服务提供方，不直接参与需求方与服务者之间的交付过程。\n2. 平台有权根据运营需要调整服务规则，调整后将在平台公示。\n3. 因不可抗力导致的服务中断，平台不承担责任。"
+};
+
+var AGREEMENT_TITLES = {
+  user: "用户协议", privacy: "隐私政策",
+  opc: "OPC 服务者协议", "opc-privacy": "实名认证条款",
+  ent: "企业认证协议", "ent-terms": "平台服务条款"
+};
+
+function getAgreement(key) {
+  return localStorage.getItem("opc_agreement_" + key) || DEFAULT_AGREEMENTS[key];
+}
+function getAgreementVersion() {
+  return localStorage.getItem("opc_agreement_version") || "1.0";
+}
+
+(function initAgreementModal() {
+  var agreeModal = document.getElementById("agreeModal");
+  if (!agreeModal) return;
+  document.querySelectorAll("[data-agree]").forEach(function (link) {
+    link.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var key = this.getAttribute("data-agree");
+      var title = AGREEMENT_TITLES[key] || "协议";
+      document.getElementById("agreeTitle").innerHTML = title + ' <span class="agree-ver">v' + getAgreementVersion() + '</span>';
+      document.getElementById("agreeBody").textContent = getAgreement(key);
+      agreeModal.classList.add("show");
+    });
+  });
+  var closeBtn = document.getElementById("agreeClose");
+  if (closeBtn) {
+    closeBtn.addEventListener("click", function () {
+      agreeModal.classList.remove("show");
+    });
+  }
+  agreeModal.addEventListener("click", function (e) {
+    if (e.target === agreeModal) agreeModal.classList.remove("show");
+  });
+})();
+
+/* ---------- 登录态校验 ---------- */
+var currentUser = null;
+(function () {
+  try { currentUser = JSON.parse(localStorage.getItem("opc_user")); } catch (e) {}
+  if (!currentUser || !currentUser.time || Date.now() - currentUser.time > 7 * 24 * 3600 * 1000) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  var displayName = currentUser.username || (currentUser.phone ? currentUser.phone.replace(/(\d{3})\d{4}(\d{4})/, "$1****$2") : "用户");
+  document.getElementById("userName").textContent = displayName;
+  document.getElementById("userSub").textContent = currentUser.loginType === "account" ? "账号登录" : "手机号登录";
+  var avatar = document.getElementById("userAvatar");
+  avatar.textContent = displayName.charAt(0).toUpperCase();
+  if (currentUser.role === "admin") avatar.style.background = "#7c3aed";
+
+  /* 角色徽章更新 */
+  updateRoleBadge(currentUser);
+
+  /* 已认证用户：隐藏选择卡片，直接展示已认证信息 */
+  function hideAllViews() {
+    document.getElementById("roleSelect").classList.add("hidden");
+    document.getElementById("stepper").classList.add("hidden");
+    document.getElementById("opcForm").classList.add("hidden");
+    document.getElementById("entForm").classList.add("hidden");
+    document.getElementById("approvedView").classList.add("hidden");
+    document.getElementById("pendingView").classList.add("hidden");
+    document.getElementById("rejectedView").classList.add("hidden");
+  }
+
+  /* 申请编辑信息：确认后暂时封闭权限，等待管理员重新审核 */
+  function enterEditMode(user) {
+    hideAllViews();
+    document.getElementById("stepper").classList.remove("hidden");
+    updateStepper(2);
+    var d = user.authData || {};
+    if (user.authRole === "opc") {
+      document.getElementById("opcForm").classList.remove("hidden");
+      document.getElementById("opcName").value = d.name || "";
+      document.getElementById("opcPhone").value = d.phone || "";
+      if (document.getElementById("opcIdCard") && d.idCard) document.getElementById("opcIdCard").value = d.idCard;
+      /* 还原省市区 */
+      var selP = document.getElementById("opcProvince");
+      var selC = document.getElementById("opcCitySel");
+      var selD = document.getElementById("opcDistrict");
+      var cityStr = d.city || "";
+      Object.keys(REGION_DATA).forEach(function (p) {
+        if (cityStr.indexOf(p) === 0) {
+          selP.value = p;
+          selP.dispatchEvent(new Event("change"));
+          var rest = cityStr.substring(p.length);
+          Object.keys(REGION_DATA[p]).forEach(function (c) {
+            if (rest.indexOf(c) === 0) {
+              selC.value = c;
+              selC.dispatchEvent(new Event("change"));
+              var districtVal = rest.substring(c.length);
+              if (districtVal) selD.value = districtVal;
+            }
+          });
+        }
+      });
+      /* 还原擅长领域 */
+      var savedFields = (d.fields || "").split("、").filter(function (f) { return !!f; });
+      document.querySelectorAll("#opcFieldTags input").forEach(function (cb) {
+        cb.checked = savedFields.indexOf(cb.value) >= 0;
+      });
+      var statusArr = (d.status || "").split("、").filter(Boolean);
+      document.querySelectorAll("#opcStatusTags input[type=checkbox]").forEach(function (cb) {
+        cb.checked = statusArr.indexOf(cb.value) >= 0;
+      });
+      if (document.getElementById("opcPortfolio")) document.getElementById("opcPortfolio").value = d.portfolio || "";
+      if (document.getElementById("opcBio")) document.getElementById("opcBio").value = d.intro || "";
+      injectCancelBar("opcForm");
+    } else {
+      document.getElementById("entForm").classList.remove("hidden");
+      document.getElementById("entName").value = d.companyName || "";
+      document.getElementById("entCreditCode").value = d.creditCode || "";
+      document.getElementById("entIndustry").value = d.industry || "";
+      document.getElementById("entScale").value = d.scale || "";
+      document.getElementById("entCity").value = d.city || "";
+      document.getElementById("entAddress").value = d.address || "";
+      document.getElementById("entContact").value = d.contact || "";
+      document.getElementById("entPhone").value = d.phone || "";
+      injectCancelBar("entForm");
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function injectCancelBar(formId) {
+    var form = document.getElementById(formId);
+    if (form.querySelector(".edit-cancel-bar")) return;
+    var bar = document.createElement("div");
+    bar.className = "edit-cancel-bar";
+    bar.style.cssText = "display:flex;justify-content:space-between;align-items:center;background:var(--orange-light,#fff7ed);border:1px solid #fdba74;border-radius:10px;padding:10px 16px;margin-bottom:16px;font-size:12.5px;color:#9a3412";
+    bar.innerHTML = '<span>✏️ 编辑模式：提交后将重新进入审核，审核期间权限暂时封闭</span>'
+      + '<button type="button" id="cancelEditBtn" style="background:none;border:none;color:var(--primary);font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;text-decoration:underline">取消编辑，恢复权限</button>';
+    form.insertBefore(bar, form.firstChild);
+    document.getElementById("cancelEditBtn").addEventListener("click", function () {
+      currentUser.authStatus = "approved";
+      currentUser.editMode = false;
+      localStorage.setItem("opc_user", JSON.stringify(currentUser));
+      var accounts = [];
+      try { accounts = JSON.parse(localStorage.getItem("opc_accounts")) || []; } catch (e) {}
+      for (var i = 0; i < accounts.length; i++) {
+        if (accounts[i].id === currentUser.accountId) {
+          accounts[i].authStatus = "approved";
+          localStorage.setItem("opc_accounts", JSON.stringify(accounts));
+          break;
+        }
+      }
+      bar.remove();
+      updateRoleBadge(currentUser);
+      showApprovedView(currentUser);
+      showToast("已取消编辑，权限已恢复", "success");
+    });
+  }
+
+  function escHtml(s) {
+    return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+  function roItem(label, value, full, multiline) {
+    var v = escHtml(value || "-");
+    return '<div class="form-item' + (full ? ' full' : '') + '">' +
+      '<label style="font-size:13px;color:var(--text-sub)">' + label + '</label>' +
+      (multiline ? '<textarea disabled style="height:64px;resize:none">' + v + '</textarea>'
+                 : '<input type="text" disabled value="' + v + '">') +
+      '</div>';
+  }
+
+  function showApprovedView(user) {
+    hideAllViews();
+    var view = document.getElementById("approvedView");
+    view.classList.remove("hidden");
+    var icon = document.getElementById("approvedIcon");
+    var title = document.getElementById("approvedTitle");
+    var desc = document.getElementById("approvedDesc");
+    var info = document.getElementById("approvedInfo");
+    var backBtn = document.getElementById("approvedBackBtn");
+
+    /* 申请编辑信息按钮：弹窗确认 */
+    document.getElementById("editApplyBtn").onclick = function () {
+      var roleName = user.authRole === "opc" ? "OPC 服务者" : "企业需求方";
+      document.getElementById("editConfirmDesc").innerHTML =
+        "确认后您的<b>" + roleName + "</b>权限将被<b style='color:var(--error)'>暂时封闭</b>，<br>需重新提交认证信息并等待管理员审核，<br>审核通过后才能恢复" + roleName + "的权限。";
+      document.getElementById("editConfirmModal").classList.remove("hidden");
+    };
+    document.getElementById("editCancelBtn").onclick = function () {
+      document.getElementById("editConfirmModal").classList.add("hidden");
+    };
+    document.getElementById("editConfirmBtn").onclick = function () {
+      document.getElementById("editConfirmModal").classList.add("hidden");
+      user.authStatus = "pending";
+      user.editMode = true;
+      localStorage.setItem("opc_user", JSON.stringify(user));
+      var accounts = [];
+      try { accounts = JSON.parse(localStorage.getItem("opc_accounts")) || []; } catch (e) {}
+      for (var i = 0; i < accounts.length; i++) {
+        if (accounts[i].id === user.accountId) {
+          accounts[i].authStatus = "pending";
+          localStorage.setItem("opc_accounts", JSON.stringify(accounts));
+          break;
+        }
+      }
+      updateRoleBadge(user);
+      enterEditMode(user);
+      showToast("权限已暂时封闭，请重新提交认证信息", "");
+    };
+
+    if (user.authRole === "opc") {
+      icon.textContent = "✅";
+      title.textContent = "OPC 服务者认证已通过";
+      desc.textContent = "您的认证信息已通过审核，如需修改请点击下方「申请编辑信息」。";
+      backBtn.href = "opc-dashboard.html";
+      var d = user.authData || {};
+      info.innerHTML =
+        '<div class="field-grid">' +
+        roItem("真实姓名", d.name) +
+        roItem("手机号", d.phone) +
+        roItem("所在城市", d.city) +
+        roItem("擅长领域", d.fields) +
+        roItem("接单状态", d.status) +
+        roItem("作品集链接", d.portfolio) +
+        roItem("个人简介", d.intro, true, true) +
+        '</div>';
+    } else {
+      icon.textContent = "✅";
+      title.textContent = "企业需求方认证已通过";
+      desc.textContent = "您的认证信息已通过审核，如需修改请点击下方「申请编辑信息」。";
+      backBtn.href = "dashboard.html";
+      var d = user.authData || {};
+      info.innerHTML =
+        '<div class="field-grid">' +
+        roItem("企业名称", d.companyName) +
+        roItem("统一社会信用代码", d.creditCode) +
+        roItem("所属行业", d.industry) +
+        roItem("企业规模", d.scale) +
+        roItem("所在城市", d.city) +
+        roItem("联系人", d.contact) +
+        roItem("联系电话", d.phone) +
+        roItem("企业地址", d.address, true) +
+        '</div>';
+    }
+
+    /* ===== 第三方平台绑定初始化 ===== */
+    initOAuthBinding(user);
+  }
+
+  /* ===== 第三方平台绑定逻辑 ===== */
+  function initOAuthBinding(user) {
+    var accounts = [];
+    try { accounts = JSON.parse(localStorage.getItem("opc_accounts")) || []; } catch (e) {}
+    var myAccount = null;
+    for (var i = 0; i < accounts.length; i++) {
+      if (accounts[i].id === user.accountId || accounts[i].accountId === user.accountId) { myAccount = accounts[i]; break; }
+    }
+    var bindings = (myAccount && myAccount.oauth) ? myAccount.oauth : {};
+
+    ["gitee", "feishu"].forEach(function (provider) {
+      var statusEl = document.getElementById("oauth" + provider.charAt(0).toUpperCase() + provider.slice(1) + "Status");
+      var btnEl = document.getElementById("oauth" + provider.charAt(0).toUpperCase() + provider.slice(1) + "Btn");
+      if (!statusEl || !btnEl) return;
+
+      var bound = bindings[provider];
+      if (bound) {
+        statusEl.className = "oauth-bind-status bound";
+        statusEl.innerHTML = "✓ 已绑定（" + escHtml(bound.nick || bound.openId) + "）";
+        btnEl.textContent = "解除绑定";
+        btnEl.className = "oauth-bind-btn unbind";
+      } else {
+        statusEl.className = "oauth-bind-status unbound";
+        statusEl.textContent = "未绑定";
+        btnEl.textContent = "绑定";
+        btnEl.className = "oauth-bind-btn bind";
+      }
+
+      btnEl.onclick = function () {
+        if (bound) {
+          if (!confirm("确定解除" + (provider === "gitee" ? "Gitee" : "飞书") + "绑定吗？解除后将无法通过该平台直接登录。")) return;
+          delete bindings[provider];
+          if (myAccount) {
+            myAccount.oauth = bindings;
+            var saveAccounts = JSON.parse(localStorage.getItem("opc_accounts") || "[]");
+            for (var k = 0; k < saveAccounts.length; k++) {
+              if (saveAccounts[k].id === user.accountId || saveAccounts[k].accountId === user.accountId) {
+                saveAccounts[k].oauth = bindings; break;
+              }
+            }
+            localStorage.setItem("opc_accounts", JSON.stringify(saveAccounts));
+          }
+          bound = null;
+          statusEl.className = "oauth-bind-status unbound";
+          statusEl.textContent = "未绑定";
+          btnEl.textContent = "绑定";
+          btnEl.className = "oauth-bind-btn bind";
+          showToast("已解除" + (provider === "gitee" ? "Gitee" : "飞书") + "绑定");
+        } else {
+          var platName = provider === "gitee" ? "Gitee" : "飞书";
+          showToast("正在跳转到" + platName + "授权页面…");
+          setTimeout(function () {
+            var mockOpenId = provider + "_" + Date.now();
+            var mockNick = provider === "gitee" ? "码客_" + user.username : "飞书用户_" + user.username;
+            bindings[provider] = { openId: mockOpenId, nick: mockNick, boundAt: Date.now() };
+            if (myAccount) {
+              myAccount.oauth = bindings;
+              var saveAccts = JSON.parse(localStorage.getItem("opc_accounts") || "[]");
+              for (var k = 0; k < saveAccts.length; k++) {
+                if (saveAccts[k].id === user.accountId || saveAccts[k].accountId === user.accountId) {
+                  saveAccts[k].oauth = bindings; break;
+                }
+              }
+              localStorage.setItem("opc_accounts", JSON.stringify(saveAccts));
+            }
+            bound = bindings[provider];
+            statusEl.className = "oauth-bind-status bound";
+            statusEl.innerHTML = "✓ 已绑定（" + escHtml(mockNick) + "）";
+            btnEl.textContent = "解除绑定";
+            btnEl.className = "oauth-bind-btn unbind";
+            showToast(platName + "绑定成功！下次登录可直接点击" + platName + "按钮进入平台", "success");
+          }, 1200);
+        }
+      };
+    });
+  }
+
+  function showPendingView(user) {
+    hideAllViews();
+    document.getElementById("pendingView").classList.remove("hidden");
+  }
+
+  function showRejectedView(user) {
+    hideAllViews();
+    var view = document.getElementById("rejectedView");
+    view.classList.remove("hidden");
+    var reasonEl = document.getElementById("rejectedReason");
+    if (user.rejectReason) {
+      reasonEl.textContent = "拒绝原因：" + user.rejectReason;
+      reasonEl.style.display = "block";
+    } else {
+      reasonEl.style.display = "none";
+    }
+    /* 重新认证按钮：清除认证状态，回到角色选择 */
+    document.getElementById("reAuthBtn").addEventListener("click", function () {
+      user.authRole = undefined;
+      user.authStatus = undefined;
+      user.authData = undefined;
+      user.rejectReason = undefined;
+      localStorage.setItem("opc_user", JSON.stringify(user));
+      hideAllViews();
+      document.getElementById("roleSelect").classList.remove("hidden");
+      document.getElementById("stepper").classList.remove("hidden");
+      updateStepper(1);
+      updateRoleBadge(user);
+    });
+  }
+
+  if (location.hash === "#editapply" && currentUser.authRole && currentUser.authStatus === "approved") {
+    showApprovedView(currentUser);
+    document.getElementById("editApplyBtn").click();
+  } else if (location.hash === "#editmode" && currentUser.authRole && currentUser.authStatus === "approved") {
+    showApprovedView(currentUser);
+    document.getElementById("editApplyBtn").click();
+    document.getElementById("editConfirmBtn").click();
+  } else if (currentUser.authRole && currentUser.authStatus === "approved") {
+    showApprovedView(currentUser);
+  } else if (currentUser.authRole && currentUser.authStatus === "pending" && currentUser.editMode) {
+    enterEditMode(currentUser);
+  } else if (currentUser.authRole && currentUser.authStatus === "pending") {
+    showPendingView(currentUser);
+  } else if (currentUser.authRole && currentUser.authStatus === "rejected") {
+    showRejectedView(currentUser);
+  }
+
+  /* 管理员直通 */
+  if (currentUser.role === "admin") {
+    document.getElementById("adminPass").classList.remove("hidden");
+    document.getElementById("roleSelect").classList.add("hidden");
+    document.getElementById("stepper").classList.add("hidden");
+  }
+
+  document.getElementById("logoutBtn").addEventListener("click", function () {
+    if (confirm("确定退出登录吗？")) {
+      localStorage.removeItem("opc_user");
+      window.location.href = "login.html";
+    }
+  });
+
+  /* ===== 实时同步认证状态（3秒轮询 + 窗口聚焦触发） ===== */
+  function syncAuthStatus() {
+    if (!currentUser || !currentUser.authRole || currentUser.role === "admin") return;
+    if (currentUser.authStatus !== "pending") return;
+    try {
+      var accts = JSON.parse(localStorage.getItem("opc_accounts")) || [];
+      for (var i = 0; i < accts.length; i++) {
+        if (accts[i].email === currentUser.email) {
+          if (accts[i].authStatus && accts[i].authStatus !== currentUser.authStatus) {
+            currentUser.authStatus = accts[i].authStatus;
+            currentUser.rejectReason = accts[i].rejectReason || "";
+            if (accts[i].authData) currentUser.authData = accts[i].authData;
+            if (currentUser.editMode) currentUser.editMode = false;
+            localStorage.setItem("opc_user", JSON.stringify(currentUser));
+            updateRoleBadge(currentUser);
+            if (currentUser.authStatus === "approved") {
+              showToast("认证已通过！权限已恢复", "success");
+              showApprovedView(currentUser);
+            } else if (currentUser.authStatus === "rejected") {
+              showToast("认证未通过，请查看原因", "error");
+              showRejectedView(currentUser);
+            }
+          }
+          break;
+        }
+      }
+    } catch (e) {}
+  }
+  setInterval(syncAuthStatus, 3000);
+  window.addEventListener("focus", syncAuthStatus);
+})();
+
+function updateRoleBadge(user) {
+  var badge = document.getElementById("roleBadge");
+  var text = document.getElementById("roleBadgeText");
+  if (user.role === "admin") {
+    badge.className = "role-badge admin";
+    text.textContent = "超级管理员";
+  } else if (user.authRole === "opc") {
+    badge.className = "role-badge opc";
+    text.textContent = user.authStatus === "approved" ? "OPC 服务者" : "OPC 认证中";
+  } else if (user.authRole === "enterprise") {
+    badge.className = "role-badge enterprise";
+    text.textContent = user.authStatus === "approved" ? "企业需求方" : "企业认证中";
+  } else {
+    badge.className = "role-badge unverified";
+    text.textContent = "未认证";
+  }
+}
+
+/* ---------- 角色选择 ---------- */
+document.querySelectorAll(".role-card").forEach(function (card) {
+  card.addEventListener("click", function () {
+    document.querySelectorAll(".role-card").forEach(function (c) { c.classList.remove("selected"); });
+    this.classList.add("selected");
+    var role = this.dataset.role;
+    setTimeout(function () {
+      document.getElementById("roleSelect").classList.add("hidden");
+      if (role === "opc") document.getElementById("opcForm").classList.remove("hidden");
+      else document.getElementById("entForm").classList.remove("hidden");
+      updateStepper(2);
+    }, 200);
+  });
+});
+
+/* 返回角色选择 */
+document.getElementById("opcBack").addEventListener("click", function () {
+  document.getElementById("opcForm").classList.add("hidden");
+  document.getElementById("roleSelect").classList.remove("hidden");
+  document.querySelectorAll(".role-card").forEach(function (c) { c.classList.remove("selected"); });
+  updateStepper(1);
+});
+document.getElementById("entBack").addEventListener("click", function () {
+  document.getElementById("entForm").classList.add("hidden");
+  document.getElementById("roleSelect").classList.remove("hidden");
+  document.querySelectorAll(".role-card").forEach(function (c) { c.classList.remove("selected"); });
+  updateStepper(1);
+});
+
+/* ---------- 步骤条更新 ---------- */
+function updateStepper(step) {
+  var steps = [
+    document.getElementById("step1"),
+    document.getElementById("step2"),
+    document.getElementById("step3")
+  ];
+  var lines = [document.getElementById("line1"), document.getElementById("line2")];
+
+  steps.forEach(function (s, i) {
+    s.classList.remove("active", "completed");
+    if (i + 1 < step) s.classList.add("completed");
+    else if (i + 1 === step) s.classList.add("active");
+  });
+  lines.forEach(function (l, i) {
+    l.classList.toggle("done", i + 1 < step);
+  });
+
+  if (step === 1) {
+    document.getElementById("stepper").classList.remove("hidden");
+  }
+}
+
+/* ---------- 输入时清除错误 ---------- */
+function clearErr(input) {
+  var item = input.closest(".form-item");
+  if (item) item.classList.remove("error");
+  input.addEventListener && input.addEventListener("input", function () {
+    if (item) item.classList.remove("error");
+  });
+}
+document.querySelectorAll(".auth-card input, .auth-card select, .auth-card textarea").forEach(clearErr);
+
+/* ---------- 文件上传预览 ---------- */
+function bindUpload(areaId, inputId, previewId) {
+  var area = document.getElementById(areaId);
+  var input = document.getElementById(inputId);
+  var preview = document.getElementById(previewId);
+  area.addEventListener("click", function () { input.click(); });
+  input.addEventListener("change", function () {
+    if (this.files && this.files[0]) {
+      preview.textContent = "已选择：" + this.files[0].name;
+      var errEl = this.closest(".form-item").querySelector(".error-msg");
+      if (errEl) errEl.style.display = "none";
+    }
+  });
+}
+bindUpload("opcUploadFront", "opcFileFront", "opcFrontPreview");
+bindUpload("opcUploadBack", "opcFileBack", "opcBackPreview");
+bindUpload("entUploadOriginal", "entFileOriginal", "entOriginalPreview");
+
+/* ---------- OPC 表单提交 ---------- */
+document.getElementById("opcAuthForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+  var hasErr = false;
+
+  function check(id, validator, msg) {
+    var input = document.getElementById(id);
+    var val = input.value.trim();
+    var item = input.closest(".form-item");
+    if (!validator(val)) { item.classList.add("error"); hasErr = true; return false; }
+    item.classList.remove("error");
+    return true;
+  }
+
+  check("opcName", function (v) { return v.length >= 2; });
+  check("opcPhone", function (v) { return /^1[3-9]\d{9}$/.test(v); });
+  check("opcIdCard", function (v) { return /^\d{17}[\dXx]$/.test(v); });
+
+  /* 省/市/区 校验 */
+  var province = document.getElementById("opcProvince").value;
+  var city = document.getElementById("opcCitySel").value;
+  var district = document.getElementById("opcDistrict").value;
+  var cityItem = document.getElementById("opcProvince").closest(".form-item");
+  if (!province || !city || !district) { cityItem.classList.add("error"); hasErr = true; }
+  else cityItem.classList.remove("error");
+
+  /* 擅长领域多选校验 */
+  var fieldTags = document.querySelectorAll("#opcFieldTags input:checked");
+  var fieldItem = document.getElementById("opcFieldTags").closest(".form-item");
+  if (fieldTags.length === 0) { fieldItem.classList.add("error"); hasErr = true; }
+  else fieldItem.classList.remove("error");
+
+  check("opcBio", function (v) { return true; });
+  check("opcStatusTags", function () {
+    return document.querySelectorAll("#opcStatusTags input:checked").length > 0;
+  });
+
+  var opcFront = document.getElementById("opcFileFront");
+  var opcBack = document.getElementById("opcFileBack");
+  var opcFileErr = document.getElementById("opcFileErr");
+  if (!opcFront.files || !opcFront.files[0] || !opcBack.files || !opcBack.files[0]) {
+    opcFileErr.style.display = "block";
+    if (!opcFront.files || !opcFront.files[0]) opcFileErr.textContent = "请上传身份证正面（人像面）";
+    else opcFileErr.textContent = "请上传身份证反面（国徽面）";
+    hasErr = true;
+  } else {
+    opcFileErr.style.display = "none";
+  }
+
+  if (!document.getElementById("opcAgree").checked) {
+    showToast("请先同意服务者协议", "error");
+    return;
+  }
+
+  if (hasErr) { showToast("请补全必填信息", "error"); return; }
+
+  var btn = e.target.querySelector(".submit-btn");
+  btn.disabled = true; btn.textContent = "提交中…";
+  finishOpcSubmit();
+});
+
+/* ---------- 同步账号表 + 推入管理员审核队列 ---------- */
+function submitForReview(role, authData) {
+  currentUser.authRole = role;
+  currentUser.authStatus = "pending";
+  currentUser.editMode = false;
+  currentUser.authData = authData;
+  localStorage.setItem("opc_user", JSON.stringify(currentUser));
+
+  var accounts = [];
+  try { accounts = JSON.parse(localStorage.getItem("opc_accounts")) || []; } catch (e) {}
+  for (var i = 0; i < accounts.length; i++) {
+    if (accounts[i].id === currentUser.accountId) {
+      accounts[i].authRole = role;
+      accounts[i].authStatus = "pending";
+      accounts[i].authData = authData;
+      localStorage.setItem("opc_accounts", JSON.stringify(accounts));
+      break;
+    }
+  }
+
+  var q = [];
+  try { q = JSON.parse(localStorage.getItem("opc_review_queue")) || []; } catch (e) {}
+  q = q.filter(function (it) { return !(it.accountId === currentUser.accountId && it.role === role); });
+  q.push({
+    accountId: currentUser.accountId,
+    username: currentUser.username || "",
+    role: role,
+    status: "pending",
+    time: Date.now(),
+    data: authData
+  });
+  localStorage.setItem("opc_review_queue", JSON.stringify(q));
+}
+
+/* ---------- OPC 表单提交（后半段） ---------- */
+function finishOpcSubmit() {
+  setTimeout(function () {
+    var province = document.getElementById("opcProvince").value;
+    var city = document.getElementById("opcCitySel").value;
+    var district = document.getElementById("opcDistrict").value;
+    var fields = [];
+    document.querySelectorAll("#opcFieldTags input:checked").forEach(function (cb) { fields.push(cb.value); });
+    submitForReview("opc", {
+      name: document.getElementById("opcName").value.trim(),
+      phone: document.getElementById("opcPhone").value.trim(),
+      city: province + city + district,
+      fields: fields.join("、"),
+      status: Array.from(document.querySelectorAll("#opcStatusTags input:checked")).map(function (cb) { return cb.value; }).join("、")
+    });
+    updateRoleBadge(currentUser);
+    showToast("认证申请已提交，预计 1-3 个工作日完成审核", "success");
+    setTimeout(function () { window.location.href = "opc-dashboard.html"; }, 1500);
+  }, 600);
+}
+
+/* ---------- 企业表单提交 ---------- */
+document.getElementById("entAuthForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+  var hasErr = false;
+
+  function check(id, validator) {
+    var input = document.getElementById(id);
+    var val = input.value.trim();
+    var item = input.closest(".form-item");
+    if (!validator(val)) { item.classList.add("error"); hasErr = true; }
+    else item.classList.remove("error");
+  }
+
+  check("entName", function (v) { return v.length >= 2; });
+  check("entCreditCode", function (v) { return v.length === 18; });
+  check("entIndustry", function (v) { return !!v; });
+  check("entScale", function (v) { return !!v; });
+  check("entCity", function (v) { return v.length >= 2; });
+  check("entAddress", function (v) { return v.length >= 5; });
+  check("entContact", function (v) { return v.length >= 2; });
+  check("entPhone", function (v) { return v.length >= 6; });
+
+  var entOriginal = document.getElementById("entFileOriginal");
+  var entFileErr = document.getElementById("entFileErr");
+  if (!entOriginal.files || !entOriginal.files[0]) {
+    entFileErr.style.display = "block";
+    entFileErr.textContent = "请上传营业执照正本";
+    hasErr = true;
+  } else {
+    entFileErr.style.display = "none";
+  }
+
+  if (!document.getElementById("entAgree").checked) {
+    showToast("请先同意企业认证协议", "error");
+    return;
+  }
+
+  if (hasErr) { showToast("请补全必填信息", "error"); return; }
+
+  var btn = e.target.querySelector(".submit-btn");
+  btn.disabled = true; btn.textContent = "提交中…";
+
+  setTimeout(function () {
+    submitForReview("enterprise", {
+      companyName: document.getElementById("entName").value.trim(),
+      creditCode: document.getElementById("entCreditCode").value.trim(),
+      industry: document.getElementById("entIndustry").value,
+      scale: document.getElementById("entScale").value,
+      city: document.getElementById("entCity").value.trim(),
+      address: document.getElementById("entAddress").value.trim(),
+      contact: document.getElementById("entContact").value.trim(),
+      phone: document.getElementById("entPhone").value.trim()
+    });
+    updateRoleBadge(currentUser);
+    updateStepper(3);
+    showToast("认证申请已提交，预计 1-3 个工作日完成审核", "success");
+    setTimeout(function () { window.location.href = "dashboard.html"; }, 1500);
+  }, 600);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OPC 需求平台 PRD（开发者版 v2.0）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#3B5BFD;--primary-light:#eef1ff;--primary-dark:#2d47e0;
+  --text-main:#1a1d26;--text-sub:#6b7280;--text-hint:#9ca3af;
+  --border:#e5e7eb;--bg:#f8f9fc;--card:#fff;
+  --code-bg:#1e1e2e;--code-text:#cdd6f4;
+  --green:#16a34a;--green-light:#dcfce7;
+  --orange:#ea580c;--orange-light:#fff7ed;
+  --red:#e5484d;--red-light:#fef2f2;
+  --purple:#7c3aed;--purple-light:#f5f3ff;
+  --radius:12px;
+}
+html{scroll-behavior:smooth}
+body{font-family:"Noto Sans SC","Inter",sans-serif;background:var(--bg);color:var(--text-main);line-height:1.7;-webkit-font-smoothing:antialiased}
+.container{max-width:1100px;margin:0 auto;padding:0 24px}
+
+/* TOC */
+.toc{position:fixed;top:0;left:0;width:260px;height:100vh;background:var(--card);border-right:1px solid var(--border);overflow-y:auto;padding:24px 16px;z-index:100}
+.toc h3{font-size:14px;font-weight:700;margin-bottom:16px;color:var(--primary)}
+.toc a{display:block;padding:6px 12px;font-size:13px;color:var(--text-sub);text-decoration:none;border-radius:6px;transition:all .15s;margin-bottom:2px}
+.toc a:hover{background:var(--primary-light);color:var(--primary)}
+.toc a.sub{padding-left:28px;font-size:12px}
+.toc a.active{background:var(--primary);color:#fff}
+
+.main{margin-left:260px;padding:48px 48px 80px}
+@media(max-width:1024px){.toc{display:none}.main{margin-left:0;padding:24px}}
+
+/* Header */
+.doc-header{text-align:center;margin-bottom:60px;padding-bottom:40px;border-bottom:2px solid var(--border)}
+.doc-header h1{font-size:36px;font-weight:700;background:linear-gradient(135deg,var(--primary),#6d5dfc,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px}
+.doc-header .subtitle{font-size:16px;color:var(--text-sub)}
+.doc-header .meta{margin-top:20px;display:flex;justify-content:center;gap:24px;font-size:13px;color:var(--text-hint)}
+.doc-header .meta span{display:flex;align-items:center;gap:4px}
+
+/* Section */
+.section{margin-bottom:56px}
+.section h2{font-size:26px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.section h2 .num{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--primary),#6d5dfc);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0}
+.section h2 .tag{font-size:12px;font-weight:500;padding:3px 10px;border-radius:20px;background:var(--purple-light);color:var(--purple)}
+.section .lead{font-size:15px;color:var(--text-sub);margin-bottom:24px;margin-left:46px}
+.section h3{font-size:18px;font-weight:600;margin:28px 0 12px;padding-left:46px;position:relative}
+.section h3::before{content:"";position:absolute;left:22px;top:50%;transform:translateY(-50%);width:4px;height:18px;border-radius:2px;background:var(--primary)}
+.section h4{font-size:15px;font-weight:600;margin:20px 0 8px;color:var(--text-sub)}
+.section p{margin-bottom:12px;font-size:14.5px}
+
+/* Card */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin:12px 0;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card.highlight{border-color:var(--primary);border-width:1.5px}
+
+/* Table */
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+th{background:var(--primary-light);color:var(--primary);font-weight:600;text-align:left;padding:10px 12px;border-bottom:2px solid var(--border);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:hover td{background:#fafbfc}
+td code,th code{font-family:"JetBrains Mono",monospace;font-size:12px;background:#f3f4f6;padding:2px 6px;border-radius:4px;color:var(--text-main)}
+
+/* Code */
+pre{background:var(--code-bg);border-radius:10px;padding:18px 20px;overflow-x:auto;margin:12px 0;font-size:13px;line-height:1.6}
+pre code{font-family:"JetBrains Mono",monospace;color:var(--code-text)}
+.code-comment{color:#7f849c}
+.code-keyword{color:#cba6f7}
+.code-string{color:#a6e3a1}
+.code-number{color:#fab387}
+
+/* Badge */
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600}
+.badge.req{background:var(--red-light);color:var(--red)}
+.badge.opt{background:#f3f4f6;color:var(--text-hint)}
+.badge.must{background:var(--green-light);color:var(--green)}
+.badge.skip{background:var(--orange-light);color:var(--orange)}
+
+/* Callout */
+.callout{border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13.5px;border-left:4px solid}
+.callout.warn{background:var(--orange-light);border-color:var(--orange)}
+.callout.danger{background:var(--red-light);border-color:var(--red)}
+.callout.info{background:var(--primary-light);border-color:var(--primary)}
+.callout.success{background:var(--green-light);border-color:var(--green)}
+.callout strong{display:block;margin-bottom:4px;font-size:14px}
+
+/* Flex helpers */
+.row{display:flex;gap:16px;flex-wrap:wrap}
+.col{flex:1;min-width:280px}
+
+/* Endpoint */
+.endpoint{display:flex;align-items:center;gap:10px;padding:12px 16px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;margin:8px 0;font-family:"JetBrains Mono",monospace;font-size:13px}
+.method{padding:3px 10px;border-radius:4px;font-size:11px;font-weight:700;color:#fff}
+.method.GET{background:var(--green)}
+.method.POST{background:var(--primary)}
+.method.PUT{background:var(--orange)}
+.method.DELETE{background:var(--red)}
+
+/* Divider */
+.divider{height:1px;background:var(--border);margin:40px 0}
+</style>
+</head>
+<body>
+
+<!-- TOC -->
+<nav class="toc" id="toc">
+  <h3>📋 目录</h3>
+  <a href="#ch1">1 架构与页面路由</a>
+  <a href="#ch2">2 登录注册模块</a>
+  <a href="#ch3">3 角色认证模块</a>
+  <a href="#ch4">4 工作台模块</a>
+  <a href="#ch5">5 管理员功能模块</a>
+  <a href="#ch6">6 文件存储模块</a>
+  <a href="#ch7">7 数据变更日志</a>
+  <a href="#ch8">8 全局设计规范</a>
+  <a href="#appA">附录A 错误码索引</a>
+  <a href="#appB">附录B 校验正则汇总</a>
+  <a href="#appC">附录C localStorage 结构</a>
+  <a href="#appD">附录D 任务拆分</a>
+</nav>
+
+<div class="main">
+<div class="container">
+
+<!-- Header -->
+<div class="doc-header">
+  <h1>OPC 需求平台 PRD</h1>
+  <p class="subtitle">开发者版 · 面向开发实现的字段级约束文档</p>
+  <div class="meta">
+    <span>📅 2026-08-26</span>
+    <span>👤 3 人开发团队</span>
+    <span>🔄 v2.0</span>
+  </div>
+</div>
+
+<!-- ===== Chapter 1 ===== -->
+<div class="section" id="ch1">
+  <h2><span class="num">1</span> 架构与页面路由 <span class="tag">基础</span></h2>
+  <p class="lead">本平台为纯前端 SPA 风格多页面应用，页面间通过 <code>window.location.href</code> 跳转，登录态持久化在 <code>localStorage</code>。企业端与 OPC 端工作台权限隔离，未认证用户功能受限。</p>
+
+  <h3>1.1 页面路由表</h3>
+  <table>
+    <thead>
+      <tr><th>路由文件</th><th>页面名称</th><th>登录态要求</th><th>角色要求</th><th>未满足时行为</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>login.html</code></td><td>登录/注册页</td><td>未登录可访问</td><td>—</td><td>已登录用户访问 → 自动跳 <code>dashboard.html</code></td></tr>
+      <tr><td><code>dashboard.html</code></td><td>企业工作台</td><td><span class="badge req">必登录</span></td><td>企业认证通过才解锁功能</td><td>未登录 → <code>login.html</code>；登录超 7 天 → <code>login.html</code>；OPC 用户访问 → 弹回 <code>opc-dashboard.html</code></td></tr>
+      <tr><td><code>opc-dashboard.html</code></td><td>OPC 工作台</td><td><span class="badge req">必登录</span></td><td>OPC 认证通过才解锁功能</td><td>未登录 → <code>login.html</code>；企业用户/管理员访问 → 弹回 <code>dashboard.html</code></td></tr>
+      <tr><td><code>role-auth.html</code></td><td>角色认证页</td><td><span class="badge req">必登录</span></td><td>—</td><td>同上登录态校验；已认证通过 → 显示认证信息（不再认证）</td></tr>
+      <tr><td><code>requirement-form.html</code></td><td>发布需求表单</td><td><span class="badge req">必登录</span></td><td>—</td><td>同上</td></tr>
+      <tr><td><code>change-log.html</code></td><td>数据变更日志</td><td><span class="badge req">必登录</span></td><td><span class="badge must">仅管理员</span></td><td>非管理员 → 自动跳转</td></tr>
+      <tr><td><code>role-auth.html</code></td><td>角色认证页（复用）</td><td><span class="badge req">必登录</span></td><td>—</td><td>根据认证状态展示不同内容</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1.2 登录态校验逻辑</h3>
+  <pre><code><span class="code-comment">// 每个受保护页面在 &lt;script&gt; 顶部执行</span>
+<span class="code-keyword">var</span> user = JSON.parse(localStorage.getItem(<span class="code-string">"opc_user"</span>) || <span class="code-string">"null"</span>);
+<span class="code-keyword">if</span> (!user) {
+  window.location.href = <span class="code-string">"login.html"</span>;
+}
+<span class="code-comment">// 登录态过期：7 天 = 7 * 24 * 60 * 60 * 1000 ms</span>
+<span class="code-keyword">var</span> EXPIRE_MS = <span class="code-number">604800000</span>;
+<span class="code-keyword">if</span> (Date.now() - user.time &gt; EXPIRE_MS) {
+  localStorage.removeItem(<span class="code-string">"opc_user"</span>);   <span class="code-comment">// 先 removeItem 再跳转</span>
+  window.location.href = <span class="code-string">"login.html"</span>;
+}</code></pre>
+
+  <div class="callout warn">
+    <strong>⚠ 开发者注意</strong>
+    <code>user.time</code> 是登录时写入的 <code>Date.now()</code> 毫秒时间戳。过期后必须 <strong>先 removeItem 再跳转</strong>，否则用户回退时仍能访问受保护页面。
+  </div>
+
+  <h3>1.3 页面跳转矩阵</h3>
+  <table>
+    <thead><tr><th>起始页</th><th>触发动作</th><th>目标页/行为</th><th>条件</th></tr></thead>
+    <tbody>
+      <tr><td>login.html</td><td>注册成功</td><td>弹窗选角色 → 认证提交 → opc-dashboard.html / dashboard.html</td><td>自动登录后 1 秒弹出角色选择弹窗（无关闭按钮）</td></tr>
+      <tr><td>login.html</td><td>登录成功</td><td>根据角色跳转对应工作台</td><td>admin → dashboard.html；OPC → opc-dashboard.html；企业 → dashboard.html</td></tr>
+      <tr><td>dashboard.html</td><td>协议管理</td><td>弹窗编辑器</td><td>仅管理员可见</td></tr>
+      <tr><td>dashboard.html</td><td>OPC管理/企业管理</td><td>审核弹窗</td><td>仅管理员</td></tr>
+      <tr><td>dashboard.html</td><td>变更日志</td><td>change-log.html</td><td>仅管理员</td></tr>
+      <tr><td>opc-dashboard.html</td><td>抢单大厅等</td><td>Toast 提示</td><td>未认证 → 功能禁用，不可点击</td></tr>
+      <tr><td>role-auth.html</td><td>已认证通过</td><td>显示认证信息（不再认证）</td><td>authStatus === "approved"</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout info">
+    <strong>📌 身份守卫</strong>
+    企业工作台（dashboard.html）检测到 OPC 用户访问时弹回 opc-dashboard.html；OPC 工作台（opc-dashboard.html）检测到企业用户/管理员访问时弹回 dashboard.html。管理员可访问 dashboard.html 但不进入 opc-dashboard.html。
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ===== Chapter 2 ===== -->
+<div class="section" id="ch2">
+  <h2><span class="num">2</span> 登录注册模块 <span class="tag">核心</span></h2>
+  <p class="lead">居中毛玻璃卡片布局，顶部品牌区 + 登录/注册面板。登录方式仅支持邮箱登录（已删除手机号登录和账号密码登录）。支持拼图人机验证、验证码限流、记住我、第三方登录入口、注册成功后角色选择弹窗。</p>
+
+  <div class="callout info">
+    <strong>📌 v2.0 变更说明</strong>
+    ① 登录方式仅保留邮箱登录，删除手机号登录和账号密码登录；② 第三方登录仅保留 Gitee + 飞书（删除微信/GitHub/Google）；③ 注册成功后自动登录 + 弹出角色选择弹窗；④ 新增密码强度指示器；⑤ 新增记住我功能。
+  </div>
+
+  <h3>2.1 登录面板字段约束表</h3>
+  <table>
+    <thead><tr><th>字段</th><th>HTML type</th><th>必填</th><th>校验规则</th><th>错误提示</th></tr></thead>
+    <tbody>
+      <tr><td>邮箱地址 <code>emailAddr</code></td><td><code>email</code></td><td><span class="badge req">必填</span></td><td>邮箱格式校验（标准 email 正则）</td><td>请输入邮箱地址</td></tr>
+      <tr><td>手机号 <code>emailPhone</code></td><td><code>tel</code></td><td><span class="badge opt">选填</span></td><td>/^1[3-9]\d{9}$/（填了才校验）</td><td>—</td></tr>
+      <tr><td>邮箱验证码 <code>emailCode</code></td><td><code>text</code></td><td><span class="badge req">必填</span></td><td><code>length &gt;= 4</code></td><td>请输入验证码</td></tr>
+      <tr><td>记住我 <code>rememberEmail</code></td><td><code>checkbox</code></td><td><span class="badge opt">选填</span></td><td>—</td><td>—</td></tr>
+      <tr><td>协议勾选</td><td><code>checkbox</code></td><td><span class="badge req">必勾</span></td><td><code>!checked</code></td><td>请先同意用户协议和隐私政策</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout danger">
+    <strong>🔴 管理员账号</strong>
+    管理员邮箱：<code>admin@opc.com</code>，登录后 <code>role</code> 设为 <code>admin</code>。管理员登录后跳转 dashboard.html，不受未认证限制。
+  </div>
+
+  <h3>2.2 验证码规则</h3>
+  <table>
+    <thead><tr><th>规则项</th><th>约束</th><th>按钮显示</th></tr></thead>
+    <tbody>
+      <tr><td>获取前置条件</td><td>先通过拼图验证</td><td>拼图通过后才发码</td></tr>
+      <tr><td>倒计时</td><td>获取后 60 秒倒计时</td><td>"{n}s 后重发"</td></tr>
+      <tr><td>总获取上限</td><td>总共最多获取 3 次</td><td>"已达上限 3/3"</td></tr>
+      <tr><td>封禁规则</td><td>连续输错 3 次验证码 → 封禁 2 分钟</td><td>"封禁中 {n}s"</td></tr>
+      <tr><td>封禁解除</td><td>封禁到期后次数清零</td><td>恢复 "获取验证码"</td></tr>
+      <tr><td>模拟下发</td><td>Toast 模拟验证码下发</td><td>Toast: "验证码已发送至邮箱"</td></tr>
+    </tbody>
+  </table>
+
+  <h3>2.3 第三方登录</h3>
+  <table>
+    <thead><tr><th>入口</th><th>hover 色</th><th>点击行为</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr><td>Gitee</td><td>红色 <code>#c71d23</code></td><td>点击弹 Toast</td><td>"即将上线"</td></tr>
+      <tr><td>飞书</td><td>蓝色 <code>#3370ff</code></td><td>点击弹 Toast</td><td>"即将上线"</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <strong>⚠ 已移除</strong>
+    微信登录、GitHub 登录、Google 登录均已删除，不再保留入口。
+  </div>
+
+  <h3>2.4 记住我功能</h3>
+  <table>
+    <thead><tr><th>场景</th><th>行为</th><th>localStorage 键</th></tr></thead>
+    <tbody>
+      <tr><td>勾选后登录成功</td><td>邮箱存入 <code>opc_remember</code></td><td><code>opc_remember</code></td></tr>
+      <tr><td>不勾选</td><td>清除已存记录</td><td><code>removeItem("opc_remember")</code></td></tr>
+      <tr><td>登录过期后再访问</td><td>自动填入邮箱 + 勾选记住我 + Toast 提示</td><td>读取 <code>opc_remember</code> 回填</td></tr>
+    </tbody>
+  </table>
+  <pre><code><span class="code-comment">// Toast 提示文案</span>
+Toast.info(<span class="code-string">"已填入上次登录的邮箱，获取验证码即可登录"</span>);</code></pre>
+
+  <h3>2.5 停用账号拦截</h3>
+  <pre><code><span class="code-comment">// 登录时检查账号状态</span>
+<span class="code-keyword">if</span> (acc.status === <span class="code-number">1</span>) {
+  Toast.error(<span class="code-string">"该账号已被停用，请联系管理员"</span>);
+  <span class="code-keyword">return</span>;  <span class="code-comment">// 拦截登录</span>
+}</code></pre>
+
+  <h3>2.6 注册表单字段约束表</h3>
+  <table>
+    <thead><tr><th>字段</th><th>HTML type</th><th>必填</th><th>最大长度</th><th>校验规则</th><th>错误提示</th></tr></thead>
+    <tbody>
+      <tr><td>自定义账户名 <code>username</code></td><td><code>text</code></td><td><span class="badge req">必填</span></td><td>—</td><td><code>length &gt;= 2</code></td><td>请输入账户名</td></tr>
+      <tr><td>手机号 <code>phone</code></td><td><code>tel</code></td><td><span class="badge req">必填</span></td><td>11</td><td>/^1[3-9]\d{9}$/</td><td>请输入正确的手机号</td></tr>
+      <tr><td>邮箱地址 <code>email</code></td><td><code>email</code></td><td><span class="badge req">必填</span></td><td>—</td><td>邮箱格式校验</td><td>请输入正确的邮箱地址</td></tr>
+      <tr><td>密码 <code>password</code></td><td><code>password</code></td><td><span class="badge req">必填</span></td><td>—</td><td><code>length &gt;= 6</code> 且含大写+小写+符号</td><td>密码至少6位 / 密码需包含大写字母、小写字母和符号</td></tr>
+      <tr><td>确认密码 <code>confirmPassword</code></td><td><code>password</code></td><td><span class="badge req">必填</span></td><td>—</td><td><code>!== password</code></td><td>两次输入的密码不一致</td></tr>
+      <tr><td>协议勾选</td><td><code>checkbox</code></td><td><span class="badge req">必勾</span></td><td>—</td><td><code>!checked</code></td><td>请先同意用户协议和隐私政策</td></tr>
+    </tbody>
+  </table>
+
+  <h3>2.7 密码强度指示器</h3>
+  <div class="card highlight">
+    <h4>5 个判断维度</h4>
+    <table>
+      <thead><tr><th>维度</th><th>判断条件</th></tr></thead>
+      <tbody>
+        <tr><td>维度 1</td><td>长度 &gt;= 6</td></tr>
+        <tr><td>维度 2</td><td>长度 &gt;= 10</td></tr>
+        <tr><td>维度 3</td><td>含大小写字母</td></tr>
+        <tr><td>维度 4</td><td>含数字</td></tr>
+        <tr><td>维度 5</td><td>含符号</td></tr>
+      </tbody>
+    </table>
+
+    <h4>4 档强度</h4>
+    <table>
+      <thead><tr><th>档位</th><th>命中维度数</th><th>颜色</th></tr></thead>
+      <tbody>
+        <tr><td>弱</td><td>&lt;= 1 项</td><td>红色 <code>#e5484d</code></td></tr>
+        <tr><td>中</td><td>&lt;= 2 项</td><td>橙色 <code>#ea580c</code></td></tr>
+        <tr><td>强</td><td>&lt;= 3 项</td><td>蓝色 <code>#3B5BFD</code></td></tr>
+        <tr><td>很强</td><td>&gt;= 4 项</td><td>绿色 <code>#16a34a</code></td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout info">
+      <strong>📌 交互规则</strong>
+      4 格进度条 + 文字标签，输入时实时显示，清空时隐藏。进度条带渐变过渡动画。
+    </div>
+  </div>
+
+  <h3>2.8 注册成功后流程</h3>
+  <pre><code><span class="code-comment">// 1. 生成唯一账号 ID：OPC + 自增数字（从 OPC100001 开始）</span>
+<span class="code-keyword">var</span> accounts = JSON.parse(localStorage.getItem(<span class="code-string">"opc_accounts"</span>) || <span class="code-string">"[]"</span>);
+<span class="code-keyword">var</span> maxId = accounts.reduce((max, a) =&gt; {
+  <span class="code-keyword">var</span> num = parseInt(a.accountId.replace(<span class="code-string">"OPC"</span>, <span class="code-string">""</span>)) || <span class="code-number">100000</span>;
+  <span class="code-keyword">return</span> Math.max(max, num);
+}, <span class="code-number">100000</span>);
+<span class="code-keyword">var</span> accountId = <span class="code-string">"OPC"</span> + (maxId + <span class="code-number">1</span>);  <span class="code-comment">// 如 OPC100001</span>
+
+<span class="code-comment">// 2. 自动登录</span>
+localStorage.setItem(<span class="code-string">"opc_user"</span>, JSON.stringify({
+  username: username, accountId: accountId, email: email, phone: phone,
+  loginType: <span class="code-string">"email"</span>, role: <span class="code-string">"user"</span>,
+  authStatus: <span class="code-keyword">undefined</span>, time: Date.now()
+}));
+
+<span class="code-comment">// 3. Toast 显示账号 ID</span>
+Toast.success(<span class="code-string">"注册成功，已自动登录。您的账号 ID："</span> + accountId);
+
+<span class="code-comment">// 4. 1 秒后弹出角色选择弹窗（无关闭按钮，必须选）</span>
+setTimeout(showRoleSelectModal, <span class="code-number">1000</span>);</code></pre>
+
+  <h3>2.9 角色选择弹窗</h3>
+  <div class="card highlight">
+    <h4>弹窗结构</h4>
+    <table>
+      <thead><tr><th>元素</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>两个卡片</td><td>🛠️ OPC服务者 / 🏢 企业需求方</td></tr>
+        <tr><td>关闭按钮</td><td>无（必须选择角色才能继续）</td></tr>
+        <tr><td>选择 OPC</td><td>展开 OPC 认证表单</td></tr>
+        <tr><td>选择企业</td><td>展开企业认证表单</td></tr>
+        <tr><td>返回按钮</td><td>"← 重新选择身份"</td></tr>
+      </tbody>
+    </table>
+
+    <h4>OPC 认证表单字段（弹窗内）</h4>
+    <table>
+      <thead><tr><th>字段</th><th>类型</th><th>必填</th></tr></thead>
+      <tbody>
+        <tr><td>真实姓名</td><td>text</td><td><span class="badge req">必填</span></td></tr>
+        <tr><td>手机号</td><td>tel</td><td><span class="badge req">必填</span></td></tr>
+        <tr><td>身份证号</td><td>text</td><td><span class="badge req">必填</span></td></tr>
+        <tr><td>所在城市</td><td>text</td><td><span class="badge req">必填</span></td></tr>
+        <tr><td>擅长领域</td><td>select</td><td><span class="badge req">必填</span></td></tr>
+        <tr><td>接单状态</td><td>select</td><td><span class="badge req">必填</span></td></tr>
+        <tr><td>作品集链接</td><td>text</td><td><span class="badge opt">选填</span></td></tr>
+        <tr><td>个人简介</td><td>textarea</td><td><span class="badge opt">选填</span></td></tr>
+        <tr><td>身份证正面</td><td>file</td><td><span class="badge req">必填</span></td></tr>
+        <tr><td>身份证反面</td><td>file</td><td><span class="badge req">必填</span></td></tr>
+      </tbody>
+    </table>
+
+    <h4>企业认证表单字段（弹窗内）</h4>
+    <table>
+      <thead><tr><th>字段</th><th>类型</th><th>必填</th></tr></thead>
+      <tbody>
+        <tr><td>企业名称</td><td>text</td><td><span class="badge req">必填</span></td></tr>
+        <tr><td>信用代码</td><td>text</td><td><span class="badge req">必填</span></td></tr>
+        <tr><td>所属行业</td><td>select</td><td><span class="badge req">必填</span></td></tr>
+        <tr><td>企业规模</td><td>select</td><td><span class="badge req">必填</span></td></tr>
+        <tr><td>所在城市</td><td>text</td><td><span class="badge req">必填</span></td></tr>
+        <tr><td>企业地址</td><td>text</td><td><span class="badge req">必填</span></td></tr>
+        <tr><td>联系人</td><td>text</td><td><span class="badge req">必填</span></td></tr>
+        <tr><td>联系电话</td><td>tel</td><td><span class="badge req">必填</span></td></tr>
+        <tr><td>营业执照正本</td><td>file</td><td><span class="badge req">必填</span></td></tr>
+        <tr><td>营业执照副本</td><td>file</td><td><span class="badge req">必填</span></td></tr>
+        <tr><td>企业资质文件</td><td>file</td><td><span class="badge opt">选填</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <pre><code><span class="code-comment">// 提交后写入认证状态</span>
+localStorage.setItem(<span class="code-string">"opc_user"</span>, JSON.stringify({
+  ...user,
+  authRole: <span class="code-string">"opc"</span>,        <span class="code-comment">// 或 "enterprise"</span>
+  authStatus: <span class="code-string">"pending"</span>,   <span class="code-comment">// 已提交待审核</span>
+  authData: { ...认证表单数据 }
+}));
+
+<span class="code-comment">// 跳转对应工作台</span>
+<span class="code-comment">// OPC → opc-dashboard.html</span>
+<span class="code-comment">// 企业 → dashboard.html</span></code></pre>
+
+  <h3>2.10 协议查看弹窗</h3>
+  <table>
+    <thead><tr><th>功能</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>链接入口</td><td>《用户协议》《隐私政策》可点击</td></tr>
+      <tr><td>弹窗内容</td><td>只读弹窗展示协议内容</td></tr>
+      <tr><td>内容来源</td><td>管理员编辑后即时生效（localStorage）</td></tr>
+      <tr><td>默认文案</td><td>内置默认文案，管理员可编辑覆盖</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="divider"></div>
+
+<!-- ===== Chapter 3 ===== -->
+<div class="section" id="ch3">
+  <h2><span class="num">3</span> 角色认证模块 <span class="tag">权限</span></h2>
+  <p class="lead">三种角色：超级管理员（admin@opc.com 邮箱自动）、OPC 服务者（需认证）、企业需求方（需认证）。认证状态四态，role-auth.html 页面根据认证状态展示不同内容。</p>
+
+  <h3>3.1 认证状态四态</h3>
+  <table>
+    <thead><tr><th>状态</th><th>authStatus 值</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>未认证</td><td><code>undefined</code> / <code>null</code></td><td>未选择角色</td></tr>
+      <tr><td>认证中</td><td><code>pending</code></td><td>已提交待审核</td></tr>
+      <tr><td>已认证</td><td><code>approved</code></td><td>审核通过</td></tr>
+      <tr><td>未通过</td><td><code>rejected</code></td><td>审核拒绝</td></tr>
+    </tbody>
+  </table>
+
+  <h3>3.2 role-auth.html 页面状态展示规则</h3>
+  <table>
+    <thead><tr><th>认证状态</th><th>图标</th><th>标题文案</th><th>展示内容</th><th>按钮</th></tr></thead>
+    <tbody>
+      <tr><td>approved（已认证）</td><td>✅</td><td>认证已通过</td><td>认证信息卡片（只读，灰色背景）</td><td>进入工作台（不再显示角色选择）</td></tr>
+      <tr><td>pending（认证中）</td><td>⏳</td><td>认证审核中</td><td>等待审核提示</td><td>返回工作台</td></tr>
+      <tr><td>rejected（未通过）</td><td>❌</td><td>认证未通过</td><td>红色背景展示拒绝原因</td><td>重新认证（清除状态回到角色选择）</td></tr>
+      <tr><td>未认证</td><td>—</td><td>—</td><td>角色选择卡片 + 步骤条</td><td>选择角色后展开认证表单</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout success">
+    <strong>✅ 已认证保留信息</strong>
+    认证通过后（approved），角色认证信息保留，不再重新认证。页面显示完整认证详情的只读卡片 + "进入工作台"按钮，不显示角色选择卡片。
+  </div>
+
+  <h3>3.3 角色权限矩阵</h3>
+  <table>
+    <thead><tr><th>权限项</th><th>超级管理员</th><th>OPC 服务者</th><th>企业需求方</th></tr></thead>
+    <tbody>
+      <tr><td>认证流程</td><td><span class="badge skip">跳过</span></td><td><span class="badge must">必填认证</span></td><td><span class="badge must">必填认证</span></td></tr>
+      <tr><td>进入工作台</td><td>✅ dashboard.html</td><td>opc-dashboard.html</td><td>dashboard.html</td></tr>
+      <tr><td>发布需求</td><td>✅</td><td>❌</td><td>✅</td></tr>
+      <tr><td>抢单接单</td><td>❌</td><td>✅</td><td>❌</td></tr>
+      <tr><td>管理用户</td><td>✅</td><td>❌</td><td>❌</td></tr>
+      <tr><td>审核认证</td><td>✅</td><td>❌</td><td>❌</td></tr>
+      <tr><td>角色徽章颜色</td><td>紫色 <code>#7c3aed</code></td><td>绿色 <code>#16a34a</code></td><td>橙色 <code>#ea580c</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>3.4 OPC 认证字段约束表</h3>
+  <p>与注册弹窗中的 OPC 认证表单一致。</p>
+  <table>
+    <thead><tr><th>字段</th><th>字段类型</th><th>必填</th><th>校验规则</th><th>文件类型枚举</th></tr></thead>
+    <tbody>
+      <tr><td>真实姓名 <code>name</code></td><td>text</td><td><span class="badge req">必填</span></td><td><code>length &gt;= 2</code></td><td>—</td></tr>
+      <tr><td>手机号 <code>phone</code></td><td>tel</td><td><span class="badge req">必填</span></td><td>/^1[3-9]\d{9}$/</td><td>—</td></tr>
+      <tr><td>身份证号 <code>idCard</code></td><td>text</td><td><span class="badge req">必填</span></td><td>/^\d{17}[\dXx]$/</td><td>—</td></tr>
+      <tr><td>所在城市 <code>city</code></td><td>text</td><td><span class="badge req">必填</span></td><td><code>length &gt;= 2</code></td><td>—</td></tr>
+      <tr><td>擅长领域 <code>fields</code></td><td>select</td><td><span class="badge req">必填</span></td><td>非空</td><td>—</td></tr>
+      <tr><td>接单状态 <code>status</code></td><td>select</td><td><span class="badge req">必填</span></td><td>全职接单 / 兼职接单</td><td>—</td></tr>
+      <tr><td>作品集链接 <code>portfolio</code></td><td>text</td><td><span class="badge opt">选填</span></td><td>—</td><td>—</td></tr>
+      <tr><td>个人简介 <code>intro</code></td><td>textarea</td><td><span class="badge opt">选填</span></td><td>—</td><td>—</td></tr>
+      <tr><td>身份证正面</td><td>file</td><td><span class="badge req">必填</span></td><td><code>image/*</code></td><td><code>id_front</code></td></tr>
+      <tr><td>身份证反面</td><td>file</td><td><span class="badge req">必填</span></td><td><code>image/*</code></td><td><code>id_back</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>3.5 企业认证字段约束表</h3>
+  <table>
+    <thead><tr><th>字段</th><th>字段类型</th><th>必填</th><th>校验规则</th><th>文件类型枚举</th></tr></thead>
+    <tbody>
+      <tr><td>企业名称 <code>companyName</code></td><td>text</td><td><span class="badge req">必填</span></td><td><code>length &gt;= 2</code></td><td>—</td></tr>
+      <tr><td>信用代码 <code>creditCode</code></td><td>text</td><td><span class="badge req">必填</span></td><td><code>length === 18</code></td><td>—</td></tr>
+      <tr><td>所属行业 <code>industry</code></td><td>select</td><td><span class="badge req">必填</span></td><td>10 个选项</td><td>—</td></tr>
+      <tr><td>企业规模 <code>scale</code></td><td>select</td><td><span class="badge req">必填</span></td><td>5 个选项</td><td>—</td></tr>
+      <tr><td>所在城市 <code>city</code></td><td>text</td><td><span class="badge req">必填</span></td><td><code>length &gt;= 2</code></td><td>—</td></tr>
+      <tr><td>企业地址 <code>address</code></td><td>text</td><td><span class="badge req">必填</span></td><td><code>length &gt;= 5</code></td><td>—</td></tr>
+      <tr><td>联系人 <code>contact</code></td><td>text</td><td><span class="badge req">必填</span></td><td><code>length &gt;= 2</code></td><td>—</td></tr>
+      <tr><td>联系电话 <code>phone</code></td><td>tel</td><td><span class="badge req">必填</span></td><td><code>length &gt;= 6</code></td><td>—</td></tr>
+      <tr><td>营业执照正本</td><td>file</td><td><span class="badge req">必填</span></td><td><code>image/*,.pdf</code></td><td><code>license</code></td></tr>
+      <tr><td>营业执照副本</td><td>file</td><td><span class="badge req">必填</span></td><td><code>image/*,.pdf</code></td><td><code>license</code></td></tr>
+      <tr><td>企业资质文件</td><td>file</td><td><span class="badge opt">选填</span></td><td><code>image/*,.pdf</code></td><td><code>qualification</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>3.6 步骤条状态机</h3>
+  <table>
+    <thead><tr><th>步骤</th><th>触发动作</th><th>当前步骤圆圈</th><th>上一步圆圈</th><th>连接线</th></tr></thead>
+    <tbody>
+      <tr><td>Step 1 选择角色</td><td>页面加载（未认证时）</td><td>黑色填充 + 白色「1」</td><td>—</td><td>灰色虚线</td></tr>
+      <tr><td>Step 2 填写认证</td><td>选择角色后</td><td>黑色填充 + 白色「2」</td><td>绿色填充 + 白色「✓」</td><td>line1 → 绿色实线</td></tr>
+      <tr><td>Step 3 确认提交</td><td>提交表单后</td><td>黑色填充 + 白色「3」</td><td>绿色填充 + 「✓」</td><td>line2 → 绿色实线</td></tr>
+      <tr><td>返回上一步</td><td>点击"← 重新选择身份"</td><td>回退到上一步骤状态</td><td>—</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <h3>3.7 角色徽章显示规则</h3>
+  <table>
+    <thead><tr><th>角色</th><th>徽章文字</th><th>状态后缀</th><th>完整显示</th><th>CSS 类</th></tr></thead>
+    <tbody>
+      <tr><td>admin</td><td>超级管理员</td><td>—</td><td>超级管理员</td><td><code>role-badge admin</code></td></tr>
+      <tr><td>opc（已认证）</td><td>OPC 服务者</td><td>已认证</td><td>OPC 服务者 / 已认证</td><td><code>role-badge opc</code></td></tr>
+      <tr><td>opc（认证中）</td><td>OPC 服务者</td><td>认证中</td><td>OPC 服务者 / 认证中</td><td><code>role-badge opc</code></td></tr>
+      <tr><td>enterprise（已认证）</td><td>企业需求方</td><td>已认证</td><td>企业需求方 / 已认证</td><td><code>role-badge enterprise</code></td></tr>
+      <tr><td>enterprise（认证中）</td><td>企业需求方</td><td>认证中</td><td>企业需求方 / 认证中</td><td><code>role-badge enterprise</code></td></tr>
+      <tr><td>未认证</td><td>未认证</td><td>—</td><td>未认证</td><td><code>role-badge none</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="divider"></div>
+
+<!-- ===== Chapter 4 ===== -->
+<div class="section" id="ch4">
+  <h2><span class="num">4</span> 工作台模块 <span class="tag">首页</span></h2>
+  <p class="lead">两个独立工作台，权限隔离：企业工作台（dashboard.html）和 OPC 工作台（opc-dashboard.html）。未认证用户功能受限，头像可上传，认证状态实时同步。</p>
+
+  <h3>4.1 企业工作台（dashboard.html）</h3>
+  <table>
+    <thead><tr><th>区域</th><th>内容</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>左侧导航栏</td><td>Logo + 菜单 + 用户卡片（含头像）</td><td>毛玻璃浮动卡片</td></tr>
+      <tr><td>快捷入口</td><td>发布需求、我的需求、草稿箱、消息通知</td><td>卡片网格</td></tr>
+      <tr><td>管理员专属入口</td><td>协议管理、变更日志、OPC管理、企业管理</td><td>仅管理员可见</td></tr>
+      <tr><td>用户卡片</td><td>头像 + 用户名 + 角色徽章</td><td>左下角，hover 头像显示 📷</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout danger">
+    <strong>🔴 身份守卫</strong>
+    OPC 用户访问 dashboard.html → 弹回 <code>opc-dashboard.html</code>。管理员可访问 dashboard.html。
+  </div>
+
+  <h3>4.2 OPC 工作台（opc-dashboard.html）</h3>
+  <table>
+    <thead><tr><th>区域</th><th>内容</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>主题色</td><td>绿色主题区分</td><td>与企业端视觉区分</td></tr>
+      <tr><td>快捷入口</td><td>抢单大厅、我的接单、报价管理、收益中心、能力标签、账号设置</td><td>卡片网格</td></tr>
+      <tr><td>统计卡片 ×4</td><td>本月新增需求、我的报价、进行中订单、累计收益</td><td>数字滚动动画</td></tr>
+      <tr><td>用户卡片</td><td>头像 + 用户名 + 角色徽章</td><td>左下角，hover 头像显示 📷</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout danger">
+    <strong>🔴 身份守卫</strong>
+    企业用户/管理员访问 opc-dashboard.html → 弹回 <code>dashboard.html</code>。
+  </div>
+
+  <h3>4.3 未认证用户限制</h3>
+  <div class="card highlight">
+    <h4>限制规则</h4>
+    <table>
+      <thead><tr><th>认证状态</th><th>遮罩行为</th><th>文案</th><th>按钮</th></tr></thead>
+      <tbody>
+        <tr><td>未认证</td><td>弹出毛玻璃遮罩，功能入口变灰（45% 透明度）+ 不可点击</td><td>请完成角色认证后解锁全部功能</td><td>去认证 / 先逛逛</td></tr>
+        <tr><td>认证中（pending）</td><td>同上遮罩</td><td>认证审核中，请耐心等待</td><td>先逛逛</td></tr>
+        <tr><td>未通过（rejected）</td><td>同上遮罩，红色背景展示拒绝原因</td><td>认证未通过：{拒绝原因}</td><td>重新认证 / 先逛逛</td></tr>
+        <tr><td>已认证（approved）</td><td>无遮罩，全部功能可用</td><td>—</td><td>—</td></tr>
+        <tr><td>管理员</td><td>不受限，全部功能可用</td><td>—</td><td>—</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <strong>⚠ 交互细节</strong>
+      ① 点击"先逛逛"可关闭遮罩，但功能入口依然禁用（灰度 + 不可点击）；② "角色认证"导航始终保持可点击；③ 页面内容在遮罩下方可见。
+    </div>
+  </div>
+
+  <h3>4.4 头像上传功能</h3>
+  <div class="card highlight">
+    <table>
+      <thead><tr><th>步骤</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>触发</td><td>左下角用户卡头像区域，hover 显示 📷 图标，点击触发文件选择</td></tr>
+        <tr><td>大小限制</td><td>2MB</td></tr>
+        <tr><td>读取方式</td><td><code>FileReader</code> 读取为 Base64 DataURL</td></tr>
+        <tr><td>保存位置</td><td><code>user.avatar</code> 和 <code>accounts[].avatar</code></td></tr>
+        <tr><td>文件记录</td><td>记录到 <code>opc_files</code>（含 fileName / filePath / fileSize / contentType / uploadUser / createTime）</td></tr>
+        <tr><td>变更日志</td><td>记录到变更日志，type = <code>avatar</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>4.5 认证状态实时同步</h3>
+  <table>
+    <thead><tr><th>触发时机</th><th>行为</th></tr></thead>
+    <tbody>
+      <tr><td>每 3 秒</td><td>从 <code>accounts</code> 表同步最新 authStatus / authRole / avatar</td></tr>
+      <tr><td>页面获得焦点时</td><td>同上同步</td></tr>
+      <tr><td>管理员审核通过后</td><td>用户端无需刷新即可看到状态变化</td></tr>
+      <tr><td>同步对象</td><td>徽章和头像实时更新</td></tr>
+    </tbody>
+  </table>
+  <pre><code><span class="code-comment">// 定时同步</span>
+setInterval(syncAuthStatus, <span class="code-number">3000</span>);
+
+<span class="code-comment">// 焦点同步</span>
+window.addEventListener(<span class="code-string">"focus"</span>, syncAuthStatus);
+
+<span class="code-keyword">function</span> syncAuthStatus() {
+  <span class="code-keyword">var</span> user = JSON.parse(localStorage.getItem(<span class="code-string">"opc_user"</span>));
+  <span class="code-keyword">var</span> accounts = JSON.parse(localStorage.getItem(<span class="code-string">"opc_accounts"</span>) || <span class="code-string">"[]"</span>);
+  <span class="code-keyword">var</span> acc = accounts.find(a =&gt; a.accountId === user.accountId);
+  <span class="code-keyword">if</span> (acc) {
+    user.authStatus = acc.authStatus;
+    user.authRole = acc.authRole;
+    user.avatar = acc.avatar;
+    localStorage.setItem(<span class="code-string">"opc_user"</span>, JSON.stringify(user));
+    updateBadgeAndAvatar();  <span class="code-comment">// 更新徽章和头像</span>
+  }
+}</code></pre>
+</div>
+
+<div class="divider"></div>
+
+<!-- ===== Chapter 5 ===== -->
+<div class="section" id="ch5">
+  <h2><span class="num">5</span> 管理员功能模块 <span class="tag">管理</span></h2>
+  <p class="lead">管理员（admin@opc.com）专属功能：审核管理、用户停用/启用、协议管理、变更日志页面。所有管理员功能仅在 dashboard.html 侧边栏可见。</p>
+
+  <h3>5.1 审核管理</h3>
+  <table>
+    <thead><tr><th>功能项</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>侧边栏入口</td><td>🛠️ OPC管理 + 🏢 企业管理（各带红色待审核角标）</td></tr>
+      <tr><td>审核列表排序</td><td>待审核排最前，展示完整认证信息</td></tr>
+      <tr><td>通过操作</td><td><code>confirm</code> 确认后通过</td></tr>
+      <tr><td>拒绝操作</td><td><code>prompt</code> 输入拒绝原因（必填，不可为空）</td></tr>
+      <tr><td>拒绝原因同步</td><td>同步到用户端（遮罩红色展示）</td></tr>
+      <tr><td>审核结果同步</td><td>实时同步到 <code>accounts</code> 表和 <code>opc_user</code></td></tr>
+    </tbody>
+  </table>
+
+  <pre><code><span class="code-comment">// 审核通过</span>
+<span class="code-keyword">if</span> (confirm(<span class="code-string">"确认通过该认证申请？"</span>)) {
+  acc.authStatus = <span class="code-string">"approved"</span>;
+  addLog(currentUser, <span class="code-string">"auth"</span>, <span class="code-string">"authStatus"</span>, <span class="code-string">"审核通过："</span> + acc.username);
+}
+
+<span class="code-comment">// 审核拒绝（原因必填）</span>
+<span class="code-keyword">var</span> reason = prompt(<span class="code-string">"请输入拒绝原因："</span>);
+<span class="code-keyword">if</span> (!reason || !reason.trim()) {
+  Toast.error(<span class="code-string">"拒绝时必须填写原因"</span>);  <span class="code-comment">// ERR_BAN_001</span>
+  <span class="code-keyword">return</span>;
+}
+acc.authStatus = <span class="code-string">"rejected"</span>;
+acc.rejectReason = reason.trim();
+addLog(currentUser, <span class="code-string">"auth"</span>, <span class="code-string">"authStatus"</span>, <span class="code-string">"审核拒绝："</span> + acc.username + <span class="code-string">"，原因："</span> + reason);</code></pre>
+
+  <h3>5.2 用户停用/启用</h3>
+  <table>
+    <thead><tr><th>操作</th><th>按钮</th><th>行为</th><th>状态变更</th></tr></thead>
+    <tbody>
+      <tr><td>停用</td><td>"停用"按钮（红色）</td><td>审核列表中已通过的用户追加此按钮</td><td><code>status = 1</code>，用户登录被拦截</td></tr>
+      <tr><td>启用</td><td>"启用"按钮（绿色）</td><td>已停用的用户显示此按钮</td><td><code>status = 0</code>，恢复登录</td></tr>
+      <tr><td>变更日志</td><td>—</td><td>停用/启用操作均记录到变更日志</td><td>type = <code>status</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>5.3 协议管理</h3>
+  <table>
+    <thead><tr><th>功能项</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>入口位置</td><td>左侧导航入口（仅管理员可见）</td></tr>
+      <tr><td>弹窗编辑器</td><td>两个文本框分别编辑《用户协议》和《隐私政策》</td></tr>
+      <tr><td>保存并生效</td><td>写入 localStorage，登录页即时生效</td></tr>
+      <tr><td>恢复默认</td><td>填回内置默认文案</td></tr>
+    </tbody>
+  </table>
+  <pre><code><span class="code-comment">// 保存协议</span>
+localStorage.setItem(<span class="code-string">"opc_agreement_user"</span>, userAgreementText);
+localStorage.setItem(<span class="code-string">"opc_agreement_privacy"</span>, privacyText);
+Toast.success(<span class="code-string">"协议已保存并即时生效"</span>);
+
+<span class="code-comment">// 恢复默认</span>
+document.getElementById(<span class="code-string">"agreementUser"</span>).value = DEFAULT_USER_AGREEMENT;
+document.getElementById(<span class="code-string">"agreementPrivacy"</span>).value = DEFAULT_PRIVACY_POLICY;</code></pre>
+
+  <h3>5.4 变更日志页面（change-log.html）</h3>
+  <div class="card highlight">
+    <table>
+      <thead><tr><th>属性</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>页面类型</td><td>独立页面（非弹窗）</td></tr>
+        <tr><td>访问权限</td><td>仅管理员可访问（非管理员自动跳转）</td></tr>
+        <tr><td>统计卡片 ×4</td><td>总变更次数、涉及用户数、头像更换次数、今日变更</td></tr>
+        <tr><td>类型筛选</td><td>全部 / 头像 / 资料 / 认证 / 状态</td></tr>
+        <tr><td>搜索框</td><td>按用户名或账号 ID 搜索</td></tr>
+        <tr><td>表格列</td><td>时间、用户（名称+ID）、变更类型标签、操作描述</td></tr>
+        <tr><td>自动刷新</td><td>每 5 秒自动刷新</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ===== Chapter 6 ===== -->
+<div class="section" id="ch6">
+  <h2><span class="num">6</span> 文件存储模块 <span class="tag">存储</span></h2>
+  <p class="lead">模拟 sys_file 表，存入 <code>localStorage.opc_files</code>。所有文件上传（头像、认证证件）均通过此模块记录。</p>
+
+  <h3>6.1 文件记录结构</h3>
+  <table>
+    <thead><tr><th>字段</th><th>类型</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><code>fileId</code></td><td>number</td><td>自增主键</td></tr>
+      <tr><td><code>fileName</code></td><td>string</td><td>原始文件名</td></tr>
+      <tr><td><code>filePath</code></td><td>string</td><td>模拟 MinIO 路径：<code>/uploads/年/月/fileId_文件名</code></td></tr>
+      <tr><td><code>fileSize</code></td><td>number</td><td>字节数</td></tr>
+      <tr><td><code>contentType</code></td><td>string</td><td>MIME 类型</td></tr>
+      <tr><td><code>uploadUser</code></td><td>string</td><td>上传者 accountId</td></tr>
+      <tr><td><code>createTime</code></td><td>number</td><td>时间戳</td></tr>
+      <tr><td><code>fileType</code></td><td>string</td><td>文件类型枚举（仅认证文件）</td></tr>
+    </tbody>
+  </table>
+
+  <h3>6.2 文件校验规则</h3>
+  <table>
+    <thead><tr><th>校验项</th><th>约束</th><th>错误提示</th></tr></thead>
+    <tbody>
+      <tr><td>最大文件大小</td><td>10MB（头像 2MB）</td><td>文件大小不能超过10MB</td></tr>
+      <tr><td>允许类型</td><td>jpeg / png / gif / webp / bmp / pdf</td><td>不支持的文件类型</td></tr>
+    </tbody>
+  </table>
+
+  <h3>6.3 文件类型枚举</h3>
+  <table>
+    <thead><tr><th>枚举值</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><code>id_front</code></td><td>身份证正面</td></tr>
+      <tr><td><code>id_back</code></td><td>身份证反面</td></tr>
+      <tr><td><code>license</code></td><td>营业执照</td></tr>
+      <tr><td><code>qualification</code></td><td>企业资质文件</td></tr>
+    </tbody>
+  </table>
+
+  <h3>6.4 文件路径生成</h3>
+  <pre><code><span class="code-comment">// 模拟 MinIO 路径生成</span>
+<span class="code-keyword">var</span> now = <span class="code-keyword">new</span> Date();
+<span class="code-keyword">var</span> year = now.getFullYear();
+<span class="code-keyword">var</span> month = String(now.getMonth() + <span class="code-number">1</span>).padStart(<span class="code-number">2</span>, <span class="code-string">"0"</span>);
+<span class="code-keyword">var</span> filePath = <span class="code-string">"/uploads/"</span> + year + <span class="code-string">"/"</span> + month + <span class="code-string">"/"</span> + fileId + <span class="code-string">"_"</span> + fileName;
+<span class="code-comment">// 示例: /uploads/2026/08/15_avatar.png</span></code></pre>
+
+  <h3>6.5 文件保存流程</h3>
+  <pre><code><span class="code-keyword">function</span> saveFile(file, fileType, uploadUser) {
+  <span class="code-comment">// 1. 校验大小</span>
+  <span class="code-keyword">var</span> maxMB = (fileType === <span class="code-string">"avatar"</span>) ? <span class="code-number">2</span> : <span class="code-number">10</span>;
+  <span class="code-keyword">if</span> (file.size &gt; maxMB * <span class="code-number">1024</span> * <span class="code-number">1024</span>) {
+    Toast.error(<span class="code-string">"文件大小不能超过"</span> + maxMB + <span class="code-string">"MB"</span>);
+    <span class="code-keyword">return</span> <span class="code-keyword">null</span>;
+  }
+  <span class="code-comment">// 2. 校验类型</span>
+  <span class="code-keyword">var</span> allowed = [<span class="code-string">"image/jpeg"</span>, <span class="code-string">"image/png"</span>, <span class="code-string">"image/gif"</span>, <span class="code-string">"image/webp"</span>, <span class="code-string">"image/bmp"</span>, <span class="code-string">"application/pdf"</span>];
+  <span class="code-keyword">if</span> (!allowed.includes(file.type)) {
+    Toast.error(<span class="code-string">"不支持的文件类型"</span>);
+    <span class="code-keyword">return</span> <span class="code-keyword">null</span>;
+  }
+  <span class="code-comment">// 3. 生成记录并保存</span>
+  <span class="code-keyword">var</span> files = JSON.parse(localStorage.getItem(<span class="code-string">"opc_files"</span>) || <span class="code-string">"[]"</span>);
+  <span class="code-keyword">var</span> fileId = files.length + <span class="code-number">1</span>;
+  <span class="code-keyword">var</span> record = {
+    fileId, fileName: file.name, filePath: generatePath(fileId, file.name),
+    fileSize: file.size, contentType: file.type, uploadUser,
+    createTime: Date.now(), fileType: fileType || <span class="code-string">""</span>
+  };
+  files.push(record);
+  localStorage.setItem(<span class="code-string">"opc_files"</span>, JSON.stringify(files));
+  <span class="code-keyword">return</span> record;
+}</code></pre>
+</div>
+
+<div class="divider"></div>
+
+<!-- ===== Chapter 7 ===== -->
+<div class="section" id="ch7">
+  <h2><span class="num">7</span> 数据变更日志 <span class="tag">日志</span></h2>
+  <p class="lead">通过 <code>addLog(user, type, field, desc)</code> 函数记录变更，存入 <code>localStorage.opc_change_logs</code>。管理员可在 change-log.html 查看全部日志。</p>
+
+  <h3>7.1 日志记录结构</h3>
+  <table>
+    <thead><tr><th>字段</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><code>time</code></td><td>时间戳（<code>Date.now()</code>）</td></tr>
+      <tr><td><code>userId</code></td><td>操作用户 accountId</td></tr>
+      <tr><td><code>userName</code></td><td>操作用户名</td></tr>
+      <tr><td><code>type</code></td><td>变更类型：avatar / profile / auth / status / file</td></tr>
+      <tr><td><code>field</code></td><td>变更字段名</td></tr>
+      <tr><td><code>desc</code></td><td>操作描述</td></tr>
+    </tbody>
+  </table>
+
+  <h3>7.2 addLog 函数实现</h3>
+  <pre><code><span class="code-keyword">function</span> addLog(user, type, field, desc) {
+  <span class="code-keyword">var</span> logs = JSON.parse(localStorage.getItem(<span class="code-string">"opc_change_logs"</span>) || <span class="code-string">"[]"</span>);
+  logs.push({
+    time: Date.now(),
+    userId: user.accountId,
+    userName: user.username,
+    type: type,        <span class="code-comment">// avatar | profile | auth | status | file</span>
+    field: field,
+    desc: desc
+  });
+  localStorage.setItem(<span class="code-string">"opc_change_logs"</span>, JSON.stringify(logs));
+}</code></pre>
+
+  <h3>7.3 触发场景</h3>
+  <table>
+    <thead><tr><th>场景</th><th>type 值</th><th>field 示例</th><th>desc 示例</th></tr></thead>
+    <tbody>
+      <tr><td>头像更换</td><td><code>avatar</code></td><td>avatar</td><td>更换了头像</td></tr>
+      <tr><td>认证审核通过</td><td><code>auth</code></td><td>authStatus</td><td>审核通过：OPC100001</td></tr>
+      <tr><td>认证审核拒绝</td><td><code>auth</code></td><td>authStatus</td><td>审核拒绝：OPC100001，原因：{原因}</td></tr>
+      <tr><td>账号停用</td><td><code>status</code></td><td>status</td><td>停用账号：OPC100001</td></tr>
+      <tr><td>账号启用</td><td><code>status</code></td><td>status</td><td>启用账号：OPC100001</td></tr>
+      <tr><td>资料修改</td><td><code>profile</code></td><td>对应字段名</td><td>修改了{字段名}</td></tr>
+      <tr><td>文件上传</td><td><code>file</code></td><td>对应 fileType</td><td>上传文件：{文件名}</td></tr>
+    </tbody>
+  </table>
+
+  <h3>7.4 变更类型枚举</h3>
+  <table>
+    <thead><tr><th>type 值</th><th>说明</th><th>标签颜色</th></tr></thead>
+    <tbody>
+      <tr><td><code>avatar</code></td><td>头像变更</td><td>蓝色</td></tr>
+      <tr><td><code>profile</code></td><td>资料变更</td><td>青色</td></tr>
+      <tr><td><code>auth</code></td><td>认证变更</td><td>绿色</td></tr>
+      <tr><td><code>status</code></td><td>状态变更</td><td>橙色</td></tr>
+      <tr><td><code>file</code></td><td>文件操作</td><td>紫色</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="divider"></div>
+
+<!-- ===== Chapter 8 ===== -->
+<div class="section" id="ch8">
+  <h2><span class="num">8</span> 全局设计规范 <span class="tag">规范</span></h2>
+
+  <h3>8.1 CSS 变量定义</h3>
+  <table>
+    <thead><tr><th>Token</th><th>值</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr><td><code>--primary</code></td><td><code>#3B5BFD</code></td><td>主色（按钮、链接、焦点态）</td></tr>
+      <tr><td><code>--primary-light</code></td><td><code>#EEF1FF</code></td><td>浅色背景、Tab 高亮</td></tr>
+      <tr><td><code>--primary-dark</code></td><td><code>#2d47e0</code></td><td>主色暗态</td></tr>
+      <tr><td><code>--text-main</code></td><td><code>#1A1D26</code></td><td>主文字</td></tr>
+      <tr><td><code>--text-sub</code></td><td><code>#6B7280</code></td><td>副文字</td></tr>
+      <tr><td><code>--text-hint</code></td><td><code>#9CA3AF</code></td><td>提示文字、占位符</td></tr>
+      <tr><td><code>--border</code></td><td><code>#E5E7EB</code></td><td>边框</td></tr>
+      <tr><td><code>--bg</code></td><td><code>#f8f9fc</code></td><td>页面背景</td></tr>
+      <tr><td><code>--card</code></td><td><code>#fff</code></td><td>卡片背景</td></tr>
+      <tr><td><code>--green</code></td><td><code>#16A34A</code></td><td>成功态（OPC 徽章）</td></tr>
+      <tr><td><code>--orange</code></td><td><code>#EA580C</code></td><td>警告态（企业徽章）</td></tr>
+      <tr><td><code>--red</code></td><td><code>#E5484D</code></td><td>错误态</td></tr>
+      <tr><td><code>--purple</code></td><td><code>#7C3AED</code></td><td>管理员徽章</td></tr>
+    </tbody>
+  </table>
+
+  <h3>8.2 字体栈</h3>
+  <pre><code>font-family: <span class="code-string">"Noto Sans SC"</span>, <span class="code-string">"Inter"</span>, sans-serif;
+<span class="code-comment">// 等宽字体</span>
+font-family: <span class="code-string">"JetBrains Mono"</span>, monospace;</code></pre>
+
+  <h3>8.3 响应式断点</h3>
+  <table>
+    <thead><tr><th>断点</th><th>行为变化</th></tr></thead>
+    <tbody>
+      <tr><td><code>max-width: 1024px</code></td><td>TOC 目录隐藏，主内容区取消左边距</td></tr>
+      <tr><td><code>max-width: 768px</code></td><td>登录页 padding 缩小，Logo/标题字号缩小；工作台侧边栏隐藏，卡片网格变单列</td></tr>
+      <tr><td><code>max-width: 900px</code></td><td>需求表单：左右布局 → 单列堆叠</td></tr>
+    </tbody>
+  </table>
+
+  <h3>8.4 Toast 组件规范</h3>
+  <table>
+    <thead><tr><th>类型</th><th>颜色</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr><td>success</td><td>绿色 <code>#16a34a</code></td><td>操作成功提示</td></tr>
+      <tr><td>error</td><td>红色 <code>#e5484d</code></td><td>错误/校验失败提示</td></tr>
+      <tr><td>info</td><td>蓝色 <code>#3B5BFD</code></td><td>信息提示</td></tr>
+      <tr><td>warn</td><td>橙色 <code>#ea580c</code></td><td>警告提示</td></tr>
+    </tbody>
+  </table>
+  <pre><code><span class="code-comment">/* Toast 样式 */</span>
+.toast {
+  position: fixed; top: <span class="code-number">24</span>px; left: <span class="code-number">50</span>%;
+  transform: translateX(-<span class="code-number">50</span>%);
+  padding: <span class="code-number">12</span>px <span class="code-number">24</span>px;
+  border-radius: <span class="code-number">8</span>px; color: #fff; font-size: <span class="code-number">14</span>px;
+  z-index: <span class="code-number">9999</span>; opacity: <span class="code-number">0</span>;
+  transition: opacity .<span class="code-number">3</span>s;
+}
+.toast.show { opacity: <span class="code-number">1</span>; }</code></pre>
+
+  <h3>8.5 毛玻璃遮罩规范</h3>
+  <pre><code><span class="code-comment">/* 未认证遮罩 */</span>
+.auth-mask {
+  position: fixed; top: <span class="code-number">0</span>; left: <span class="code-number">0</span>;
+  width: <span class="code-number">100</span>%; height: <span class="code-number">100</span>%;
+  backdrop-filter: blur(<span class="code-number">8</span>px);
+  -webkit-backdrop-filter: blur(<span class="code-number">8</span>px);
+  background: rgba(<span class="code-number">255</span>,<span class="code-number">255</span>,<span class="code-number">255</span>,.<span class="code-number">4</span>);
+  z-index: <span class="code-number">50</span>;
+}
+<span class="code-comment">/* 功能入口禁用态 */</span>
+.disabled-entry {
+  opacity: <span class="code-number">0.45</span>;
+  pointer-events: none;
+  cursor: not-allowed;
+}</code></pre>
+
+  <h3>8.6 徽章样式规范</h3>
+  <table>
+    <thead><tr><th>角色</th><th>背景色</th><th>文字色</th><th>CSS 类</th></tr></thead>
+    <tbody>
+      <tr><td>admin（管理员）</td><td><code>#f5f3ff</code>（紫底）</td><td><code>#7c3aed</code></td><td><code>role-badge admin</code></td></tr>
+      <tr><td>opc（OPC服务者）</td><td><code>#dcfce7</code>（绿底）</td><td><code>#16a34a</code></td><td><code>role-badge opc</code></td></tr>
+      <tr><td>enterprise（企业需求方）</td><td><code>#fff7ed</code>（橙底）</td><td><code>#ea580c</code></td><td><code>role-badge enterprise</code></td></tr>
+      <tr><td>none（未认证）</td><td><code>#f3f4f6</code>（灰底）</td><td><code>#9ca3af</code></td><td><code>role-badge none</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>8.7 圆角与阴影</h3>
+  <table>
+    <thead><tr><th>Token</th><th>值</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr><td>输入框圆角</td><td><code>10px</code></td><td>所有 input / textarea / select</td></tr>
+      <tr><td>卡片圆角</td><td><code>12-20px</code></td><td>登录卡片 20px，功能卡片 14px</td></tr>
+      <tr><td>按钮圆角</td><td><code>10px</code></td><td>主按钮</td></tr>
+      <tr><td>阴影</td><td><code>0 1px 3px rgba(0,0,0,.04)</code></td><td>卡片默认</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="divider"></div>
+
+<!-- ===== Appendix A ===== -->
+<div class="section" id="appA">
+  <h2>附录 A — 错误码索引</h2>
+  <table>
+    <thead><tr><th>错误码</th><th>模块</th><th>触发条件</th><th>提示文案</th></tr></thead>
+    <tbody>
+      <tr><td>ERR_LOGIN_001</td><td>登录</td><td>邮箱格式不正确</td><td>请输入邮箱地址</td></tr>
+      <tr><td>ERR_LOGIN_002</td><td>登录</td><td>验证码 <code>length &lt; 4</code></td><td>请输入验证码</td></tr>
+      <tr><td>ERR_LOGIN_003</td><td>登录</td><td>协议未勾选</td><td>请先同意用户协议和隐私政策</td></tr>
+      <tr><td>ERR_LOGIN_004</td><td>登录</td><td>账号已停用（<code>status === 1</code>）</td><td>该账号已被停用，请联系管理员</td></tr>
+      <tr><td>ERR_LOGIN_005</td><td>登录</td><td>验证码已达 3 次上限</td><td>已达上限 3/3</td></tr>
+      <tr><td>ERR_LOGIN_006</td><td>登录</td><td>封禁中</td><td>封禁中 {n}s</td></tr>
+      <tr><td>ERR_REG_001</td><td>注册</td><td>账户名 <code>length &lt; 2</code></td><td>请输入账户名</td></tr>
+      <tr><td>ERR_REG_002</td><td>注册</td><td>手机号不匹配</td><td>请输入正确的手机号</td></tr>
+      <tr><td>ERR_REG_003</td><td>注册</td><td>邮箱格式不正确</td><td>请输入正确的邮箱地址</td></tr>
+      <tr><td>ERR_REG_004</td><td>注册</td><td>密码 <code>length &lt; 6</code></td><td>密码至少6位</td></tr>
+      <tr><td>ERR_REG_005</td><td>注册</td><td>密码不含大小写+符号</td><td>密码需包含大写字母、小写字母和符号</td></tr>
+      <tr><td>ERR_REG_006</td><td>注册</td><td>两次密码不一致</td><td>两次输入的密码不一致</td></tr>
+      <tr><td>ERR_REG_007</td><td>注册</td><td>注册协议未勾选</td><td>请先同意用户协议和隐私政策</td></tr>
+      <tr><td>ERR_REG_008</td><td>注册</td><td>邮箱/手机号已注册</td><td>该邮箱已注册，请直接登录</td></tr>
+      <tr><td>ERR_AUTH_001</td><td>角色认证</td><td>OPC 认证字段校验失败</td><td>各字段对应提示</td></tr>
+      <tr><td>ERR_AUTH_002</td><td>角色认证</td><td>企业认证字段校验失败</td><td>各字段对应提示</td></tr>
+      <tr><td>ERR_FILE_001</td><td>文件上传</td><td>文件超过 10MB</td><td>文件大小不能超过10MB</td></tr>
+      <tr><td>ERR_FILE_002</td><td>文件上传</td><td>文件类型不支持</td><td>不支持的文件类型</td></tr>
+      <tr><td>ERR_BAN_001</td><td>审核管理</td><td>拒绝时未填原因</td><td>拒绝时必须填写原因</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="divider"></div>
+
+<!-- ===== Appendix B ===== -->
+<div class="section" id="appB">
+  <h2>附录 B — 校验正则汇总</h2>
+  <table>
+    <thead><tr><th>用途</th><th>正则</th></tr></thead>
+    <tbody>
+      <tr><td>手机号</td><td><code>/^1[3-9]\d{9}$/</code></td></tr>
+      <tr><td>身份证号</td><td><code>/^\d{17}[\dXx]$/</code></td></tr>
+      <tr><td>邮箱</td><td>标准 email 校验</td></tr>
+      <tr><td>密码强度-含大写</td><td><code>/[A-Z]/</code></td></tr>
+      <tr><td>密码强度-含小写</td><td><code>/[a-z]/</code></td></tr>
+      <tr><td>密码强度-含数字</td><td><code>/[0-9]/</code></td></tr>
+      <tr><td>密码强度-含符号</td><td><code>/[^a-zA-Z0-9]/</code></td></tr>
+    </tbody>
+  </table>
+  <pre><code><span class="code-comment">// 手机号校验</span>
+/^1[3-9]\d{9}$/
+
+<span class="code-comment">// 身份证号：18 位，最后一位可为 X</span>
+/^\d{17}[\dXx]$/
+
+<span class="code-comment">// 密码强度判断（5 个维度）</span>
+<span class="code-keyword">var</span> checks = {
+  len6:  password.length &gt;= <span class="code-number">6</span>,           <span class="code-comment">// 维度1：长度&gt;=6</span>
+  len10: password.length &gt;= <span class="code-number">10</span>,          <span class="code-comment">// 维度2：长度&gt;=10</span>
+  case:  /[a-z]/.test(password) &amp;&amp; /[A-Z]/.test(password),  <span class="code-comment">// 维度3：含大小写</span>
+  num:   /[0-9]/.test(password),          <span class="code-comment">// 维度4：含数字</span>
+  sym:   /[^a-zA-Z0-9]/.test(password)   <span class="code-comment">// 维度5：含符号</span>
+};
+<span class="code-keyword">var</span> score = Object.values(checks).filter(Boolean).length;
+<span class="code-comment">// &lt;=1 弱(红) | &lt;=2 中(橙) | &lt;=3 强(蓝) | &gt;=4 很强(绿)</span></code></pre>
+</div>
+
+<div class="divider"></div>
+
+<!-- ===== Appendix C ===== -->
+<div class="section" id="appC">
+  <h2>附录 C — localStorage 结构</h2>
+  <table>
+    <thead><tr><th>键名</th><th>类型</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><code>opc_user</code></td><td>JSON</td><td>当前登录用户信息</td></tr>
+      <tr><td><code>opc_accounts</code></td><td>JSON数组</td><td>所有注册账号</td></tr>
+      <tr><td><code>opc_review_queue</code></td><td>JSON数组</td><td>认证审核队列</td></tr>
+      <tr><td><code>opc_change_logs</code></td><td>JSON数组</td><td>数据变更日志</td></tr>
+      <tr><td><code>opc_files</code></td><td>JSON数组</td><td>文件存储记录</td></tr>
+      <tr><td><code>opc_remember</code></td><td>JSON</td><td>记住登录信息</td></tr>
+      <tr><td><code>opc_agreement_user</code></td><td>string</td><td>用户协议内容</td></tr>
+      <tr><td><code>opc_agreement_privacy</code></td><td>string</td><td>隐私政策内容</td></tr>
+    </tbody>
+  </table>
+
+  <h3>opc_user 结构</h3>
+  <pre><code>{
+  <span class="code-string">"username"</span>: <span class="code-string">"林小创"</span>,
+  <span class="code-string">"accountId"</span>: <span class="code-string">"OPC100001"</span>,
+  <span class="code-string">"email"</span>: <span class="code-string">"lin@qq.com"</span>,
+  <span class="code-string">"phone"</span>: <span class="code-string">"13850123456"</span>,
+  <span class="code-string">"avatar"</span>: <span class="code-string">"data:image/..."</span>,
+  <span class="code-string">"loginType"</span>: <span class="code-string">"email"</span>,
+  <span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+  <span class="code-string">"authRole"</span>: <span class="code-string">"opc"</span>,
+  <span class="code-string">"authStatus"</span>: <span class="code-string">"pending"</span>,
+  <span class="code-string">"authData"</span>: {...},
+  <span class="code-string">"rejectReason"</span>: <span class="code-string">""</span>,
+  <span class="code-string">"time"</span>: <span class="code-number">1234567890</span>
+}</code></pre>
+
+  <div class="callout info">
+    <strong>📌 opc_user.time 说明</strong>
+    <code>time</code> 为 <code>Date.now()</code> 毫秒时间戳，用于登录态过期判断。<strong>过期阈值：7 天 = 604800000 ms</strong>。每次受保护页面加载时检查 <code>Date.now() - user.time &gt; 604800000</code>，过期先 <code>removeItem</code> 再跳转。
+  </div>
+
+  <h3>opc_accounts 数组项结构</h3>
+  <pre><code>{
+  <span class="code-string">"accountId"</span>: <span class="code-string">"OPC100001"</span>,
+  <span class="code-string">"username"</span>: <span class="code-string">"林小创"</span>,
+  <span class="code-string">"email"</span>: <span class="code-string">"lin@qq.com"</span>,
+  <span class="code-string">"phone"</span>: <span class="code-string">"13850123456"</span>,
+  <span class="code-string">"password"</span>: <span class="code-string">"Abc@123"</span>,
+  <span class="code-string">"avatar"</span>: <span class="code-string">"data:image/..."</span>,
+  <span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+  <span class="code-string">"authRole"</span>: <span class="code-string">"opc"</span>,
+  <span class="code-string">"authStatus"</span>: <span class="code-string">"approved"</span>,
+  <span class="code-string">"authData"</span>: {...},
+  <span class="code-string">"rejectReason"</span>: <span class="code-string">""</span>,
+  <span class="code-string">"status"</span>: <span class="code-number">0</span>,
+  <span class="code-string">"createTime"</span>: <span class="code-number">1234567890</span>
+}</code></pre>
+
+  <h3>opc_remember 结构</h3>
+  <pre><code>{
+  <span class="code-string">"email"</span>: <span class="code-string">"lin@qq.com"</span>,
+  <span class="code-string">"remember"</span>: <span class="code-keyword">true</span>
+}</code></pre>
+
+  <h3>opc_files 数组项结构</h3>
+  <pre><code>{
+  <span class="code-string">"fileId"</span>: <span class="code-number">1</span>,
+  <span class="code-string">"fileName"</span>: <span class="code-string">"avatar.png"</span>,
+  <span class="code-string">"filePath"</span>: <span class="code-string">"/uploads/2026/08/1_avatar.png"</span>,
+  <span class="code-string">"fileSize"</span>: <span class="code-number">512000</span>,
+  <span class="code-string">"contentType"</span>: <span class="code-string">"image/png"</span>,
+  <span class="code-string">"uploadUser"</span>: <span class="code-string">"OPC100001"</span>,
+  <span class="code-string">"createTime"</span>: <span class="code-number">1234567890</span>,
+  <span class="code-string">"fileType"</span>: <span class="code-string">"id_front"</span>
+}</code></pre>
+
+  <h3>opc_change_logs 数组项结构</h3>
+  <pre><code>{
+  <span class="code-string">"time"</span>: <span class="code-number">1234567890</span>,
+  <span class="code-string">"userId"</span>: <span class="code-string">"OPC100001"</span>,
+  <span class="code-string">"userName"</span>: <span class="code-string">"林小创"</span>,
+  <span class="code-string">"type"</span>: <span class="code-string">"avatar"</span>,
+  <span class="code-string">"field"</span>: <span class="code-string">"avatar"</span>,
+  <span class="code-string">"desc"</span>: <span class="code-string">"更换了头像"</span>
+}</code></pre>
+</div>
+
+<div class="divider"></div>
+
+<!-- ===== Appendix D ===== -->
+<div class="section" id="appD">
+  <h2>附录 D — 任务拆分（3 人团队）</h2>
+
+  <table>
+    <thead><tr><th>任务</th><th>负责人</th><th>工时</th><th>依赖</th></tr></thead>
+    <tbody>
+      <tr><td>登录注册模块（邮箱登录+注册+密码强度+记住我+验证码限流）</td><td>前端A</td><td>3 天</td><td>无</td></tr>
+      <tr><td>角色认证模块（弹窗选择+OPC/企业表单+认证状态展示）</td><td>前端B</td><td>2 天</td><td>登录注册</td></tr>
+      <tr><td>工作台模块（企业端+OPC端+未认证限制+头像+实时同步）</td><td>前端A</td><td>3 天</td><td>角色认证</td></tr>
+      <tr><td>管理员功能（审核+停用/启用+协议管理+变更日志页）</td><td>前端B</td><td>2 天</td><td>角色认证</td></tr>
+      <tr><td>文件存储模块（sys_file模拟+校验+路径生成）</td><td>前端C</td><td>1 天</td><td>无</td></tr>
+      <tr><td>数据库设计与 API 对接</td><td>后端</td><td>3 天</td><td>全部前端</td></tr>
+      <tr><td>联调测试</td><td>全员</td><td>2 天</td><td>全部</td></tr>
+    </tbody>
+  </table>
+
+  <div class="row">
+    <div class="col">
+      <div class="card highlight">
+        <h4>👤 前端A — 登录注册 + 工作台</h4>
+        <table>
+          <tbody>
+            <tr><td>A1</td><td>login.html 完整实现（邮箱登录 + 注册面板 + 表单校验 + 模式切换）</td></tr>
+            <tr><td>A2</td><td>拼图滑块验证组件（拖动 + 判定 + 重置）</td></tr>
+            <tr><td>A3</td><td>验证码限流（3 次上限 + 封禁 2 分钟 + 倒计时）</td></tr>
+            <tr><td>A4</td><td>密码强度指示器（5 维度 + 4 档 + 实时显示）</td></tr>
+            <tr><td>A5</td><td>记住我功能（opc_remember + 自动填入 + Toast）</td></tr>
+            <tr><td>A6</td><td>第三方登录入口（Gitee + 飞书 + hover 色 + Toast）</td></tr>
+            <tr><td>A7</td><td>注册成功角色选择弹窗（无关闭按钮 + OPC/企业表单）</td></tr>
+            <tr><td>A8</td><td>协议查看弹窗（只读 + 管理员编辑即时生效）</td></tr>
+            <tr><td>A9</td><td>dashboard.html + opc-dashboard.html 双工作台布局</td></tr>
+            <tr><td>A10</td><td>未认证限制（毛玻璃遮罩 + 功能禁用 + 状态文案）</td></tr>
+            <tr><td>A11</td><td>头像上传（FileReader + Base64 + opc_files 记录）</td></tr>
+            <tr><td>A12</td><td>认证状态实时同步（3 秒 + 焦点 + 徽章/头像更新）</td></tr>
+            <tr><td>A13</td><td>身份守卫（OPC/企业/管理员跳转拦截）</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:12px;color:var(--text-hint);margin-top:8px">工时：6 天（3+3）· 依赖：角色认证模块</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card highlight">
+        <h4>👤 前端B — 角色认证 + 管理员</h4>
+        <table>
+          <tbody>
+            <tr><td>B1</td><td>role-auth.html 四态展示（approved/pending/rejected/未认证）</td></tr>
+            <tr><td>B2</td><td>步骤条状态机（3 步 + 返回）</td></tr>
+            <tr><td>B3</td><td>OPC 认证表单（10 字段 + 身份证正反面文件）</td></tr>
+            <tr><td>B4</td><td>企业认证表单（11 字段 + 营业执照正副本 + 资质文件）</td></tr>
+            <tr><td>B5</td><td>角色徽章显示规则（admin/opc/enterprise/none）</td></tr>
+            <tr><td>B6</td><td>审核管理（OPC管理 + 企业管理 + 待审核角标）</td></tr>
+            <tr><td>B7</td><td>审核操作（confirm 通过 + prompt 拒绝 + 原因必填）</td></tr>
+            <tr><td>B8</td><td>用户停用/启用（status=1 拦截 + 变更日志）</td></tr>
+            <tr><td>B9</td><td>协议管理弹窗（双文本框 + 保存生效 + 恢复默认）</td></tr>
+            <tr><td>B10</td><td>change-log.html 独立页面（统计卡片 + 筛选 + 搜索 + 5秒刷新）</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:12px;color:var(--text-hint);margin-top:8px">工时：4 天（2+2）· 依赖：登录注册模块</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card highlight">
+        <h4>👤 前端C — 文件存储 + 全局</h4>
+        <table>
+          <tbody>
+            <tr><td>C1</td><td>opc_files 模拟 sys_file 表（自增 fileId + 8 字段）</td></tr>
+            <tr><td>C2</td><td>文件校验（10MB / 头像 2MB + 类型白名单）</td></tr>
+            <tr><td>C3</td><td>MinIO 路径模拟（/uploads/年/月/fileId_文件名）</td></tr>
+            <tr><td>C4</td><td>文件类型枚举（id_front/id_back/license/qualification）</td></tr>
+            <tr><td>C5</td><td>addLog 函数 + opc_change_logs 结构</td></tr>
+            <tr><td>C6</td><td>全局 CSS 变量 + 响应式断点 + 动效统一</td></tr>
+            <tr><td>C7</td><td>Toast 组件规范（success/error/info/warn）</td></tr>
+            <tr><td>C8</td><td>毛玻璃遮罩规范（auth-mask + disabled-entry）</td></tr>
+            <tr><td>C9</td><td>页面间跳转串联 + 登录态校验注入</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:12px;color:var(--text-hint);margin-top:8px">工时：1 天 · 依赖：无（基础模块先行）</p>
+      </div>
+    </div>
+  </div>
+
+  <table style="margin-top:24px">
+    <thead><tr><th>角色</th><th>总工时</th><th>关键路径</th></tr></thead>
+    <tbody>
+      <tr><td>前端A</td><td>6 天</td><td>登录注册 → 角色认证 → 工作台</td></tr>
+      <tr><td>前端B</td><td>4 天</td><td>角色认证 → 管理员功能</td></tr>
+      <tr><td>前端C</td><td>1 天</td><td>文件存储 + 全局规范（先行）</td></tr>
+      <tr><td>后端</td><td>3 天</td><td>数据库设计 + API 对接（全部前端完成后）</td></tr>
+      <tr><td>全员</td><td>2 天</td><td>联调测试</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout info">
+    <strong>📌 总工期</strong>
+    关键路径：前端C（1天，先行） → 前端A 登录注册（3天） → 前端B 角色认证（2天） → 前端A 工作台（3天）/ 前端B 管理员（2天，并行） → 后端对接（3天） → 联调测试（2天）。预估总工期约 <strong>14 个工作日</strong>（含并行开发）。
+  </div>
+</div>
+
+<div style="text-align:center;margin-top:60px;padding-top:32px;border-top:1px solid var(--border);color:var(--text-hint);font-size:13px">
+  OPC 需求平台 PRD · 开发者版 · v2.0 · 2026-08-26
+</div>
+
+</div>
+</div>
+
+<script>
+// TOC active highlight
+var sections = document.querySelectorAll('.section');
+var tocLinks = document.querySelectorAll('.toc a');
+window.addEventListener('scroll', function() {
+  var scrollY = window.scrollY + 100;
+  sections.forEach(function(sec, i) {
+    if (sec.offsetTop <= scrollY && sec.offsetTop + sec.offsetHeight > scrollY) {
+      tocLinks.forEach(function(l) { l.classList.remove('active'); });
+      var link = document.querySelector('.toc a[href="#' + sec.id + '"]');
+      if (link) link.classList.add('active');
+    }
+  });
+});
+</script>
+</body>
+</html>
